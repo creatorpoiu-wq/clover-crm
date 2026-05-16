@@ -68,6 +68,9 @@ export async function POST(req: NextRequest) {
     const footerText  = es.footerText  || `Questions? Simply reply to this email and we'll be happy to help.`;
     const accentColor = es.accentColor || '#0d9488';
 
+    // HTML-encode & as &amp; for email href attributes (required by strict email clients like Outlook)
+    const proposalLinkHtml = proposalLink.replace(/&/g, '&amp;');
+
     // 6. Send the Email
     await transporter.sendMail({
       from: `"${companyName}" <${config.Email_User}>`,
@@ -83,13 +86,13 @@ export async function POST(req: NextRequest) {
             <p style="font-size: 16px; font-weight: 700; margin: 0 0 16px; color: #111827;">${greeting}</p>
             <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin: 0 0 32px;">${body}</p>
             <div style="text-align: center; margin: 0 0 32px;">
-              <a href="${proposalLink}" style="background: ${accentColor}; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 16px; display: inline-block;">
+              <a href="${proposalLinkHtml}" style="background: ${accentColor}; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 16px; display: inline-block;">
                 ${ctaText}
               </a>
             </div>
-            <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px;">Or copy this link:</p>
-            <p style="word-break: break-all; color: ${accentColor}; font-size: 13px; margin: 0;">
-              <a href="${proposalLink}">${proposalLink}</a>
+            <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px;">Or copy this link into your browser:</p>
+            <p style="word-break: break-all; color: #374151; font-size: 12px; margin: 0; background: #f9fafb; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              ${proposalLink}
             </p>
           </div>
           <div style="background: #f9fafb; padding: 20px 40px; border-top: 1px solid #e5e7eb; border-radius: 0 0 12px 12px; text-align: center;">
@@ -97,7 +100,8 @@ export async function POST(req: NextRequest) {
             <p style="font-size: 11px; color: #d1d5db; margin: 0;">Sent via ${companyName} CRM</p>
           </div>
         </div>
-      `
+      `,
+      text: `${greeting}\n\n${body}\n\nClick here to view your booking proposal:\n${proposalLink}\n\n${footerText}`
     });
 
     return NextResponse.json({ success: true, message: 'Proposal sent successfully via email.' });
