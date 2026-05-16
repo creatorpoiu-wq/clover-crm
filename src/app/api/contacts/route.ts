@@ -6,12 +6,18 @@ export async function GET() {
     const supabase = await createClient();
     const { data: contacts, error } = await supabase
       .from('Contacts')
-      .select('*')
+      .select('*, Packages (Name)')
       .order('Contact_ID', { ascending: false });
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, contacts });
+    // Flatten the package name into the contact object
+    const formattedContacts = contacts.map((c: any) => ({
+      ...c,
+      Package_Name: c.Packages?.Name || null
+    }));
+
+    return NextResponse.json({ success: true, contacts: formattedContacts });
   } catch (error: any) {
     console.error('Contacts API GET Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -21,7 +27,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { id, name, email, phone, leadSource } = await req.json();
+    const { id, name, email, phone, leadSource, packageId } = await req.json();
     
     if (!id || !name) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -33,7 +39,8 @@ export async function PUT(req: NextRequest) {
         Name: name,
         Email: email || "",
         Phone: phone || "",
-        Lead_Source: leadSource || "Website"
+        Lead_Source: leadSource || "Website",
+        Package_ID: packageId || null
       })
       .eq('Contact_ID', id);
 

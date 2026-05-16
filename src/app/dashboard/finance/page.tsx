@@ -46,8 +46,6 @@ export default function FinancePage() {
   // Invoice State
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
-  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
-  const [invoiceForm, setInvoiceForm] = useState({ inquiryId: "", issueDate: new Date().toISOString().split('T')[0], dueDate: "", totalAmount: "", status: "Draft" });
 
   // Contract State
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -119,21 +117,6 @@ export default function FinancePage() {
   };
 
   // Handlers
-  const handleCreateInvoice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch("/api/invoices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...invoiceForm, inquiryId: parseInt(invoiceForm.inquiryId), totalAmount: parseFloat(invoiceForm.totalAmount) })
-      });
-      if (res.ok) {
-        setShowInvoiceForm(false);
-        fetchInvoices();
-        setInvoiceForm({ inquiryId: "", issueDate: new Date().toISOString().split('T')[0], dueDate: "", totalAmount: "", status: "Draft" });
-      }
-    } catch (err) { console.error(err); }
-  };
 
   const handleCreateContract = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -377,40 +360,10 @@ export default function FinancePage() {
             <div className="animate-fade-in">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
                 <h2 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>Client Invoices</h2>
-                <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <button onClick={() => setShowInvoiceBuilder(true)} className="btn btn-outline" style={{ width: "auto", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                    <FileText size={16} /> Invoice Builder
-                  </button>
-                  <button onClick={() => setShowInvoiceForm(!showInvoiceForm)} className="btn btn-primary" style={{ width: "auto" }}>
-                    {showInvoiceForm ? <><X size={18} /> Cancel</> : <><Plus size={18} /> Quick Invoice</>}
-                  </button>
-                </div>
+                <button onClick={() => setShowInvoiceBuilder(true)} className="btn btn-primary" style={{ width: "auto", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Plus size={16} /> New Invoice
+                </button>
               </div>
-
-              {showInvoiceForm && (
-                <form onSubmit={handleCreateInvoice} className="glass-panel" style={{ padding: "1.5rem", marginBottom: "2rem", backgroundColor: "var(--muted-bg)" }}>
-                  <div className="grid grid-cols-1 md:grid-cols-4" style={{ gap: "1.5rem", marginBottom: "1.5rem" }}>
-                    <div style={{ gridColumn: "span 2" }}>
-                      <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Client / Inquiry *</label>
-                      <select required className="input" style={{ textAlign: "left", letterSpacing: "normal", fontSize: "0.875rem", padding: "0.75rem" }} value={invoiceForm.inquiryId} onChange={e => setInvoiceForm({...invoiceForm, inquiryId: e.target.value})}>
-                        <option value="">-- Select Client --</option>
-                        {inquiries.map(inq => <option key={inq.Inquiry_ID} value={inq.Inquiry_ID}>{inq.Contact_Name} ({inq.Service_Type})</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Total Amount ($) *</label>
-                      <input required type="number" step="0.01" className="input" style={{ textAlign: "left", letterSpacing: "normal", fontSize: "0.875rem", padding: "0.75rem" }} value={invoiceForm.totalAmount} onChange={e => setInvoiceForm({...invoiceForm, totalAmount: e.target.value})} />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Due Date *</label>
-                      <input required type="date" className="input" style={{ textAlign: "left", letterSpacing: "normal", fontSize: "0.875rem", padding: "0.75rem" }} value={invoiceForm.dueDate} onChange={e => setInvoiceForm({...invoiceForm, dueDate: e.target.value})} />
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                    <button type="submit" className="btn btn-primary" style={{ width: "auto" }}>Save Invoice</button>
-                  </div>
-                </form>
-              )}
 
               {loadingInvoices ? <div style={{ color: "var(--muted)" }}>Loading...</div> : (
                 <div style={{ overflowX: "auto" }}>

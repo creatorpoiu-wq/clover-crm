@@ -15,6 +15,8 @@ interface Contact {
   Email: string;
   Phone: string;
   Lead_Source: string;
+  Package_ID?: number | null;
+  Package_Name?: string | null;
 }
 
 interface Communication {
@@ -30,6 +32,7 @@ export default function ContactsPage() {
   // Data State
   const [inquiries, setInquiries] = useState<InquiryOption[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [packages, setPackages] = useState<any[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -61,6 +64,9 @@ export default function ContactsPage() {
 
   useEffect(() => {
     fetchInquiries();
+    fetch('/api/packages?type=packages')
+      .then(res => res.json())
+      .then(data => { if (data.success) setPackages(data.packages || []); });
     if (activeTab === "directory") {
       fetchContacts();
     }
@@ -165,10 +171,15 @@ export default function ContactsPage() {
 
   const saveEdit = async (id: number) => {
     try {
+      const payload = { 
+        id, 
+        ...editForm,
+        packageId: editForm.Package_ID 
+      };
       const res = await fetch("/api/contacts", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, ...editForm })
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         setEditingId(null);
@@ -260,6 +271,7 @@ export default function ContactsPage() {
                         <th style={{ padding: "1rem 0.5rem" }}>Email</th>
                         <th style={{ padding: "1rem 0.5rem" }}>Phone</th>
                         <th style={{ padding: "1rem 0.5rem" }}>Lead Source</th>
+                        <th style={{ padding: "1rem 0.5rem" }}>Package</th>
                         <th style={{ padding: "1rem 0.5rem", textAlign: "right" }}>Actions</th>
                       </tr>
                     </thead>
@@ -293,6 +305,20 @@ export default function ContactsPage() {
                                 </select>
                               ) : c.Lead_Source || "Website"}
                             </td>
+                            <td style={{ padding: "1rem 0.5rem" }}>
+                              {isEditing ? (
+                                <select className="input" value={editForm.Package_ID || ""} onChange={e => setEditForm({...editForm, Package_ID: parseInt(e.target.value) || null})} style={{ padding: "0.5rem", fontSize: "0.875rem" }}>
+                                  <option value="">-- No Package --</option>
+                                  {packages.map(pkg => (
+                                    <option key={pkg.Package_ID} value={pkg.Package_ID}>{pkg.Name}</option>
+                                  ))}
+                                </select>
+                              ) : c.Package_Name ? (
+                                <span style={{ display:'inline-block', padding:'2px 8px', background:'var(--status-blue)', color:'var(--status-blue-fg)', borderRadius:12, fontSize:'0.75rem', fontWeight:600 }}>{c.Package_Name}</span>
+                              ) : (
+                                <span style={{ color: "var(--muted)" }}>—</span>
+                              )}
+                            </td>
                             <td style={{ padding: "1rem 0.5rem", textAlign: "right" }}>
                               <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
                                 {isEditing ? (
@@ -302,7 +328,7 @@ export default function ContactsPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <button onClick={() => startEdit({ Contact_ID: c.Contact_ID, Name: c.Name, Email: c.Email, Phone: c.Phone, Lead_Source: c.Lead_Source })} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto" }} title="Edit"><Edit2 size={16} /></button>
+                                    <button onClick={() => startEdit({ Contact_ID: c.Contact_ID, Name: c.Name, Email: c.Email, Phone: c.Phone, Lead_Source: c.Lead_Source, Package_ID: c.Package_ID })} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto" }} title="Edit"><Edit2 size={16} /></button>
                                     <button 
                                       onClick={() => deleteContact(c.Contact_ID)} 
                                       className="btn btn-outline" 

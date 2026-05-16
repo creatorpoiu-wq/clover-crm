@@ -76,7 +76,7 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
     { id: 'paypal', name: 'PayPal', enabled: false, details: 'paypal.me/example' },
   ]);
 
-  const [themeColor, setThemeColor] = useState('#1e40af'); // Default blue
+  const [themeColor, setThemeColor] = useState('#1e40af');
   const themeColors = ['#1e40af', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#475569', '#000000'];
   
   const [businessLogo, setBusinessLogo] = useState('');
@@ -84,6 +84,11 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
   const [showLogo, setShowLogo] = useState(true);
   const [availablePackages, setAvailablePackages] = useState<any[]>([]);
   const [companyName, setCompanyName] = useState('');
+
+  // Deposit state
+  const [depositEnabled, setDepositEnabled] = useState(false);
+  const [depositType, setDepositType] = useState<'percentage' | 'fixed'>('percentage');
+  const [depositValue, setDepositValue] = useState<number>(50);
 
   useEffect(() => {
     fetch('/api/contacts').then(r=>r.json()).then(d=>{ if(d.success) setContacts(d.contacts); });
@@ -109,6 +114,10 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
   };
 
   const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.price, 0);
+  const depositAmount = depositEnabled
+    ? depositType === 'percentage' ? (subtotal * depositValue) / 100 : Math.min(depositValue, subtotal)
+    : 0;
+  const balanceDue = subtotal - depositAmount;
 
   const addItem = () => setLineItems(p => [...p, { id:genId(), description:'', quantity:1, price:0 }]);
   const addPackageToLineItems = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -117,10 +126,18 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
     const pkg = availablePackages.find(p => p.Package_ID.toString() === pkgId);
     if (!pkg) return;
     
+    // Build a full description including all package items
     let desc = pkg.Name;
     if (pkg.Duration) desc += ` (${pkg.Duration})`;
     if (pkg.Description) desc += `\n${pkg.Description}`;
-    
+    if (pkg.Items) {
+      try {
+        const items: string[] = typeof pkg.Items === 'string' && pkg.Items.trim().startsWith('[')
+          ? JSON.parse(pkg.Items)
+          : pkg.Items.split('\n').filter(Boolean);
+        if (items.length > 0) desc += `\n\nIncludes:\n` + items.map((i: string) => `\u2022 ${i}`).join('\n');
+      } catch { /* ignore */ }
+    }
     setLineItems(p => [...p, { id: genId(), description: desc, quantity: 1, price: pkg.Price }]);
     e.target.value = '';
   };
@@ -141,7 +158,8 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
 
   const getPayload = (action: string) => ({
     action, title, content:editor?.getHTML()||'', lineItems, draftId, clientName, clientEmail, dueDate, emailHeader, emailFooter,
-    themeColor, paymentMethods, businessLogo: showLogo ? businessLogo : '', businessAddress
+    themeColor, paymentMethods, businessLogo: showLogo ? businessLogo : '', businessAddress,
+    depositEnabled, depositType, depositValue, depositAmount, balanceDue,
   });
 
   const saveDraft = async () => {
@@ -288,9 +306,44 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
                     {availablePackages.map(p => <option key={p.Package_ID} value={p.Package_ID}>{p.Name} (${p.Price})</option>)}
                   </select>
                 </div>
-                <div style={{ borderTop:'2px solid #e5e7eb', paddingTop:12, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontWeight:800, fontSize:14, color:'#111827' }}>Total</span>
-                  <span style={{ fontWeight:800, fontSize:18, color:themeColor }}>${subtotal.toFixed(2)}</span>
+                {/* Totals + Deposit */}
+                <div style={{ borderTop:'2px solid #e5e7eb', paddingTop:12, display:'flex', flexDirection:'column', gap:6 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span style={{ fontWeight:800, fontSize:14, color:'#111827' }}>Subtotal</span>
+                    <span style={{ fontWeight:800, fontSize:16, color:themeColor }}>${subtotal.toFixed(2)}</span>
+                  </div>
+
+                  {/* Deposit Toggle */}
+                  <div style={{ borderTop:'1px solid #f3f4f6', paddingTop:10, marginTop:4 }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: depositEnabled ? 10 : 0 }}>
+                      <span style={{ fontSize:12, fontWeight:700, color:'#374151' }}>Require Deposit</span>
+                      <div onClick={() => setDepositEnabled(p => !p)} style={{ width:36, height:20, borderRadius:10, padding:2, background:depositEnabled?themeColor:'#d1d5db', cursor:'pointer', display:'flex', alignItems:'center', transition:'background 0.2s' }}>
+                        <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', transform:depositEnabled?'translateX(16px)':'translateX(0)', transition:'transform 0.2s' }}/>
+                      </div>
+                    </div>
+                    {depositEnabled && (
+                      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                        <div style={{ display:'flex', gap:6 }}>
+                          <button onClick={() => setDepositType('percentage')} style={{ flex:1, padding:'6px', border:`1.5px solid ${depositType==='percentage'?themeColor:'#e5e7eb'}`, borderRadius:6, background:depositType==='percentage'?themeColor+'18':'transparent', color:depositType==='percentage'?themeColor:'#6b7280', fontSize:12, fontWeight:700, cursor:'pointer' }}>% Percentage</button>
+                          <button onClick={() => setDepositType('fixed')} style={{ flex:1, padding:'6px', border:`1.5px solid ${depositType==='fixed'?themeColor:'#e5e7eb'}`, borderRadius:6, background:depositType==='fixed'?themeColor+'18':'transparent', color:depositType==='fixed'?themeColor:'#6b7280', fontSize:12, fontWeight:700, cursor:'pointer' }}>$ Fixed</button>
+                        </div>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#6b7280', flexShrink:0 }}>{depositType==='percentage'?'%':'$'}</span>
+                          <input type="number" min={0} max={depositType==='percentage'?100:undefined} value={depositValue} onChange={e => setDepositValue(parseFloat(e.target.value)||0)} style={{ ...inputStyle, flex:1, textAlign:'center' as const }} />
+                        </div>
+                        <div style={{ background:'#f0fdfa', padding:'10px 12px', borderRadius:8, border:'1px solid #ccfbf1' }}>
+                          <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                            <span style={{ color:'#6b7280' }}>Deposit Due Now</span>
+                            <span style={{ fontWeight:800, color:themeColor }}>${depositAmount.toFixed(2)}</span>
+                          </div>
+                          <div style={{ display:'flex', justifyContent:'space-between', fontSize:12 }}>
+                            <span style={{ color:'#6b7280' }}>Balance Remaining</span>
+                            <span style={{ fontWeight:700, color:'#374151' }}>${balanceDue.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -441,9 +494,27 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
                     </tbody>
                     <tfoot>
                       <tr style={{ borderTop:`2px solid ${themeColor}` }}>
-                        <td colSpan={3} style={{ padding:'16px', textAlign:'right' as const, fontWeight:800, fontSize:15, color:'#111827' }}>TOTAL DUE</td>
-                        <td style={{ padding:'16px', textAlign:'right' as const, fontWeight:900, fontSize:20, color:themeColor }}>${subtotal.toFixed(2)}</td>
+                        <td colSpan={3} style={{ padding:'12px 16px', textAlign:'right' as const, fontWeight:700, fontSize:13, color:'#6b7280' }}>SUBTOTAL</td>
+                        <td style={{ padding:'12px 16px', textAlign:'right' as const, fontWeight:800, fontSize:16, color:'#111827' }}>${subtotal.toFixed(2)}</td>
                       </tr>
+                      {depositEnabled && (
+                        <>
+                          <tr style={{ background: themeColor + '18' }}>
+                            <td colSpan={3} style={{ padding:'10px 16px', textAlign:'right' as const, fontWeight:800, fontSize:13, color:themeColor }}>DEPOSIT DUE NOW{depositType==='percentage'?` (${depositValue}%)`:''}</td>
+                            <td style={{ padding:'10px 16px', textAlign:'right' as const, fontWeight:900, fontSize:20, color:themeColor }}>${depositAmount.toFixed(2)}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan={3} style={{ padding:'10px 16px', textAlign:'right' as const, fontWeight:600, fontSize:13, color:'#6b7280' }}>BALANCE REMAINING</td>
+                            <td style={{ padding:'10px 16px', textAlign:'right' as const, fontWeight:700, fontSize:15, color:'#374151' }}>${balanceDue.toFixed(2)}</td>
+                          </tr>
+                        </>
+                      )}
+                      {!depositEnabled && (
+                        <tr>
+                          <td colSpan={3} style={{ padding:'16px', textAlign:'right' as const, fontWeight:800, fontSize:15, color:'#111827' }}>TOTAL DUE</td>
+                          <td style={{ padding:'16px', textAlign:'right' as const, fontWeight:900, fontSize:20, color:themeColor }}>${subtotal.toFixed(2)}</td>
+                        </tr>
+                      )}
                     </tfoot>
                   </table>
                 </div>

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   ArrowLeft, Edit3, MoreHorizontal, ChevronDown, Plus, Save, FolderOpen,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough as StrikeIcon,
@@ -306,12 +306,39 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
       .catch(() => {});
   }, []);
 
+  // Auto-fill client variables when initialClient is provided
+  useEffect(() => {
+    if (initialClient) {
+      setVariables(prev => ({
+        ...prev,
+        'Client Name': initialClient.Name || '',
+        'Client Email': initialClient.Email || '',
+      }));
+    }
+  }, [initialClient]);
+
   // Variables for document field population
   const [variables, setVariables] = useState<Record<string, string>>({
     'Client Name': '', 'Client Email': '', 'Photographer Name': '',
     'Contract Date': new Date().toLocaleDateString(),
-    'Total Amount': '', 'Effective Date': new Date().toLocaleDateString(),
+    'Total Amount': '', 'Deposit Percentage': '50', 'Deposit Amount': '', 'Balance Due': '',
+    'Effective Date': new Date().toLocaleDateString(),
   });
+
+  // Automatically calculate deposit/balance based on Total Amount
+  useEffect(() => {
+    const total = parseFloat(variables['Total Amount'].replace(/[^0-9.]/g, ''));
+    if (!isNaN(total) && total > 0) {
+      const pct = parseFloat(variables['Deposit Percentage']) || 50;
+      const deposit = (total * pct) / 100;
+      const balance = total - deposit;
+      setVariables(prev => ({
+        ...prev,
+        'Deposit Amount': `$${deposit.toFixed(2)}`,
+        'Balance Due': `$${balance.toFixed(2)}`
+      }));
+    }
+  }, [variables['Total Amount'], variables['Deposit Percentage']]);
 
   // Email header/footer
   const [emailHeader, setEmailHeader] = useState('You have received a contract from your studio');
@@ -356,7 +383,12 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
     return { initials, name: c.Name, email: c.Email, bg, color };
   };
 
-  const ownerSigner = { initials: companyName.slice(0, 2).toUpperCase() || 'ME', name: `${companyName} (You)`, email: 'owner@yourstudio.com', bg: '#fdf2f4', color: '#c2185b' };
+  const ownerSigner = useMemo(() => ({
+    initials: companyName.slice(0, 2).toUpperCase() || 'ME',
+    name: `${companyName || 'Your Studio'} (You)`,
+    email: 'owner@yourstudio.com',
+    bg: '#fdf2f4', color: '#c2185b'
+  }), [companyName]);
 
   const [signers, setSigners] = useState(() => {
     if (initialClient) {
