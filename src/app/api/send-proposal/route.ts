@@ -37,11 +37,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Create the Proposal Link
+    // Use the incoming request host as the most reliable source of the app URL
     const userId = userAuth.user.id;
+    const host = req.headers.get('host') || '';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
     const appUrl = process.env.NEXT_PUBLIC_BASE_URL
       || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-      || process.env.NEXT_PUBLIC_APP_URL
-      || 'http://localhost:3000';
+      || `${protocol}://${host}`;
     const proposalLink = `${appUrl}/booking?userId=${userId}&contractId=${contractId}&questionnaireId=${questionnaireId}`;
 
     // 4. Configure Nodemailer Transporter
