@@ -29,35 +29,23 @@ export default function EventQuestionnaire({ data, setData, onNext, onBack, funn
   const subtitle = step?.subtitle || 'Help us prepare the perfect agreement for your event.';
 
   useEffect(() => {
+    // Priority 1: templateId from URL (direct proposal link)
     const urlTemplateId = searchParams.get('questionnaireId');
-    
-    if (urlTemplateId) {
-      fetch(`/api/questionnaire?type=fields&templateId=${urlTemplateId}`)
+    // Priority 2: templateId from funnelSettings (loaded by BookingFunnel via public API)
+    const settingsTemplateId = funnelSettings?.questionnaireTemplateId;
+
+    const templateId = urlTemplateId || settingsTemplateId;
+
+    if (templateId) {
+      fetch(`/api/public-booking?type=fields&templateId=${templateId}`)
         .then(res => res.json())
         .then(fData => { if (fData.success) setFields(fData.fields); })
         .catch(err => console.error(err))
         .finally(() => setLoading(false));
     } else {
-      fetch('/api/questionnaire?type=settings')
-        .then(res => res.json())
-        .then(sData => {
-          const templateId = sData.settings?.Questionnaire_Template_ID;
-          if (templateId) {
-            fetch(`/api/questionnaire?type=fields&templateId=${templateId}`)
-              .then(res => res.json())
-              .then(fData => { if (fData.success) setFields(fData.fields); })
-              .catch(err => console.error(err))
-              .finally(() => setLoading(false));
-          } else {
-            setLoading(false);
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          setLoading(false);
-        });
+      setLoading(false);
     }
-  }, [searchParams]);
+  }, [searchParams, funnelSettings]);
 
   const handleChange = (label: string, value: any) => {
     setData((prev: any) => ({ ...prev, [label]: value }));

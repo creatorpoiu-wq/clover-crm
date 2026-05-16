@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import PackageSelection from './PackageSelection';
 import EventQuestionnaire from './EventQuestionnaire';
 import DigitalContract from './DigitalContract';
@@ -11,6 +12,7 @@ export default function BookingFunnel() {
   const [loading, setLoading] = useState(true);
   const [packages, setPackages] = useState<any[]>([]);
   const [funnelSettings, setFunnelSettings] = useState<any>(null);
+  const searchParams = useSearchParams();
   
   // Funnel State
   const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
@@ -19,34 +21,30 @@ export default function BookingFunnel() {
   const [signature, setSignature] = useState('');
 
   useEffect(() => {
-    const pkgFetch = fetch('/api/packages?type=packages')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.packages.length > 0) {
-          setPackages(data.packages);
-        } else {
-          setPackages([
-            { Package_ID: 'p1', Name: 'Essential', Price: 2500, Duration: '6 Hours', Items: 'High-Res Digital Gallery\n1 Photographer\nPrint Release' },
-            { Package_ID: 'p2', Name: 'Premium', Price: 4000, Duration: '8 Hours', Items: 'High-Res Digital Gallery\n2 Photographers\nEngagement Session\nPrint Release' },
-            { Package_ID: 'p3', Name: 'Cinematic', Price: 6500, Duration: '10 Hours', Items: 'High-Res Digital Gallery\n2 Photographers & 1 Videographer\nHighlight Film\nEngagement Session' },
-          ]);
-        }
-      })
-      .catch(() => {
-        setPackages([
-          { Package_ID: 'p1', Name: 'Essential', Price: 2500, Duration: '6 Hours', Items: 'High-Res Digital Gallery\n1 Photographer\nPrint Release' },
-          { Package_ID: 'p2', Name: 'Premium', Price: 4000, Duration: '8 Hours', Items: 'High-Res Digital Gallery\n2 Photographers\nEngagement Session\nPrint Release' },
-          { Package_ID: 'p3', Name: 'Cinematic', Price: 6500, Duration: '10 Hours', Items: 'High-Res Digital Gallery\n2 Photographers & 1 Videographer\nHighlight Film\nEngagement Session' },
-        ]);
-      });
+    const userId = searchParams.get('userId');
 
-    const settingsFetch = fetch('/api/funnel-settings')
-      .then(res => res.json())
-      .then(data => { if (data.success) setFunnelSettings(data.settings); })
-      .catch(() => {});
+    const settingsFetch = userId
+      ? fetch(`/api/public-booking?type=settings&userId=${userId}`)
+          .then(res => res.json())
+          .then(data => { if (data.success) setFunnelSettings(data.settings); })
+          .catch(() => {})
+      : fetch('/api/funnel-settings')
+          .then(res => res.json())
+          .then(data => { if (data.success) setFunnelSettings(data.settings); })
+          .catch(() => {});
+
+    const pkgFetch = userId
+      ? fetch(`/api/public-booking?type=packages&userId=${userId}`)
+          .then(res => res.json())
+          .then(data => { if (data.success) setPackages(data.packages); })
+          .catch(() => {})
+      : fetch('/api/packages?type=packages')
+          .then(res => res.json())
+          .then(data => { if (data.success) setPackages(data.packages); })
+          .catch(() => {});
 
     Promise.all([pkgFetch, settingsFetch]).finally(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   const steps = ['Packages', 'Questionnaire', 'Contract', 'Payment'];
 
