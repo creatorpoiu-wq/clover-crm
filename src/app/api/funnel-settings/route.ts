@@ -67,7 +67,8 @@ export async function PUT(req: NextRequest) {
 
     const { error } = await supabase
       .from('Booking_Settings')
-      .update({
+      .upsert({
+        user_id: userId,
         Step1_Title: s1?.title || DEFAULTS.Step1_Title,
         Step1_Subtitle: s1?.subtitle || DEFAULTS.Step1_Subtitle,
         Step2_Title: s2?.title || DEFAULTS.Step2_Title,
@@ -80,8 +81,7 @@ export async function PUT(req: NextRequest) {
         Payment_Methods: JSON.stringify(paymentMethods || []),
         Confirmation_Title: confirmationTitle || DEFAULTS.Confirmation_Title,
         Confirmation_Message: confirmationMessage || DEFAULTS.Confirmation_Message,
-      })
-      .eq('user_id', userId);
+      }, { onConflict: 'user_id' });
 
     if (error) throw error;
 

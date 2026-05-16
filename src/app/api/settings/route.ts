@@ -69,14 +69,13 @@ export async function POST(req: NextRequest) {
 
     const { error } = await supabase
       .from('AppConfig')
-      .update(updatePayload)
-      .eq('user_id', userAuth.user.id);
+      .upsert({ user_id: userAuth.user.id, ...updatePayload }, { onConflict: 'user_id' });
 
     if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Settings POST API Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error('Settings POST API Error:', JSON.stringify(error, null, 2));
+    return NextResponse.json({ success: false, error: error?.message || JSON.stringify(error) }, { status: 500 });
   }
 }
