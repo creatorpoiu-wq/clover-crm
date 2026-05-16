@@ -57,7 +57,7 @@ function EmailPreview({ settings, companyName }: { settings: any; companyName: s
     <div style={{ fontFamily: "Arial, sans-serif", maxWidth: 560, margin: "0 auto", border: "1px solid #e5e7eb", borderRadius: 10, overflow: "hidden", fontSize: 14, color: "#374151" }}>
       {/* Banner */}
       <div style={{ background: ac, padding: "28px 32px" }}>
-        <div style={{ color: "#fff", fontWeight: 800, fontSize: 18, marginBottom: 6 }}>{companyName || "Your Studio"}</div>
+        <div style={{ color: "#fff", fontWeight: 800, fontSize: 18, marginBottom: 6 }}>{companyName || "Your Company"}</div>
         <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 14 }}>{settings.headerText}</div>
       </div>
       {/* Body */}

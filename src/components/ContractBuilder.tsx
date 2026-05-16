@@ -289,7 +289,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   const [contractTitle, setContractTitle] = useState('Sample Client Contract');
   const [editingTitle, setEditingTitle] = useState(false);
   const [statusBadge, setStatusBadge] = useState<'Draft' | 'Sent'>('Draft');
-  const [companyName, setCompanyName] = useState('Your Studio');
+  const [companyName, setCompanyName] = useState('');
 
   // Fetch company name from settings
   useEffect(() => {
@@ -341,7 +341,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   }, [variables['Total Amount'], variables['Deposit Percentage']]);
 
   // Email header/footer
-  const [emailHeader, setEmailHeader] = useState('You have received a contract from your studio');
+  const [emailHeader, setEmailHeader] = useState('You have received a new contract');
   const [emailFooter, setEmailFooter] = useState('Please review the agreement carefully. Reply to this email with any questions.');
 
   // Provider (owner) pre-saved signature
@@ -385,7 +385,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
 
   const ownerSigner = useMemo(() => ({
     initials: companyName.slice(0, 2).toUpperCase() || 'ME',
-    name: `${companyName || 'Your Studio'} (You)`,
+    name: `${companyName || 'Service Provider'} (You)`,
     email: 'owner@yourstudio.com',
     bg: '#fdf2f4', color: '#c2185b'
   }), [companyName]);
