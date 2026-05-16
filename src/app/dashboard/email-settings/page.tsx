@@ -85,15 +85,21 @@ export default function EmailSettingsPage() {
   const [settings, setSettings] = useState<Record<EmailType, any>>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [companyName, setCompanyName] = useState("Your Studio");
+  const [companyName, setCompanyName] = useState('');
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
     fetch("/api/email-settings")
       .then(r => r.json())
       .then(d => { if (d.success) setSettings(d.settings); });
-    const name = sessionStorage.getItem("companyName");
-    if (name) setCompanyName(name);
+    // Load company name from settings API
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(d => {
+        const name = d.config?.Company_Name || d.Company_Name || '';
+        if (name) setCompanyName(name);
+      })
+      .catch(() => {});
   }, []);
 
   const showToast = (msg: string, type: "success" | "error") => {

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       auth: { user: config.Email_User, pass: config.Email_Pass }
     });
 
-    const companyName = config.Company_Name || 'Our Studio';
+    const companyName = config.Company_Name || 'Clover';
     const clientName = contact.Name.split(' ')[0];
 
     // Replace variables in the template

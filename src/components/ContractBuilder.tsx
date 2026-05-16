@@ -289,16 +289,32 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   const [contractTitle, setContractTitle] = useState('Sample Client Contract');
   const [editingTitle, setEditingTitle] = useState(false);
   const [statusBadge, setStatusBadge] = useState<'Draft' | 'Sent'>('Draft');
+  const [companyName, setCompanyName] = useState('Your Studio');
+
+  // Fetch company name from settings
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(d => {
+        const name = d.config?.Company_Name || d.Company_Name || '';
+        if (name) {
+          setCompanyName(name);
+          setVariables(prev => ({ ...prev, 'Photographer Name': name }));
+          setEmailHeader(`You have received a contract from ${name}`);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Variables for document field population
   const [variables, setVariables] = useState<Record<string, string>>({
-    'Client Name': '', 'Client Email': '', 'Photographer Name': 'C.R Marx',
+    'Client Name': '', 'Client Email': '', 'Photographer Name': '',
     'Contract Date': new Date().toLocaleDateString(),
     'Total Amount': '', 'Effective Date': new Date().toLocaleDateString(),
   });
 
   // Email header/footer
-  const [emailHeader, setEmailHeader] = useState('You have received a contract from C.R Marx Photography');
+  const [emailHeader, setEmailHeader] = useState('You have received a contract from your studio');
   const [emailFooter, setEmailFooter] = useState('Please review the agreement carefully. Reply to this email with any questions.');
 
   // Provider (owner) pre-saved signature
@@ -340,7 +356,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
     return { initials, name: c.Name, email: c.Email, bg, color };
   };
 
-  const ownerSigner = { initials: 'CRM', name: 'C.R Marx Photography (You)', email: 'thecrmarx@gmail.com', bg: '#fdf2f4', color: '#c2185b' };
+  const ownerSigner = { initials: companyName.slice(0, 2).toUpperCase() || 'ME', name: `${companyName} (You)`, email: 'owner@yourstudio.com', bg: '#fdf2f4', color: '#c2185b' };
 
   const [signers, setSigners] = useState(() => {
     if (initialClient) {
@@ -404,7 +420,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
 
   const sendContract = async () => {
     if (!editor) return;
-    const clientSigners = signers.filter(s => !s.email.includes('thecrmarx'));
+    const clientSigners = signers.filter(s => !s.email.includes('owner@yourstudio'));
     if (clientSigners.length === 0) {
       setSaveMsg('⚠ Add a client signer first');
       setTimeout(() => setSaveMsg(''), 4000);

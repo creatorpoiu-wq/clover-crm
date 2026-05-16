@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       const Phone = (reminder as any).Inquiries?.Contacts?.Phone;
 
       const firstName = (Contact_Name || 'there').split(' ')[0];
-      const companyName = config.Company_Name || 'Our Studio';
+      const companyName = config.Company_Name || 'Clover';
 
       let emailSettings: any = {};
       try { emailSettings = JSON.parse(config.Email_Settings || '{}'); } catch { emailSettings = {}; }
