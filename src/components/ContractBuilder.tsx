@@ -296,7 +296,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
     fetch('/api/settings')
       .then(r => r.json())
       .then(d => {
-        const name = d.config?.Company_Name || d.Company_Name || '';
+        const name = d.config?.companyName || d.config?.Company_Name || d.companyName || d.Company_Name || '';
         if (name) {
           setCompanyName(name);
           setVariables(prev => ({ ...prev, 'Photographer Name': name }));
