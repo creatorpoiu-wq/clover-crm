@@ -160,12 +160,19 @@ export default function QuestionnaireBuilder() {
   };
 
   const updateSetting = async (key: 'contractTemplateId' | 'questionnaireTemplateId', val: number | null) => {
-    const res = await fetch('/api/questionnaire', {
+    // Optimistically update local state immediately so there's no page refresh feel
+    const dbKey = key === 'contractTemplateId' ? 'Contract_Template_ID' : 'Questionnaire_Template_ID';
+    setSettings((prev: any) => ({ ...prev, [dbKey]: val }));
+    setSendFormData(prev => ({
+      ...prev,
+      [key === 'contractTemplateId' ? 'contractId' : 'questionnaireId']: val?.toString() || ''
+    }));
+
+    await fetch('/api/questionnaire', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'settings', [key]: val })
     });
-    if (res.ok) fetchInitialData(); // Refresh settings state
   };
 
   const handleSendProposal = async (e: React.FormEvent) => {
