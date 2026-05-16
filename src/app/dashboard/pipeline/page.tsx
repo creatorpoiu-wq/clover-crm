@@ -1,0 +1,284 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save } from "lucide-react";
+import { formatDate } from "@/lib/formatDate";
+
+interface InquiryData {
+  Inquiry_ID: number;
+  Contact_Name: string;
+  Email: string;
+  Phone: string;
+  Service_Type: string;
+  Pipeline_Stage: string;
+  Estimated_Value: number;
+  Status_Flag: string;
+  Event_Date?: string | null;
+}
+
+const STAGES = [
+  "New Inquiry",
+  "Discovery/Consultation",
+  "Proposal Drafted",
+  "Proposal Sent",
+  "Negotiation/Revision",
+  "Booked",
+];
+
+export default function PipelinePage() {
+  const [inquiries, setInquiries] = useState<InquiryData[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Modal State
+  const [selectedInquiry, setSelectedInquiry] = useState<InquiryData | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<InquiryData>>({});
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+  const fetchInquiries = () => {
+    setLoading(true);
+    fetch("/api/inquiries")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setInquiries(data.inquiries || []);
+        }
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchInquiries();
+  }, []);
+
+  const handleUpdate = async () => {
+    if (!selectedInquiry) return;
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedInquiry.Inquiry_ID,
+          Service_Type: editForm.Service_Type,
+          Pipeline_Stage: editForm.Pipeline_Stage,
+          Estimated_Value: editForm.Estimated_Value,
+          Event_Date: editForm.Event_Date,
+        }),
+      });
+      if (res.ok) {
+        setSelectedInquiry(null);
+        setIsEditing(false);
+        fetchInquiries();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedInquiry) return;
+    
+    if (confirmDeleteId !== selectedInquiry.Inquiry_ID) {
+      setConfirmDeleteId(selectedInquiry.Inquiry_ID);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
+      return;
+    }
+    setConfirmDeleteId(null);
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/inquiries?id=${selectedInquiry.Inquiry_ID}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setSelectedInquiry(null);
+        fetchInquiries();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (loading && inquiries.length === 0) {
+    return <div className="empty-state">Loading pipeline board...</div>;
+  }
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
+
+  return (
+    <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column" }}>
+      <div className="mb-6">
+        <h1 className="page-title">Pipeline Board</h1>
+        <p className="page-subtitle">Track and move deals through the pipeline.</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem", paddingBottom: "2rem" }}>
+        {STAGES.map((stage) => {
+          const stageInquiries = inquiries.filter((i) => i.Pipeline_Stage === stage);
+          const stageTotal = stageInquiries.reduce((sum, i) => sum + (i.Estimated_Value || 0), 0);
+          
+          return (
+            <div key={stage} className="glass-panel flex-col" style={{ display: "flex", minHeight: "400px" }}>
+              <div style={{ padding: "1rem", borderBottom: "1px solid var(--border)", backgroundColor: "rgba(0,0,0,0.02)" }}>
+                <div style={{ fontSize: "0.875rem", fontWeight: 800, textTransform: "uppercase", color: "var(--muted)", marginBottom: "0.5rem" }}>
+                  {stage}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "1.25rem", fontWeight: 900 }}>{stageInquiries.length}</span>
+                  <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)" }}>{formatCurrency(stageTotal)}</span>
+                </div>
+              </div>
+
+              <div style={{ padding: "1rem", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {stageInquiries.length > 0 ? (
+                  stageInquiries.map((inq) => (
+                    <div 
+                      key={inq.Inquiry_ID} 
+                      onClick={() => { setSelectedInquiry(inq); setEditForm(inq); setIsEditing(false); }}
+                      style={{ padding: "1rem", borderRadius: "0.5rem", backgroundColor: "var(--background)", border: "1px solid var(--border)", cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease" }}
+                      onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)"; }}
+                      onMouseOut={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
+                    >
+                      <div style={{ marginBottom: "0.5rem" }}>
+                        <span className="badge" style={{ backgroundColor: "var(--muted-bg)", color: "var(--foreground)" }}>
+                          {inq.Status_Flag}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: "1.125rem", marginBottom: "0.25rem" }}>{inq.Contact_Name}</div>
+                      <div style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "0.5rem" }}>{inq.Service_Type}</div>
+                      
+                      {inq.Event_Date && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", fontWeight: 600, color: "#15803d", marginBottom: "0.75rem", backgroundColor: "#dcfce7", padding: "0.15rem 0.4rem", borderRadius: "0.25rem", width: "fit-content" }}>
+                          <Calendar size={12} /> {formatDate(inq.Event_Date)}
+                        </div>
+                      )}
+                      
+                      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                        {inq.Email && (
+                          <a href={`mailto:${inq.Email}`} title={`Email ${inq.Email}`} style={{ color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, padding: "0.25rem 0.5rem", backgroundColor: "rgba(15, 118, 110, 0.1)", borderRadius: "0.25rem", transition: "background-color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "rgba(15, 118, 110, 0.2)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "rgba(15, 118, 110, 0.1)"}>
+                            <Mail size={16} /> Email
+                          </a>
+                        )}
+                        {inq.Phone && (
+                          <a href={`tel:${inq.Phone}`} title={`Call ${inq.Phone}`} style={{ color: "var(--status-blue-fg)", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, padding: "0.25rem 0.5rem", backgroundColor: "rgba(30, 64, 175, 0.1)", borderRadius: "0.25rem", transition: "background-color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "rgba(30, 64, 175, 0.2)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "rgba(30, 64, 175, 0.1)"}>
+                            <Phone size={16} /> Call
+                          </a>
+                        )}
+                      </div>
+
+                      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontWeight: 700, color: "var(--primary)" }}>{formatCurrency(inq.Estimated_Value)}</span>
+                        <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>#{inq.Inquiry_ID}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="empty-state" style={{ textAlign: "center", padding: "2rem 0" }}>No deals</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Inquiry Preview / Edit Modal */}
+      {selectedInquiry && (
+        <div className="mobile-overlay open" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", zIndex: 100 }}>
+          <div className="glass-panel" style={{ width: "100%", maxWidth: "500px", padding: "2rem", backgroundColor: "var(--background)", position: "relative" }}>
+            <button onClick={() => setSelectedInquiry(null)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}>
+              <X size={20} />
+            </button>
+            
+            <h2 className="section-header" style={{ border: "none", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {isEditing ? "Edit Inquiry" : "Inquiry Details"}
+            </h2>
+
+            {isEditing ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div>
+                  <label className="label">Service Type</label>
+                  <input type="text" className="input" value={editForm.Service_Type || ""} onChange={(e) => setEditForm({ ...editForm, Service_Type: e.target.value })} />
+                </div>
+                <div>
+                  <label className="label">Pipeline Stage</label>
+                  <select className="input" value={editForm.Pipeline_Stage || ""} onChange={(e) => setEditForm({ ...editForm, Pipeline_Stage: e.target.value })}>
+                    {STAGES.map(stage => <option key={stage} value={stage}>{stage}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Event Date</label>
+                  <input type="date" className="input" value={editForm.Event_Date || ""} onChange={(e) => setEditForm({ ...editForm, Event_Date: e.target.value })} />
+                </div>
+                <div>
+                  <label className="label">Estimated Value ($)</label>
+                  <input type="number" className="input" value={editForm.Estimated_Value || ""} onChange={(e) => setEditForm({ ...editForm, Estimated_Value: Number(e.target.value) })} />
+                </div>
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleUpdate}><Save size={16} /> Save Changes</button>
+                  <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setIsEditing(false)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "var(--primary)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.25rem", fontWeight: 800 }}>
+                    {selectedInquiry.Contact_Name.charAt(0)}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: "1.25rem" }}>{selectedInquiry.Contact_Name}</div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--muted)" }}>{selectedInquiry.Status_Flag}</div>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", backgroundColor: "var(--muted-bg)", padding: "1rem", borderRadius: "0.5rem" }}>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Service Type</div>
+                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Service_Type}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Stage</div>
+                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Pipeline_Stage}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Estimated Value</div>
+                    <div style={{ fontWeight: 600, color: "var(--primary)" }}>{formatCurrency(selectedInquiry.Estimated_Value)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Event Date</div>
+                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Event_Date ? formatDate(selectedInquiry.Event_Date) : "Not Set"}</div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "1rem" }}>
+                  <a href={`mailto:${selectedInquiry.Email}`} className="btn btn-outline" style={{ flex: 1, padding: "0.5rem" }}><Mail size={16} /> Email</a>
+                  <a href={`tel:${selectedInquiry.Phone}`} className="btn btn-outline" style={{ flex: 1, padding: "0.5rem" }}><Phone size={16} /> Call</a>
+                </div>
+
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", borderTop: "1px solid var(--border)", paddingTop: "1.5rem" }}>
+                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setIsEditing(true)}><Edit size={16} /> Edit Details</button>
+                  <button 
+                    className="btn btn-outline" 
+                    style={{ 
+                      flex: 1, 
+                      color: confirmDeleteId === selectedInquiry.Inquiry_ID ? "#fff" : "var(--status-red-fg)", 
+                      borderColor: "#dc2626",
+                      background: confirmDeleteId === selectedInquiry.Inquiry_ID ? "#dc2626" : "transparent"
+                    }} 
+                    onClick={handleDelete} 
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : confirmDeleteId === selectedInquiry.Inquiry_ID ? "Confirm Delete?" : <><Trash2 size={16} /> Delete</>}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
