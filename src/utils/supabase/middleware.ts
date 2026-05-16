@@ -63,6 +63,9 @@ export async function updateSession(request: NextRequest) {
                         request.nextUrl.pathname.startsWith('/proposal') || 
                         request.nextUrl.pathname.startsWith('/invoice') || 
                         request.nextUrl.pathname.startsWith('/contract') ||
+                        request.nextUrl.pathname.startsWith('/sign') ||
+                        request.nextUrl.pathname.startsWith('/booking') ||
+                        request.nextUrl.pathname.startsWith('/auth') ||
                         request.nextUrl.pathname === '/';
 
   // If there's no user and trying to access a protected route

@@ -37,7 +37,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Create the Proposal Link
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_BASE_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || process.env.NEXT_PUBLIC_APP_URL
+      || 'http://localhost:3000';
     const proposalLink = `${appUrl}/booking?contractId=${contractId}&questionnaireId=${questionnaireId}`;
 
     // 4. Configure Nodemailer Transporter

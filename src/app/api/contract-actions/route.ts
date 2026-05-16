@@ -106,7 +106,9 @@ export async function POST(req: NextRequest) {
 
       // Generate sign token FIRST so the SAME token is in both the email link and the DB row
       const signToken = randomUUID();
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+        || 'http://localhost:3000';
       const signUrl = `${baseUrl}/sign/${signToken}`;
 
       // Build signature block HTML
