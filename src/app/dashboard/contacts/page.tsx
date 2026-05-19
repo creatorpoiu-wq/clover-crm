@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { UserPlus, Plus, MessageSquare, Users, Edit2, Trash2, Save, X, Search } from "lucide-react";
+import Link from "next/link";
 
 interface InquiryOption {
   Inquiry_ID: number;
@@ -283,7 +284,7 @@ export default function ContactsPage() {
                             <td style={{ padding: "1rem 0.5rem", fontWeight: 600 }}>
                               {isEditing ? (
                                 <input type="text" className="input" value={editForm.Name || ""} onChange={e => setEditForm({...editForm, Name: e.target.value})} style={{ padding: "0.5rem", fontSize: "0.875rem" }} />
-                              ) : c.Name}
+                              ) : <Link href={`/dashboard/contacts/${c.Contact_ID}`} style={{ color: "#4da685", textDecoration: "none" }} className="hover:underline">{c.Name}</Link>}
                             </td>
                             <td style={{ padding: "1rem 0.5rem" }}>
                               {isEditing ? (

@@ -54,12 +54,12 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
         <h1 className="sidebar-title">
-          {companyName}
+          {companyName.toLowerCase()}<span style={{ color: '#4da685' }}>.</span>
         </h1>
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map((item) => {
+        {navItems.slice(0, 4).map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           return (
@@ -69,7 +69,27 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               onClick={onClose}
               className={`nav-item ${isActive ? "active" : ""}`}
             >
-              <Icon size={20} />
+              <Icon size={18} strokeWidth={2} />
+              {item.name}
+            </Link>
+          );
+        })}
+
+        <div style={{ marginTop: '1rem', marginBottom: '0.25rem', paddingLeft: '1rem', fontSize: '11px', fontWeight: 700, color: '#a0a0a0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          Tools
+        </div>
+
+        {navItems.slice(4).map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              onClick={onClose}
+              className={`nav-item ${isActive ? "active" : ""}`}
+            >
+              <Icon size={18} strokeWidth={2} />
               {item.name}
             </Link>
           );
@@ -83,7 +103,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <ExternalLink size={20} />
+              <ExternalLink size={18} strokeWidth={2} />
               Booking Proposal
             </div>
             <span style={{ fontSize: 12 }}>{bookingExpanded ? '▼' : '▶'}</span>

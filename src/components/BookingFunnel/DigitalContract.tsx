@@ -1,7 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PenTool, Wand2 } from 'lucide-react';
+import SignaturePad from 'signature_pad';
 
 interface Props {
   questionnaire: any;
@@ -21,6 +22,34 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
+
+  // Signature Pad State
+  const sigCanvasRef = useRef<HTMLCanvasElement>(null);
+  const sigPadRef = useRef<any>(null);
+  const [showSigPad, setShowSigPad] = useState(false);
+
+  // Initialize signature pad
+  useEffect(() => {
+    if (!showSigPad || !sigCanvasRef.current) return;
+    const canvas = sigCanvasRef.current;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.scale(ratio, ratio);
+    
+    // Clear old instance to avoid memory leak if re-mounted
+    if (sigPadRef.current) {
+      sigPadRef.current.off();
+    }
+    
+    sigPadRef.current = new SignaturePad(canvas, { 
+      minWidth: 1, 
+      maxWidth: 2.5, 
+      penColor: '#1e3a5f', 
+      backgroundColor: 'rgba(0,0,0,0)' 
+    });
+  }, [showSigPad]);
 
   const step = funnelSettings?.steps?.[2];
   const title = step?.title || 'Review & Sign Your Contract';
@@ -238,18 +267,56 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
           <h4 style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 16px', color: '#111827', display: 'flex', alignItems: 'center', gap: 6 }}>
             <PenTool size={16} /> Digital Signature
           </h4>
-          <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>By typing your full legal name below, you acknowledge that you have read, understand, and agree to the terms outlined in this agreement.</p>
-          <input 
-            type="text" 
-            placeholder="Type your full legal name" 
-            value={signature}
-            onChange={(e) => setSignature(e.target.value)}
-            style={{ 
-              width: '100%', padding: '16px', border: '2px solid #d1d5db', borderRadius: 8, 
-              fontSize: 18, fontFamily: "'Caveat', cursive", outline: 'none', background: '#fff',
-              boxSizing: 'border-box' as const, transition: 'border 0.2s'
-            }}
-          />
+          <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>By drawing your signature below, you acknowledge that you have read, understand, and agree to the terms outlined in this agreement.</p>
+          
+          {signature && signature.startsWith('data:image') ? (
+            <div>
+              <div style={{ border: '2px solid #e5e7eb', borderRadius: 8, background: '#fff', padding: 8, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={signature} alt="Client Signature" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+              </div>
+              <button 
+                onClick={() => {
+                  setSignature('');
+                  setShowSigPad(true);
+                }}
+                style={{ marginTop: 12, padding: '10px 16px', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Re-sign Document
+              </button>
+            </div>
+          ) : showSigPad ? (
+            <div>
+              <div style={{ border: '2px dashed #d1d5db', borderRadius: 8, height: 160, position: 'relative', background: '#fff', cursor: 'crosshair' }}>
+                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 14, color: '#9ca3af', pointerEvents: 'none' }}>Draw your signature here</span>
+                <canvas ref={sigCanvasRef} style={{ width: '100%', height: '100%', borderRadius: 8, display: 'block' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+                <button 
+                  onClick={() => {
+                    if (!sigPadRef.current || sigPadRef.current.isEmpty()) return;
+                    setSignature(sigPadRef.current.toDataURL());
+                    setShowSigPad(false);
+                  }} 
+                  style={{ flex: 2, padding: '12px', border: 'none', borderRadius: 8, background: '#111827', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}
+                >
+                  Save Signature
+                </button>
+                <button 
+                  onClick={() => sigPadRef.current?.clear()}
+                  style={{ flex: 1, padding: '12px', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#374151', fontWeight: 600 }}
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setShowSigPad(true)}
+              style={{ width: '100%', padding: '16px', border: '2px dashed #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 15, color: '#4b5563', fontWeight: 700 }}
+            >
+              Click here to sign
+            </button>
+          )}
         </div>
       </div>
 

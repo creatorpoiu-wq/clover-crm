@@ -127,3 +127,30 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const body = await req.json();
+    const { contactId, Service_Type, Pipeline_Stage, Estimated_Value, Event_Date } = body;
+    
+    if (!contactId) return NextResponse.json({ success: false, error: "Missing contactId" }, { status: 400 });
+
+    const { data, error } = await supabase
+      .from('Inquiries')
+      .insert({
+        Contact_ID: contactId,
+        Service_Type: Service_Type || 'Custom Session',
+        Pipeline_Stage: Pipeline_Stage || 'New/Lead',
+        Estimated_Value: Estimated_Value || null,
+        Event_Date: Event_Date || null
+      })
+      .select();
+
+    if (error) throw error;
+    return NextResponse.json({ success: true, inquiry: data[0] });
+  } catch (error: any) {
+    console.error('Inquiries POST Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
