@@ -3,9 +3,18 @@
 import { useEffect, useState, Suspense } from "react";
 import { Settings as SettingsIcon, Mail, Link as LinkIcon, CheckCircle2, RefreshCw, Eye, EyeOff, Send, ShieldCheck } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 function SettingsInner() {
   const [companyName, setCompanyName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [website, setWebsite] = useState("");
+  const [phone, setPhone] = useState("");
+  const [timeZone, setTimeZone] = useState("(GMT-05:00) America, Jamaica");
+  const [dateFormat, setDateFormat] = useState("dd/mm/yyyy");
+
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [hasToken, setHasToken] = useState(false);
@@ -13,6 +22,12 @@ function SettingsInner() {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState<{type: "success" | "error", text: string} | null>(null);
+
+  // Account Security state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [updatingAccount, setUpdatingAccount] = useState(false);
+  const [accountMsg, setAccountMsg] = useState<{type: "success" | "error", text: string} | null>(null);
 
   // Email config state
   const [emailUser, setEmailUser] = useState("");
@@ -47,6 +62,14 @@ function SettingsInner() {
       .then(data => {
         if (data.success && data.config) {
           setCompanyName(data.config.companyName || "");
+          setFirstName(data.config.firstName || "");
+          setLastName(data.config.lastName || "");
+          setContactEmail(data.config.contactEmail || "");
+          setWebsite(data.config.website || "");
+          setPhone(data.config.phone || "");
+          if (data.config.timeZone) setTimeZone(data.config.timeZone);
+          if (data.config.dateFormat) setDateFormat(data.config.dateFormat);
+          
           setClientId(data.config.googleClientId || "");
           setClientSecret(data.config.googleClientSecret || "");
           setHasToken(data.config.hasRefreshToken || false);
@@ -60,6 +83,12 @@ function SettingsInner() {
         }
       })
       .finally(() => setLoading(false));
+
+    // Fetch user's current login email
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }: any) => {
+      if (user?.email) setLoginEmail(user.email);
+    });
   }, [searchParams]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -70,7 +99,10 @@ function SettingsInner() {
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyName, googleClientId: clientId, googleClientSecret: clientSecret, businessLogo, businessAddress, twilioSid, twilioAuthToken, twilioPhone })
+        body: JSON.stringify({ 
+          companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat,
+          googleClientId: clientId, googleClientSecret: clientSecret, businessLogo, businessAddress, twilioSid, twilioAuthToken, twilioPhone 
+        })
       });
       if (res.ok) setMessage({ type: "success", text: "Settings saved successfully!" });
       else setMessage({ type: "error", text: "Failed to save settings." });
@@ -78,6 +110,36 @@ function SettingsInner() {
       setMessage({ type: "error", text: "An error occurred." });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUpdateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdatingAccount(true);
+    setAccountMsg(null);
+    const supabase = createClient();
+    
+    const updates: any = {};
+    if (loginEmail) updates.email = loginEmail;
+    if (loginPassword) updates.password = loginPassword;
+    
+    if (Object.keys(updates).length === 0) {
+      setUpdatingAccount(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser(updates);
+      if (error) {
+        setAccountMsg({ type: "error", text: error.message });
+      } else {
+        setAccountMsg({ type: "success", text: "Account credentials updated successfully. You may need to verify your new email." });
+        setLoginPassword("");
+      }
+    } catch (err: any) {
+      setAccountMsg({ type: "error", text: "An error occurred updating account." });
+    } finally {
+      setUpdatingAccount(false);
     }
   };
 
@@ -192,22 +254,44 @@ function SettingsInner() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        {/* General Settings */}
+        {/* Business Profile Settings */}
         <div className="glass-panel" style={{ padding: "2rem" }}>
-          <div className="flex items-center gap-2 section-header">
-            <SettingsIcon size={20} className="text-[var(--primary)]" />
-            <h2>General Settings</h2>
+          <div className="flex items-center gap-2 section-header" style={{ marginBottom: "0.5rem" }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>Business Profile</h2>
           </div>
-          <form onSubmit={handleSave} className="space-y-6">
-            <div>
-              <label style={labelStyle}>Company Name</label>
-              <input type="text" style={inputStyle} value={companyName} onChange={e => setCompanyName(e.target.value)} />
-            </div>
-            <div>
-              <label style={labelStyle}>Business Address</label>
-              <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" as const }} value={businessAddress} onChange={e => setBusinessAddress(e.target.value)} placeholder="123 Main St, City, State ZIP" />
-            </div>
-            <div>
+          <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "2rem", lineHeight: 1.5 }}>
+            Your business profile information will be visible in various places such as invoices, receipts, payment statements and more. This information is shared across all your <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic" }}>Clover</span> applications.
+          </p>
+          <form onSubmit={handleSave} style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "1.25rem", alignItems: "center" }}>
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Business name</div>
+            <input type="text" style={inputStyle} value={companyName} onChange={e => setCompanyName(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>First name</div>
+            <input type="text" style={inputStyle} value={firstName} onChange={e => setFirstName(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Last name</div>
+            <input type="text" style={inputStyle} value={lastName} onChange={e => setLastName(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Email</div>
+            <input type="email" style={inputStyle} value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Website</div>
+            <input type="url" style={inputStyle} value={website} onChange={e => setWebsite(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Phone</div>
+            <input type="tel" style={inputStyle} value={phone} onChange={e => setPhone(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Address</div>
+            <input type="text" style={inputStyle} value={businessAddress} onChange={e => setBusinessAddress(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Time zone</div>
+            <input type="text" style={inputStyle} value={timeZone} onChange={e => setTimeZone(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Date format</div>
+            <input type="text" style={inputStyle} value={dateFormat} onChange={e => setDateFormat(e.target.value)} />
+            
+            <div style={{ gridColumn: "1 / -1", borderTop: "1px solid var(--border)", margin: "1rem 0", paddingTop: "1rem" }}>
               <label style={labelStyle}>Business Logo</label>
               {businessLogo && (
                 <div style={{ marginBottom: "0.75rem", padding: "0.75rem", border: "1px solid var(--border)", borderRadius: "0.5rem", background: "var(--muted-bg)", display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -228,8 +312,44 @@ function SettingsInner() {
                 }}/>
               </label>
             </div>
-            <button type="submit" className="btn btn-primary" disabled={saving} style={{ width: "auto" }}>
-              {saving ? "Saving..." : "Save Settings"}
+
+            <div style={{ gridColumn: "1 / -1", marginTop: "1rem" }}>
+              <button type="submit" className="btn btn-primary" disabled={saving} style={{ width: "auto" }}>
+                {saving ? "Saving..." : "Save Business Profile"}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Account Security */}
+        <div className="glass-panel" style={{ padding: "2rem" }}>
+          <div className="flex items-center gap-2 section-header">
+            <ShieldCheck size={20} className="text-[var(--primary)]" />
+            <h2>Account Security</h2>
+          </div>
+          <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "1.5rem" }}>
+            Update your login credentials here. This is the email you use to sign into the CRM.
+          </p>
+
+          {accountMsg && (
+            <div style={{ marginBottom: "1rem", padding: "0.75rem 1rem", borderRadius: "0.5rem", fontWeight: 600, fontSize: "0.875rem",
+              backgroundColor: accountMsg.type === "success" ? "var(--status-green)" : "var(--status-red)",
+              color: accountMsg.type === "success" ? "var(--status-green-fg)" : "var(--status-red-fg)" }}>
+              {accountMsg.text}
+            </div>
+          )}
+
+          <form onSubmit={handleUpdateAccount} className="space-y-4 mb-6">
+            <div>
+              <label style={labelStyle}>Login Email</label>
+              <input type="email" style={inputStyle} value={loginEmail} onChange={e => setLoginEmail(e.target.value)} />
+            </div>
+            <div>
+              <label style={labelStyle}>New Password <span style={{ color: "var(--muted)", fontWeight: 400 }}>(leave blank to keep current)</span></label>
+              <input type="password" style={inputStyle} value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="••••••••" />
+            </div>
+            <button type="submit" className="btn btn-primary" disabled={updatingAccount} style={{ width: "auto" }}>
+              {updatingAccount ? "Updating..." : "Update Credentials"}
             </button>
           </form>
         </div>

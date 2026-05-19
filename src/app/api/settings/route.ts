@@ -24,6 +24,13 @@ export async function GET() {
       success: true, 
       config: {
         companyName: config.Company_Name || '',
+        firstName: config.First_Name || '',
+        lastName: config.Last_Name || '',
+        contactEmail: config.Contact_Email || '',
+        website: config.Website || '',
+        phone: config.Phone || '',
+        timeZone: config.Time_Zone || '',
+        dateFormat: config.Date_Format || '',
         googleClientId: config.Google_Client_ID || '',
         googleClientSecret: config.Google_Client_Secret || '',
         hasRefreshToken: !!config.Google_Refresh_Token,
@@ -45,7 +52,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { companyName, googleClientId, googleClientSecret, emailUser, emailPass, businessLogo, businessAddress, twilioSid, twilioAuthToken, twilioPhone } = await req.json();
+    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, googleClientId, googleClientSecret, emailUser, emailPass, businessLogo, businessAddress, twilioSid, twilioAuthToken, twilioPhone } = await req.json();
     
     // Check if the user has an AppConfig row
     const { data: userAuth } = await supabase.auth.getUser();
@@ -53,6 +60,13 @@ export async function POST(req: NextRequest) {
 
     const updatePayload: any = {
       Company_Name: companyName || '',
+      First_Name: firstName || '',
+      Last_Name: lastName || '',
+      Contact_Email: contactEmail || '',
+      Website: website || '',
+      Phone: phone || '',
+      Time_Zone: timeZone || '',
+      Date_Format: dateFormat || '',
       Google_Client_ID: googleClientId || '',
       Google_Client_Secret: googleClientSecret || '',
       Email_User: emailUser || '',
