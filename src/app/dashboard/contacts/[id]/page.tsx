@@ -201,9 +201,6 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5c5c5c', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>
-            More <ChevronDown size={14} />
-          </button>
           <div style={{ position: 'relative' }}>
             <button onClick={() => setShowCreateDropdown(!showCreateDropdown)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               Create New <ChevronDown size={14} />
@@ -405,7 +402,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: c.Status === 'Signed' ? '#e8f5f0' : '#fff8f0', color: c.Status === 'Signed' ? '#4da685' : '#d97706' }}>
                       {c.Status}
                     </span>
-                    <button style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>View</button>
+                    <button onClick={() => router.push('/dashboard/finance')} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>View</button>
                   </div>
                 </div>
               ))}
@@ -440,7 +437,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: inv.Status === 'Paid' ? '#e8f5f0' : (inv.Status === 'Draft' ? '#f1f5f9' : '#fff8f0'), color: inv.Status === 'Paid' ? '#4da685' : (inv.Status === 'Draft' ? '#64748b' : '#d97706') }}>
                       {inv.Status}
                     </span>
-                    <button style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>View</button>
+                    <button onClick={() => router.push('/dashboard/finance')} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>View</button>
                   </div>
                 </div>
               ))}
@@ -471,7 +468,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: '#e8f0fe', color: '#1a73e8' }}>
                       {inq.Pipeline_Stage}
                     </span>
-                    <button style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>Manage</button>
+                    <button onClick={() => router.push('/dashboard/pipeline')} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>Manage</button>
                   </div>
                 </div>
               ))}
