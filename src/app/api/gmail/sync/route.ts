@@ -92,6 +92,6 @@ export async function POST() {
     return NextResponse.json({ success: true, count: syncedCount });
   } catch (error: any) {
     console.error('Gmail Sync API Error:', error);
-    return NextResponse.json({ success: false, error: "Internal Server Error during sync" }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message || String(error) || "Internal Server Error during sync" }, { status: 500 });
   }
 }
