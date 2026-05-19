@@ -183,7 +183,8 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   };
 
   return (
-    <div className="animate-fade-in" style={{ padding: '1rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <>
+      <div className="animate-fade-in" style={{ padding: '1rem', maxWidth: '1400px', margin: '0 auto' }}>
       
       {/* Header Area */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -480,6 +481,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           )}
         </div>
       )}
+      </div>
 
       {/* Add Note Modal */}
       {isNoteModalOpen && (
@@ -555,6 +557,6 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         />
       )}
       
-    </div>
+    </>
   );
 }
