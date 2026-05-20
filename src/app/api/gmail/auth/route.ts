@@ -38,3 +38,22 @@ export async function GET(req: Request) {
 
   return NextResponse.redirect(authUrl);
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
+    const { error } = await supabase
+      .from('AppConfig')
+      .update({ Google_Refresh_Token: null })
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error disconnecting Google:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

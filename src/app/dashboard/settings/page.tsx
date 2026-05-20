@@ -214,6 +214,21 @@ function SettingsInner() {
     }
   };
 
+  const handleDisconnectGoogle = async () => {
+    if (!confirm("Are you sure you want to disconnect your Google account?")) return;
+    try {
+      const res = await fetch("/api/gmail/auth", { method: "DELETE" });
+      if (res.ok) {
+        setHasToken(false);
+        setMessage({ type: "success", text: "Google account disconnected successfully." });
+      } else {
+        setMessage({ type: "error", text: "Failed to disconnect account." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "An error occurred while disconnecting." });
+    }
+  };
+
   const handleTestSms = async () => {
     if (!twilioSid || !twilioAuthToken || !twilioPhone) {
       setMessage({ type: "error", text: "Please save your Twilio configuration first." });
@@ -501,10 +516,15 @@ function SettingsInner() {
                   <LinkIcon size={16} /> Connect Account
                 </a>
               ) : (
-                <button onClick={handleSync} disabled={syncing} className="btn btn-primary" style={{ width: "auto" }}>
-                  <RefreshCw size={16} className={syncing ? "animate-spin" : ""} />
-                  {syncing ? "Syncing..." : "Sync Emails Now"}
-                </button>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button onClick={handleSync} disabled={syncing} className="btn btn-primary" style={{ width: "auto" }}>
+                    <RefreshCw size={16} className={syncing ? "animate-spin" : ""} />
+                    {syncing ? "Syncing..." : "Sync Emails Now"}
+                  </button>
+                  <button onClick={handleDisconnectGoogle} className="btn btn-outline" style={{ width: "auto", color: "var(--status-red-fg)", borderColor: "var(--status-red-fg)" }}>
+                    Disconnect
+                  </button>
+                </div>
               )}
             </div>
             {hasToken && (
