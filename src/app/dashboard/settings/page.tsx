@@ -21,6 +21,8 @@ function SettingsInner() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
+  const tabs = ["General", "Security", "Integrations"];
   const [message, setMessage] = useState<{type: "success" | "error", text: string} | null>(null);
 
   // Account Security state
@@ -252,9 +254,28 @@ function SettingsInner() {
         </div>
       )}
 
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '2rem', gap: '2rem' }}>
+        {tabs.map(tab => (
+          <button 
+            key={tab}
+            onClick={() => setActiveTab(tab.toLowerCase())}
+            style={{ 
+              background: 'none', border: 'none', padding: '0.5rem 0', cursor: 'pointer', 
+              fontSize: '0.875rem', fontWeight: 600, 
+              color: activeTab === tab.toLowerCase() ? 'var(--foreground)' : 'var(--muted)',
+              borderBottom: activeTab === tab.toLowerCase() ? '2px solid var(--primary)' : '2px solid transparent',
+              transition: 'all 0.2s'
+            }}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* Business Profile Settings */}
+        {activeTab === 'general' && (
         <div className="glass-panel" style={{ padding: "2rem" }}>
           <div className="flex items-center gap-2 section-header" style={{ marginBottom: "0.5rem" }}>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>Business Profile</h2>
@@ -320,8 +341,10 @@ function SettingsInner() {
             </div>
           </form>
         </div>
+        )}
 
         {/* Account Security */}
+        {activeTab === 'security' && (
         <div className="glass-panel" style={{ padding: "2rem" }}>
           <div className="flex items-center gap-2 section-header">
             <ShieldCheck size={20} className="text-[var(--primary)]" />
@@ -353,8 +376,10 @@ function SettingsInner() {
             </button>
           </form>
         </div>
+        )}
 
         {/* Email Configuration */}
+        {activeTab === 'integrations' && (
         <div className="glass-panel" style={{ padding: "2rem" }}>
           <div className="flex items-center gap-2 section-header">
             <Send size={20} className="text-[var(--primary)]" />
@@ -434,8 +459,10 @@ function SettingsInner() {
             </div>
           </form>
         </div>
+        )}
 
         {/* Gmail Integration */}
+        {activeTab === 'integrations' && (
         <div className="glass-panel" style={{ padding: "2rem" }}>
           <div className="flex items-center gap-2 section-header">
             <Mail size={20} className="text-[var(--primary)]" />
@@ -487,8 +514,10 @@ function SettingsInner() {
             )}
           </div>
         </div>
+        )}
 
         {/* SMS Configuration */}
+        {activeTab === 'integrations' && (
         <div className="glass-panel" style={{ padding: "2rem" }}>
           <div className="flex items-center gap-2 section-header">
             <ShieldCheck size={20} className="text-[var(--primary)]" />
@@ -523,6 +552,7 @@ function SettingsInner() {
             </div>
           </form>
         </div>
+        )}
 
       </div>
     </div>

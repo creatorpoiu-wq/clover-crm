@@ -217,9 +217,9 @@ export default function CalendarPage() {
           className="btn btn-outline" 
           onClick={handleSyncGoogleCalendar} 
           disabled={syncing}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.75rem', fontSize: '0.8rem', height: 'fit-content' }}
         >
-          <CalendarIcon size={16} />
+          <CalendarIcon size={14} />
           {syncing ? 'Syncing...' : 'Sync to Google Calendar'}
         </button>
       </div>
