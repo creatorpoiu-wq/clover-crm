@@ -106,7 +106,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const tabs = ["Overview", "Documents", "Payments", "Sessions"];
+  const tabs = ["Overview", "Communications", "Documents", "Payments", "Sessions"];
 
   const handleSaveInfo = async () => {
     setIsSaving(true);
@@ -475,6 +475,33 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
             </div>
           ) : (
             <p style={{ color: '#a0a0a0', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No sessions booked yet.</p>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'communications' && (
+        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', border: '1px solid #f0efe9' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Communication History</h2>
+            <button onClick={() => setIsNoteModalOpen(true)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Log Manual Note</button>
+          </div>
+          {communications.length > 0 ? (
+            <div className="space-y-4">
+              {communications.map(comm => {
+                const d = new Date(comm.Last_Contact_Date + "Z");
+                return (
+                  <div key={comm.Communication_ID} style={{ padding: '1.5rem', border: '1px solid #f0efe9', borderRadius: '0.5rem', backgroundColor: comm.Last_Contact_By === "Me" ? '#f8fdfb' : '#fafafa' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.875rem', color: '#0f172a' }}>{comm.Last_Contact_By === "Me" ? "You" : contact.Name}</span>
+                      <span style={{ color: '#a0a0a0', fontSize: '0.75rem' }}>{d.toLocaleDateString()} at {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p style={{ fontSize: '0.875rem', color: '#5c5c5c', margin: 0, whiteSpace: 'pre-wrap' }}>{comm.Message || "No notes."}</p>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p style={{ color: '#a0a0a0', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No communication history yet.</p>
           )}
         </div>
       )}

@@ -57,10 +57,13 @@ export async function POST() {
           userId: 'me',
           id: msg.id as string,
           format: 'metadata',
-          metadataHeaders: ['Date']
+          metadataHeaders: ['Date', 'Subject']
         });
 
         const dateHeader = msgDetails.data.payload?.headers?.find(h => h.name === 'Date')?.value;
+        const subjectHeader = msgDetails.data.payload?.headers?.find(h => h.name === 'Subject')?.value;
+        const snippet = msgDetails.data.snippet;
+
         if (!dateHeader) continue;
 
         const isoDate = new Date(dateHeader).toISOString();
@@ -82,6 +85,7 @@ export async function POST() {
               Inquiry_ID: inq.Inquiry_ID,
               Last_Contact_Date: isoDate,
               Last_Contact_By: 'Client',
+              Message: `[Email] ${subjectHeader || 'No Subject'}\n${snippet || ''}`,
               Proposal_Link: ''
             });
           syncedCount++;
