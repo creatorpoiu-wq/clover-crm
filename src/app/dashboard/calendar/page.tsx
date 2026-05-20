@@ -29,6 +29,7 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   // Current month state
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -103,6 +104,24 @@ export default function CalendarPage() {
       }
     } catch (err) { console.error(err); }
     setAddingReminder(false);
+  };
+
+  const handleSyncGoogleCalendar = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/calendar/sync", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(`Successfully synced ${data.count} events to Google Calendar!`);
+      } else {
+        alert(`Failed to sync: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert("An error occurred during sync.");
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const getEventColors = (stage: string) => {
@@ -189,8 +208,21 @@ export default function CalendarPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="page-title">Calendar & Reminders</h1>
-      <p className="page-subtitle">Track your upcoming events and follow-ups.</p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="page-title" style={{ marginBottom: '0.25rem' }}>Calendar & Reminders</h1>
+          <p className="page-subtitle" style={{ margin: 0 }}>Track your upcoming events and follow-ups.</p>
+        </div>
+        <button 
+          className="btn btn-outline" 
+          onClick={handleSyncGoogleCalendar} 
+          disabled={syncing}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <CalendarIcon size={16} />
+          {syncing ? 'Syncing...' : 'Sync to Google Calendar'}
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         

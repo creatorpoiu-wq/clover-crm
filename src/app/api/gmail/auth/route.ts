@@ -17,7 +17,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing Google Client ID or Secret in settings." }, { status: 400 });
   }
 
-  const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+  const SCOPES = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/calendar.events'
+  ];
   const url = new URL(req.url);
   const REDIRECT_URI = `${url.protocol}//${url.host}/api/gmail/callback`;
 
