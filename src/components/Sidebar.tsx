@@ -15,6 +15,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [companyName, setCompanyName] = useState("Clover");
+  const [businessLogo, setBusinessLogo] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -26,6 +27,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       // Load company name from API
       fetch('/api/settings').then(r => r.json()).then(data => {
         if (data.config?.companyName) setCompanyName(data.config.companyName);
+        if (data.config?.businessLogo) setBusinessLogo(data.config.businessLogo);
       }).catch(() => {});
     });
   }, [router]);
@@ -53,9 +55,15 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
-        <h1 className="sidebar-title">
-          {companyName.toLowerCase()}<span style={{ color: '#4da685' }}>.</span>
-        </h1>
+        {businessLogo ? (
+          <div style={{ display: 'flex', alignItems: 'center', height: '32px' }}>
+            <img src={businessLogo} alt={companyName} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+          </div>
+        ) : (
+          <h1 className="sidebar-title">
+            {companyName.toLowerCase()}<span style={{ color: '#4da685' }}>.</span>
+          </h1>
+        )}
       </div>
 
       <nav className="sidebar-nav">
