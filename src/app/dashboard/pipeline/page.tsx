@@ -112,7 +112,7 @@ export default function PipelinePage() {
   return (
     <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column" }}>
       <div className="mb-6">
-        <h1 className="page-title">Pipeline Board</h1>
+        <h1 className="page-title">Projects</h1>
         <p className="page-subtitle">Track and move deals through the pipeline.</p>
       </div>
 

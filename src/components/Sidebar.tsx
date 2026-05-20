@@ -42,7 +42,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   const navItems = [
     { name: "Dashboard",          href: "/dashboard",                   icon: LayoutDashboard },
-    { name: "Pipeline Board",     href: "/dashboard/pipeline",          icon: Kanban },
+    { name: "Projects",           href: "/dashboard/pipeline",          icon: Kanban },
     { name: "Calendar & Reminders", href: "/dashboard/calendar",        icon: Calendar },
     { name: "Contacts",           href: "/dashboard/contacts",          icon: Database },
     { name: "Finance & Legal",    href: "/dashboard/finance",           icon: DollarSign },
