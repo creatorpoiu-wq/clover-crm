@@ -214,13 +214,27 @@ export default function CalendarPage() {
           <p className="page-subtitle" style={{ margin: 0 }}>Track your upcoming events and follow-ups.</p>
         </div>
         <button 
-          className="btn btn-outline" 
           onClick={handleSyncGoogleCalendar} 
           disabled={syncing}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.75rem', fontSize: '0.8rem', height: 'fit-content' }}
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.35rem', 
+            padding: '0.35rem 0.75rem', 
+            fontSize: '0.75rem', 
+            fontWeight: 600,
+            color: 'var(--muted)',
+            border: '1px solid var(--border)',
+            borderRadius: '9999px',
+            backgroundColor: 'transparent',
+            cursor: syncing ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s ease-in-out'
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.color = 'var(--foreground)'; e.currentTarget.style.borderColor = 'var(--muted)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
         >
-          <CalendarIcon size={14} />
-          {syncing ? 'Syncing...' : 'Sync to Google Calendar'}
+          <CalendarIcon size={12} />
+          {syncing ? 'Syncing...' : 'Sync to Google'}
         </button>
       </div>
 
