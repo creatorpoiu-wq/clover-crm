@@ -182,8 +182,14 @@ export default function FinancePage() {
         setShowExpenseForm(false);
         setExpenseForm({ category: "Software", amount: "", date: new Date().toISOString().split('T')[0], description: "" });
         fetchExpenses();
+      } else {
+        const errorData = await res.json();
+        alert(`Error saving expense: ${errorData.error || 'Unknown error'}\nDid you run the create_expenses_table.sql script?`);
       }
-    } catch (err) { console.error(err); }
+    } catch (err: any) { 
+      console.error(err); 
+      alert(`Network error: ${err.message}`);
+    }
   };
 
   const deleteExpense = async (id: number) => {
@@ -450,7 +456,7 @@ export default function FinancePage() {
                 <form onSubmit={handleCreateExpense} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr auto", gap: "1rem", alignItems: "end", marginBottom: "1.5rem", padding: "1.5rem", borderRadius: "12px", backgroundColor: "var(--muted-bg)", border: "1px solid var(--border)" }}>
                   <div>
                     <label className="label" style={{ fontSize: "0.75rem" }}>Category</label>
-                    <select className="input" value={expenseForm.category} onChange={e => setExpenseForm({...expenseForm, category: e.target.value})} required>
+                    <select className="input" style={{ fontSize: "0.875rem", padding: "0.6rem", textAlign: "left", letterSpacing: "normal" }} value={expenseForm.category} onChange={e => setExpenseForm({...expenseForm, category: e.target.value})} required>
                       <option value="Software">Software & Subscriptions</option>
                       <option value="Equipment">Equipment</option>
                       <option value="Travel">Travel</option>
@@ -460,15 +466,15 @@ export default function FinancePage() {
                   </div>
                   <div>
                     <label className="label" style={{ fontSize: "0.75rem" }}>Amount ($)</label>
-                    <input type="number" step="0.01" className="input" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} required placeholder="0.00" />
+                    <input type="number" step="0.01" className="input" style={{ fontSize: "0.875rem", padding: "0.6rem", textAlign: "left", letterSpacing: "normal" }} value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} required placeholder="0.00" />
                   </div>
                   <div>
                     <label className="label" style={{ fontSize: "0.75rem" }}>Date</label>
-                    <input type="date" className="input" value={expenseForm.date} onChange={e => setExpenseForm({...expenseForm, date: e.target.value})} required />
+                    <input type="date" className="input" style={{ fontSize: "0.875rem", padding: "0.6rem", textAlign: "left", letterSpacing: "normal" }} value={expenseForm.date} onChange={e => setExpenseForm({...expenseForm, date: e.target.value})} required />
                   </div>
                   <div>
                     <label className="label" style={{ fontSize: "0.75rem" }}>Description</label>
-                    <input type="text" className="input" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} placeholder="Optional description" />
+                    <input type="text" className="input" style={{ fontSize: "0.875rem", padding: "0.6rem", textAlign: "left", letterSpacing: "normal" }} value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} placeholder="Optional description" />
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem" }}>
                     <button type="button" onClick={() => setShowExpenseForm(false)} className="btn btn-outline" style={{ padding: "0.5rem" }}>Cancel</button>
