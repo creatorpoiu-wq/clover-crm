@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Edit3, Save, FolderOpen, Send, Plus, Trash2, Bold, Italic, AlignLeft, AlignCenter, AlignRight, List } from 'lucide-react';
+import { ArrowLeft, Edit3, Save, FolderOpen, Send, Plus, Trash2, Bold, Italic, AlignLeft, AlignCenter, AlignRight, List, Printer } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
@@ -225,6 +225,9 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+          <button onClick={() => window.print()} style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', border:'1px solid #e5e7eb', borderRadius:6, background:'transparent', cursor:'pointer', fontSize:13, fontWeight:600, color:'#374151' }}>
+            <Printer size={14}/> Print / PDF
+          </button>
           <button onClick={()=>setShowLoadTemplate(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', border:'1px solid #e5e7eb', borderRadius:6, background:'transparent', cursor:'pointer', fontSize:13, fontWeight:600, color:'#374151' }}>
             <FolderOpen size={14}/> Templates
           </button>

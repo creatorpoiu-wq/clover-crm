@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Target, Users, AlertCircle, Folder, FileText, CheckSquare, Calendar, DollarSign, FileSignature } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface DashboardData {
   activeCount: number;
   totalValue: number;
   activeRemindersCount: number;
   stageCounts: { stage: string; count: number }[];
+  monthlyData?: { month: string; year: number; revenue: number; leads: number }[];
 }
 
 export default function DashboardPage() {
@@ -56,11 +58,29 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-8">
           
           <div className="glass-panel" style={{ padding: "2rem" }}>
-             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Payments</h2>
-             <div className="empty-state" style={{ textAlign: 'center', padding: '3rem 0', backgroundColor: '#fafafa', borderRadius: '0.5rem', border: '1px dashed #e2e8f0' }}>
-               <p style={{ marginBottom: '1rem', color: '#5c5c5c', fontSize: '0.875rem' }}>Set up payments to track your studio revenue here.</p>
-               <a href="/dashboard/finance" style={{ color: '#4da685', fontWeight: 600, fontSize: '0.875rem' }}>Activate payments</a>
-             </div>
+             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Revenue Trend (6 Months)</h2>
+             {data?.monthlyData && data.monthlyData.length > 0 ? (
+               <div style={{ height: 280, width: '100%' }}>
+                 <ResponsiveContainer width="100%" height="100%">
+                   <BarChart data={data.monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(value) => `$${value}`} />
+                     <Tooltip 
+                       cursor={{ fill: '#f8fafc' }}
+                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: 13 }}
+                       formatter={(value: any) => [`$${value}`, 'Revenue']}
+                     />
+                     <Bar dataKey="revenue" fill="#4da685" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                   </BarChart>
+                 </ResponsiveContainer>
+               </div>
+             ) : (
+               <div className="empty-state" style={{ textAlign: 'center', padding: '3rem 0', backgroundColor: '#fafafa', borderRadius: '0.5rem', border: '1px dashed #e2e8f0' }}>
+                 <p style={{ marginBottom: '1rem', color: '#5c5c5c', fontSize: '0.875rem' }}>No revenue data to display yet.</p>
+                 <a href="/dashboard/finance" style={{ color: '#4da685', fontWeight: 600, fontSize: '0.875rem' }}>Activate payments</a>
+               </div>
+             )}
           </div>
 
           <div className="glass-panel" style={{ padding: "2rem" }}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { FileText, DollarSign, Plus, Edit2, Trash2, Check, X, Printer, Search } from "lucide-react";
+import { FileText, DollarSign, Plus, Edit2, Trash2, Check, X, Printer, Search, PieChart } from "lucide-react";
 import ContractBuilder from "@/components/ContractBuilder";
 import InvoiceBuilder from "@/components/InvoiceBuilder";
 import { formatDate } from "@/lib/formatDate";
@@ -24,6 +24,14 @@ interface Invoice {
   Total_Amount: number;
 }
 
+interface Expense {
+  Expense_ID: number;
+  Category: string;
+  Amount: number;
+  Expense_Date: string;
+  Description: string;
+}
+
 interface Contract {
   Contract_ID: number;
   Inquiry_ID: number;
@@ -40,12 +48,18 @@ interface Contract {
 }
 
 export default function FinancePage() {
-  const [activeTab, setActiveTab] = useState("invoices");
+  const [activeTab, setActiveTab] = useState("overview");
   const [inquiries, setInquiries] = useState<InquiryOption[]>([]);
   
   // Invoice State
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
+
+  // Expense State
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loadingExpenses, setLoadingExpenses] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({ category: "Software", amount: "", date: new Date().toISOString().split('T')[0], description: "" });
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
 
   // Contract State
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -69,6 +83,7 @@ export default function FinancePage() {
     fetchInquiries();
     fetchInvoices();
     fetchContracts();
+    fetchExpenses();
     fetchBuilderDrafts();
     fetchInvoiceBuilderDrafts();
     fetch('/api/contacts').then(r=>r.json()).then(d=>{ if(d.success) setAllContacts(d.contacts); });
@@ -86,6 +101,14 @@ export default function FinancePage() {
       .then(res => res.json())
       .then(data => { if (data.success) setInvoices(data.invoices); })
       .finally(() => setLoadingInvoices(false));
+  };
+
+  const fetchExpenses = () => {
+    setLoadingExpenses(true);
+    fetch("/api/expenses")
+      .then(res => res.json())
+      .then(data => { if (data.success) setExpenses(data.expenses || []); })
+      .finally(() => setLoadingExpenses(false));
   };
 
   const fetchContracts = () => {
@@ -140,6 +163,35 @@ export default function FinancePage() {
     setConfirmDeleteId(null);
     await fetch(`/api/invoices?id=${id}`, { method: "DELETE" });
     fetchInvoices();
+  };
+
+  const handleCreateExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: expenseForm.category,
+          amount: parseFloat(expenseForm.amount),
+          date: expenseForm.date,
+          description: expenseForm.description
+        })
+      });
+      if (res.ok) {
+        setShowExpenseForm(false);
+        setExpenseForm({ category: "Software", amount: "", date: new Date().toISOString().split('T')[0], description: "" });
+        fetchExpenses();
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const deleteExpense = async (id: number) => {
+    const key = `exp-${id}`;
+    if (confirmDeleteId !== key) { setConfirmDeleteId(key); setTimeout(() => setConfirmDeleteId(null), 3000); return; }
+    setConfirmDeleteId(null);
+    await fetch(`/api/expenses?id=${id}`, { method: "DELETE" });
+    fetchExpenses();
   };
 
   const deleteContract = async (id: number) => {
@@ -345,6 +397,9 @@ export default function FinancePage() {
 
       <div className="glass-panel" style={{ padding: 0 }}>
         <div style={{ display: "flex", borderBottom: "1px solid var(--border)", overflowX: "auto" }}>
+          <button onClick={() => setActiveTab("overview")} style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "overview" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "overview" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <PieChart size={18} /> Overview & Expenses
+          </button>
           <button onClick={() => setActiveTab("invoices")} style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "invoices" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "invoices" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <DollarSign size={18} /> Invoices
           </button>
@@ -355,6 +410,107 @@ export default function FinancePage() {
 
         <div style={{ padding: "2rem" }}>
           
+          {/* OVERVIEW & EXPENSES TAB */}
+          {activeTab === "overview" && (
+            <div className="animate-fade-in">
+              {/* P&L Cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+                <div style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--border)", backgroundColor: "var(--background)" }}>
+                  <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--muted)", marginBottom: "0.5rem" }}>Total Revenue (Paid)</div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--primary)" }}>
+                    {formatCurrency(invoices.filter(i => i.Status === 'Paid').reduce((sum, i) => sum + i.Total_Amount, 0))}
+                  </div>
+                </div>
+                <div style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--border)", backgroundColor: "var(--background)" }}>
+                  <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--muted)", marginBottom: "0.5rem" }}>Total Expenses</div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--status-red-fg)" }}>
+                    {formatCurrency(expenses.reduce((sum, e) => sum + Number(e.Amount), 0))}
+                  </div>
+                </div>
+                <div style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--border)", backgroundColor: "var(--background)" }}>
+                  <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--muted)", marginBottom: "0.5rem" }}>Net Margin</div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--status-green-fg)" }}>
+                    {formatCurrency(
+                      invoices.filter(i => i.Status === 'Paid').reduce((sum, i) => sum + i.Total_Amount, 0) - 
+                      expenses.reduce((sum, e) => sum + Number(e.Amount), 0)
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Expenses List */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h3 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>Logged Expenses</h3>
+                <button onClick={() => setShowExpenseForm(true)} className="btn btn-outline" style={{ width: "auto", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Plus size={16} /> Log Expense
+                </button>
+              </div>
+
+              {showExpenseForm && (
+                <form onSubmit={handleCreateExpense} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr auto", gap: "1rem", alignItems: "end", marginBottom: "1.5rem", padding: "1.5rem", borderRadius: "12px", backgroundColor: "var(--muted-bg)", border: "1px solid var(--border)" }}>
+                  <div>
+                    <label className="label" style={{ fontSize: "0.75rem" }}>Category</label>
+                    <select className="input" value={expenseForm.category} onChange={e => setExpenseForm({...expenseForm, category: e.target.value})} required>
+                      <option value="Software">Software & Subscriptions</option>
+                      <option value="Equipment">Equipment</option>
+                      <option value="Travel">Travel</option>
+                      <option value="Contractors">Contractors</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label" style={{ fontSize: "0.75rem" }}>Amount ($)</label>
+                    <input type="number" step="0.01" className="input" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} required placeholder="0.00" />
+                  </div>
+                  <div>
+                    <label className="label" style={{ fontSize: "0.75rem" }}>Date</label>
+                    <input type="date" className="input" value={expenseForm.date} onChange={e => setExpenseForm({...expenseForm, date: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="label" style={{ fontSize: "0.75rem" }}>Description</label>
+                    <input type="text" className="input" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} placeholder="Optional description" />
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button type="button" onClick={() => setShowExpenseForm(false)} className="btn btn-outline" style={{ padding: "0.5rem" }}>Cancel</button>
+                    <button type="submit" className="btn btn-primary" style={{ padding: "0.5rem 1rem" }}>Save</button>
+                  </div>
+                </form>
+              )}
+
+              {loadingExpenses ? <div style={{ color: "var(--muted)" }}>Loading expenses...</div> : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)", fontSize: "0.75rem", textTransform: "uppercase" }}>
+                        <th style={{ padding: "1rem 0.5rem" }}>Date</th>
+                        <th style={{ padding: "1rem 0.5rem" }}>Category</th>
+                        <th style={{ padding: "1rem 0.5rem" }}>Description</th>
+                        <th style={{ padding: "1rem 0.5rem" }}>Amount</th>
+                        <th style={{ padding: "1rem 0.5rem", textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expenses.map(exp => (
+                        <tr key={exp.Expense_ID} style={{ borderBottom: "1px solid var(--border)" }} className="hover:bg-[var(--muted-bg)]">
+                          <td style={{ padding: "1rem 0.5rem" }}>{formatDate(exp.Expense_Date)}</td>
+                          <td style={{ padding: "1rem 0.5rem" }}><span style={{ padding: "0.2rem 0.5rem", borderRadius: "0.25rem", background: "var(--muted-bg)", fontSize: "0.75rem", fontWeight: 600 }}>{exp.Category}</span></td>
+                          <td style={{ padding: "1rem 0.5rem", color: "var(--muted)", fontSize: "0.875rem" }}>{exp.Description || "—"}</td>
+                          <td style={{ padding: "1rem 0.5rem", fontWeight: 700, color: "var(--status-red-fg)" }}>-{formatCurrency(Number(exp.Amount))}</td>
+                          <td style={{ padding: "1rem 0.5rem", textAlign: "right" }}>
+                            <button onClick={() => deleteExpense(exp.Expense_ID)} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto", color: "var(--status-red-fg)", borderColor: "var(--status-red)" }}>
+                              {confirmDeleteId === `exp-${exp.Expense_ID}` ? "Confirm?" : <Trash2 size={16} />}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {expenses.length === 0 && <tr><td colSpan={5} style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>No expenses logged yet.</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* INVOICES TAB */}
           {activeTab === "invoices" && (
             <div className="animate-fade-in">

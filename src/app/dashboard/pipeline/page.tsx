@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save } from "lucide-react";
+import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 
 interface InquiryData {
@@ -256,6 +256,17 @@ export default function PipelinePage() {
                 <div style={{ display: "flex", gap: "1rem" }}>
                   <a href={`mailto:${selectedInquiry.Email}`} className="btn btn-outline" style={{ flex: 1, padding: "0.5rem" }}><Mail size={16} /> Email</a>
                   <a href={`tel:${selectedInquiry.Phone}`} className="btn btn-outline" style={{ flex: 1, padding: "0.5rem" }}><Phone size={16} /> Call</a>
+                  <button 
+                    className="btn btn-outline" 
+                    style={{ flex: 1, padding: "0.5rem", color: "var(--primary)", borderColor: "var(--primary)" }}
+                    onClick={() => {
+                      const portalUrl = `${window.location.origin}/portal/${selectedInquiry.Inquiry_ID}`;
+                      navigator.clipboard.writeText(portalUrl);
+                      alert('Portal link copied to clipboard!');
+                    }}
+                  >
+                    <LinkIcon size={16} /> Portal Link
+                  </button>
                 </div>
 
                 <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", borderTop: "1px solid var(--border)", paddingTop: "1.5rem" }}>

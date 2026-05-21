@@ -16,7 +16,7 @@ export async function GET() {
     // but the original query did it for ALL inquiries. So let's fetch all stages.
     const { data: allInquiries, error: allInqError } = await supabase
       .from('Inquiries')
-      .select('Pipeline_Stage');
+      .select('Pipeline_Stage, Event_Date, Estimated_Value');
 
     if (allInqError) throw allInqError;
 
@@ -41,12 +41,36 @@ export async function GET() {
     const activeCount = (activeInquiries || []).length;
     const totalValue = (activeInquiries || []).reduce((sum: number, item: any) => sum + (item.Estimated_Value || 0), 0);
 
+    const now = new Date();
+    const monthlyData = Array.from({ length: 6 }).map((_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      return {
+        month: d.toLocaleString('default', { month: 'short' }),
+        year: d.getFullYear(),
+        revenue: 0,
+        leads: 0,
+        monthIndex: d.getMonth()
+      };
+    }).reverse();
+
+    (allInquiries || []).forEach(inq => {
+      if (inq.Event_Date) {
+        const ed = new Date(inq.Event_Date);
+        const match = monthlyData.find(m => m.monthIndex === ed.getMonth() && m.year === ed.getFullYear());
+        if (match) {
+           match.revenue += (inq.Estimated_Value || 0);
+           match.leads += 1;
+        }
+      }
+    });
+
     return NextResponse.json({
       success: true,
       activeCount,
       totalValue,
       activeRemindersCount: activeRemindersCount || 0,
-      stageCounts
+      stageCounts,
+      monthlyData
     });
   } catch (error: any) {
     console.error('Dashboard API Error:', error);

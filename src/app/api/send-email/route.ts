@@ -5,10 +5,10 @@ import nodemailer from 'nodemailer';
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { contactId, templateId } = await req.json();
+    const { contactId, templateId, subject, body } = await req.json();
     
-    if (!contactId || !templateId) {
-      return NextResponse.json({ success: false, error: 'Missing contactId or templateId' }, { status: 400 });
+    if (!contactId) {
+      return NextResponse.json({ success: false, error: 'Missing contactId' }, { status: 400 });
     }
 
     const { data: userAuth } = await supabase.auth.getUser();
@@ -25,15 +25,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Contact does not have a valid email address.' }, { status: 400 });
     }
 
-    // 2. Get the template
-    const { data: template, error: templateError } = await supabase
-      .from('EmailTemplates')
-      .select('Subject, Body')
-      .eq('Template_ID', templateId)
-      .single();
+    // 2. Handle template or free-form content
+    let parsedSubject = '';
+    let parsedBody = '';
+    const clientName = contact.Name.split(' ')[0];
 
-    if (templateError || !template) {
-      return NextResponse.json({ success: false, error: 'Selected template not found.' }, { status: 400 });
+    if (templateId) {
+      const { data: template, error: templateError } = await supabase
+        .from('EmailTemplates')
+        .select('Subject, Body')
+        .eq('Template_ID', templateId)
+        .single();
+
+      if (templateError || !template) {
+        return NextResponse.json({ success: false, error: 'Selected template not found.' }, { status: 400 });
+      }
+
+      parsedBody = template.Body
+        .replace(/\[Name\]/gi, clientName)
+        .replace(/\[Client Name\]/gi, contact.Name)
+        .replace(/\{Name\}/gi, clientName)
+        .replace(/\{Client Name\}/gi, contact.Name)
+        .replace(/\n/g, '<br/>');
+
+      parsedSubject = template.Subject
+        .replace(/\[Name\]/gi, clientName)
+        .replace(/\[Client Name\]/gi, contact.Name)
+        .replace(/\{Name\}/gi, clientName)
+        .replace(/\{Client Name\}/gi, contact.Name);
+    } else {
+      if (!subject || !body) {
+        return NextResponse.json({ success: false, error: 'Subject and body are required for free-form emails.' }, { status: 400 });
+      }
+      parsedSubject = subject;
+      parsedBody = body.replace(/\n/g, '<br/>');
     }
 
     // 3. Get App Config for SMTP credentials
@@ -54,21 +79,6 @@ export async function POST(req: NextRequest) {
     });
 
     const companyName = config.Company_Name || 'Clover';
-    const clientName = contact.Name.split(' ')[0];
-
-    // Replace variables in the template
-    let parsedBody = template.Body
-      .replace(/\[Name\]/gi, clientName)
-      .replace(/\[Client Name\]/gi, contact.Name)
-      .replace(/\{Name\}/gi, clientName)
-      .replace(/\{Client Name\}/gi, contact.Name)
-      .replace(/\n/g, '<br/>');
-
-    let parsedSubject = template.Subject
-      .replace(/\[Name\]/gi, clientName)
-      .replace(/\[Client Name\]/gi, contact.Name)
-      .replace(/\{Name\}/gi, clientName)
-      .replace(/\{Client Name\}/gi, contact.Name);
 
     // 5. Send the Email
     await transporter.sendMail({
