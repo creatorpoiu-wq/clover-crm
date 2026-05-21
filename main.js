@@ -11,7 +11,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    title: "EPIC Management CRM",
+    title: "CLOVER",
     webPreferences: {
       nodeIntegration: true,
     },
@@ -51,7 +51,7 @@ app.whenReady().then(() => {
     const serverPath = path.join(process.resourcesPath, 'app', '.next', 'standalone', 'server.js');
     if (fs.existsSync(serverPath)) {
       nextProcess = spawn(process.execPath, [serverPath], { 
-        env: { ...process.env, PORT: 3000, NODE_ENV: 'production', DB_PATH: dbPath },
+        env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', PORT: '3000', NODE_ENV: 'production', DB_PATH: dbPath },
         stdio: 'inherit'
       });
     } else {

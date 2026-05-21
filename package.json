@@ -10,16 +10,26 @@
     "start": "next start",
     "lint": "eslint",
     "dev:desktop": "electron .",
-    "build:windows": "next build && electron-builder --win"
+    "build:windows": "next build && electron-builder --win",
+    "build:mac": "next build && electron-builder --mac"
   },
   "build": {
+    "asar": false,
     "appId": "com.epicmanagement.crm",
-    "productName": "EPIC Management CRM",
+    "productName": "CLOVER",
     "directories": {
       "output": "dist-desktop"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "files": [
       "main.js",
@@ -29,11 +39,11 @@
     "extraResources": [
       {
         "from": ".next/static",
-        "to": "app/.next/static"
+        "to": "app/.next/standalone/.next/static"
       },
       {
         "from": "public",
-        "to": "app/public"
+        "to": "app/.next/standalone/public"
       }
     ]
   },

@@ -5,7 +5,8 @@ import PackageSelection from './PackageSelection';
 import EventQuestionnaire from './EventQuestionnaire';
 import DigitalContract from './DigitalContract';
 import PaymentCheckout from './PaymentCheckout';
-import { Check } from 'lucide-react';
+import { Check, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export default function BookingFunnel() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -66,6 +67,13 @@ export default function BookingFunnel() {
     <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: "'Inter', sans-serif", paddingBottom: 60 }}>
       {/* Top Progress Bar */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10 }}>
+        {!searchParams.get('userId') && (
+          <div style={{ maxWidth: 900, margin: '0 auto', padding: '12px 20px 0' }}>
+            <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#6b7280', textDecoration: 'none', transition: 'color 0.2s' }}>
+              <ArrowLeft size={14} /> Back to Dashboard
+            </Link>
+          </div>
+        )}
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
           {steps.map((label, idx) => {
             const stepNum = idx + 1;
