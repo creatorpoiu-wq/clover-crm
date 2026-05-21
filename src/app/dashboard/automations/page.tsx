@@ -150,7 +150,7 @@ export default function AutomationsPage() {
             </select>
           </div>
 
-          <button onClick={handleCreate} disabled={creating || !newAction.templateId} className="btn-primary" style={{ marginTop: '0.5rem' }}>
+          <button onClick={handleCreate} disabled={creating || !newAction.templateId} className="btn btn-primary" style={{ marginTop: '0.5rem', width: 'auto', alignSelf: 'flex-start' }}>
             {creating ? 'Saving...' : 'Add Automation'}
           </button>
         </div>

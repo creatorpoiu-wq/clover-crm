@@ -165,7 +165,7 @@ export default function HubPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {syncStatus && <span style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{syncStatus}</span>}
-          <button className="btn btn-outline" onClick={handleSync} disabled={isSyncing}>
+          <button className="btn btn-outline" style={{ width: 'auto' }} onClick={handleSync} disabled={isSyncing}>
             <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> {isSyncing ? "Syncing..." : "Sync Gmail"}
           </button>
         </div>
@@ -229,7 +229,7 @@ export default function HubPage() {
                     <div style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{selectedInquiry.Email}</div>
                   </div>
                 </div>
-                <button className="btn btn-primary" onClick={() => setIsEmailModalOpen(true)}>
+                <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setIsEmailModalOpen(true)}>
                   <Mail size={16} /> Compose Email
                 </button>
               </div>
@@ -288,7 +288,7 @@ export default function HubPage() {
                       }
                     }}
                   />
-                  <button className="btn btn-primary" style={{ alignSelf: "flex-end" }} onClick={handleLogNote} disabled={isLogging || !noteContent.trim()}>
+                  <button className="btn btn-primary" style={{ alignSelf: "flex-end", width: "auto" }} onClick={handleLogNote} disabled={isLogging || !noteContent.trim()}>
                     <Send size={18} /> {isLogging ? "..." : "Log Note"}
                   </button>
                 </div>
