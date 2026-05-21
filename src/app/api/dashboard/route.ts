@@ -42,16 +42,30 @@ export async function GET() {
     const totalValue = (activeInquiries || []).reduce((sum: number, item: any) => sum + (item.Estimated_Value || 0), 0);
 
     const now = new Date();
-    const monthlyData = Array.from({ length: 6 }).map((_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      return {
-        month: d.toLocaleString('default', { month: 'short' }),
-        year: d.getFullYear(),
+    let minDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    let maxDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    (allInquiries || []).forEach(inq => {
+      if (inq.Event_Date) {
+        const d = new Date(inq.Event_Date);
+        const dMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+        if (dMonth < minDate) minDate = dMonth;
+        if (dMonth > maxDate) maxDate = dMonth;
+      }
+    });
+
+    const monthlyData: any[] = [];
+    let curr = new Date(minDate);
+    while (curr <= maxDate) {
+      monthlyData.push({
+        month: curr.toLocaleString('default', { month: 'short' }),
+        year: curr.getFullYear(),
         revenue: 0,
         leads: 0,
-        monthIndex: d.getMonth()
-      };
-    }).reverse();
+        monthIndex: curr.getMonth()
+      });
+      curr.setMonth(curr.getMonth() + 1);
+    }
 
     (allInquiries || []).forEach(inq => {
       if (inq.Event_Date) {

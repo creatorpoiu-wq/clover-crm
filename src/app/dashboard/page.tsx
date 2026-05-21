@@ -58,7 +58,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-8">
           
           <div className="glass-panel" style={{ padding: "2rem" }}>
-             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Revenue Trend (6 Months)</h2>
+             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Revenue Trend (Trailing & Projected)</h2>
              {data?.monthlyData && data.monthlyData.length > 0 ? (
                <div style={{ height: 280, width: '100%' }}>
                  <ResponsiveContainer width="100%" height="100%">
