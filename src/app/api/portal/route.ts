@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     // 2. Fetch Contracts linked to Inquiry
     const { data: contracts } = await supabase
       .from('Contracts')
-      .select('Contract_ID, Contract_Title, Status, Sign_Token, Sent_Date, Signed_Date')
+      .select('Contract_ID, Contract_Title, Status, Sign_Token, Sent_Date, Signed_Date, Type')
       .eq('Inquiry_ID', inquiryId)
       .order('Contract_ID', { ascending: false });
 
@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
       success: true,
       portal: {
         vendor: {
+          id: inquiry.user_id,
           companyName: config?.Company_Name || 'Your Photographer',
           businessLogo: config?.Business_Logo || null,
           brandColor: config?.Brand_Color || '#0f172a'
