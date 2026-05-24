@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Settings, Package, CreditCard, CheckCircle, Type } from "lucide-react";
+import { Save, Plus, Trash2, Settings, Package, CreditCard, CheckCircle, Type, Mail } from "lucide-react";
 
 const TABS = [
   { id: "steps",   label: "Step Text",     icon: Type },
   { id: "addons",  label: "Add-Ons",       icon: Package },
   { id: "payment", label: "Payment",        icon: CreditCard },
   { id: "confirm", label: "Confirmation",  icon: CheckCircle },
+  { id: "email",   label: "Proposal Email", icon: Mail },
 ];
 
 const DEFAULT_SETTINGS = {
@@ -25,6 +26,7 @@ const DEFAULT_SETTINGS = {
 export default function BookingSettingsPage() {
   const [tab, setTab] = useState("steps");
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [emailSettings, setEmailSettings] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -37,6 +39,10 @@ export default function BookingSettingsPage() {
     fetch("/api/funnel-settings")
       .then(r => r.json())
       .then(d => { if (d.success) setSettings(d.settings); });
+      
+    fetch("/api/email-settings")
+      .then(r => r.json())
+      .then(d => { if (d.success) setEmailSettings(d.settings); });
   }, []);
 
   const showToast = (msg: string, type: "success" | "error") => {
@@ -47,14 +53,23 @@ export default function BookingSettingsPage() {
   const save = async () => {
     setSaving(true);
     try {
-      const res = await fetch("/api/funnel-settings", {
+      const p1 = fetch("/api/funnel-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
-      const d = await res.json();
-      if (d.success) showToast("Funnel settings saved!", "success");
-      else showToast(d.error || "Save failed.", "error");
+      const p2 = fetch("/api/email-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailSettings),
+      });
+
+      const [res1, res2] = await Promise.all([p1, p2]);
+      const d1 = await res1.json();
+      const d2 = await res2.json();
+
+      if (d1.success && d2.success) showToast("Settings saved!", "success");
+      else showToast(d1.error || d2.error || "Save failed.", "error");
     } catch {
       showToast("Network error.", "error");
     } finally {
@@ -66,6 +81,16 @@ export default function BookingSettingsPage() {
     const steps = [...settings.steps];
     steps[i] = { ...steps[i], [field]: val };
     setSettings(s => ({ ...s, steps }));
+  };
+
+  const updateEmail = (field: string, val: string) => {
+    setEmailSettings((s: any) => ({
+      ...s,
+      proposal: {
+        ...s?.proposal,
+        [field]: val
+      }
+    }));
   };
 
   const addAddon = () => {
@@ -265,6 +290,43 @@ export default function BookingSettingsPage() {
               <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
               <h2 style={{ fontSize: 22, fontWeight: 900, color: "var(--foreground)", margin: "0 0 8px" }}>{settings.confirmationTitle || "Booking Confirmed!"}</h2>
               <p style={{ fontSize: 14, color: "var(--muted)", maxWidth: 400, margin: "0 auto" }}>{settings.confirmationMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EMAIL TAB */}
+      {tab === "email" && (
+        <div className="glass-panel" style={{ padding: "2rem" }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 24px" }}>Initial Proposal Email</h3>
+          <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 24 }}>This email is sent automatically when you create a new public booking or send a proposal from the pipeline.</p>
+          
+          <div style={{ display: "grid", gap: 20 }}>
+            <div>
+              <label style={labelCls}>Email Subject Line</label>
+              <input style={inputCls} value={emailSettings?.proposal?.subject || ""} onChange={e => updateEmail("subject", e.target.value)} placeholder="e.g. Your Booking Proposal is Ready" />
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>Use <code>[Name]</code> for client name, <code>[Company]</code> for your company name.</div>
+            </div>
+
+            <div>
+              <label style={labelCls}>Greeting</label>
+              <input style={inputCls} value={emailSettings?.proposal?.greeting || ""} onChange={e => updateEmail("greeting", e.target.value)} placeholder="e.g. Hello [Name]," />
+            </div>
+
+            <div>
+              <label style={labelCls}>Email Body</label>
+              <textarea
+                value={emailSettings?.proposal?.body || ""}
+                onChange={e => updateEmail("body", e.target.value)}
+                rows={5}
+                placeholder="We are excited to work with you!..."
+                style={{ ...inputCls, resize: "vertical" }}
+              />
+            </div>
+            
+            <div style={{ padding: 16, background: "var(--muted-bg)", borderRadius: 8, fontSize: 13, color: "var(--muted)" }}>
+              <Mail size={16} style={{ display: "inline", marginBottom: -3, marginRight: 6 }} />
+              <strong>Note:</strong> To customize colors and branding, please visit the <a href="/dashboard/email-settings" style={{ color: "var(--primary)" }}>Email Settings</a> page.
             </div>
           </div>
         </div>

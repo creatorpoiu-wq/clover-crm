@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
       success: true,
       portal: {
         vendor: {
-          companyName: config?.Company_Name || 'Studio',
+          companyName: config?.Company_Name || 'Your Photographer',
           businessLogo: config?.Business_Logo || null,
           brandColor: config?.Brand_Color || '#0f172a'
         },

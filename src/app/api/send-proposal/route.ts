@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       auth: { user: config.Email_User, pass: config.Email_Pass }
     });
 
-    const companyName = config.Company_Name || 'Our Studio';
+    const companyName = config.Company_Name || 'Your Photographer';
     const clientName = contact.Name.split(' ')[0];
 
     // 5. Load email design settings
