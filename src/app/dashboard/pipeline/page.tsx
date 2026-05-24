@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
+import DeliverablesManager from "@/components/DeliverablesManager";
 
 interface InquiryData {
   Inquiry_ID: number;
@@ -285,6 +286,10 @@ export default function PipelinePage() {
                     {isDeleting ? "Deleting..." : confirmDeleteId === selectedInquiry.Inquiry_ID ? "Confirm Delete?" : <><Trash2 size={16} /> Delete</>}
                   </button>
                 </div>
+
+                {/* Deliverables Manager */}
+                <DeliverablesManager inquiryId={selectedInquiry.Inquiry_ID} />
+
               </div>
             )}
           </div>

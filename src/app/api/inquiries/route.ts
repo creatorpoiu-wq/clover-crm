@@ -83,18 +83,24 @@ export async function PUT(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { id, Service_Type, Pipeline_Stage, Estimated_Value, Event_Date } = body;
+    const { id, Service_Type, Pipeline_Stage, Estimated_Value, Event_Date, Deliverable_Milestones } = body;
     
     if (!id) return NextResponse.json({ success: false, error: "Missing ID" }, { status: 400 });
 
+    const updatePayload: any = {
+      Service_Type,
+      Pipeline_Stage,
+      Estimated_Value,
+      Event_Date
+    };
+
+    if (Deliverable_Milestones !== undefined) {
+      updatePayload.Deliverable_Milestones = Deliverable_Milestones;
+    }
+
     const { error } = await supabase
       .from('Inquiries')
-      .update({
-        Service_Type,
-        Pipeline_Stage,
-        Estimated_Value,
-        Event_Date
-      })
+      .update(updatePayload)
       .eq('Inquiry_ID', id);
 
     if (error) throw error;

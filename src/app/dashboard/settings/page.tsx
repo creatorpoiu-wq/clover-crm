@@ -43,6 +43,7 @@ function SettingsInner() {
   // Business branding state
   const [businessLogo, setBusinessLogo] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
+  const [brandColor, setBrandColor] = useState("#0f172a");
 
   // Twilio state
   const [twilioSid, setTwilioSid] = useState("");
@@ -79,6 +80,7 @@ function SettingsInner() {
           setHasEmailPass(data.config.hasEmailPass || false);
           setBusinessLogo(data.config.businessLogo || "");
           setBusinessAddress(data.config.businessAddress || "");
+          setBrandColor(data.config.brandColor || "#0f172a");
           setTwilioSid(data.config.twilioSid || "");
           setTwilioAuthToken(data.config.twilioAuthToken || "");
           setTwilioPhone(data.config.twilioPhone || "");
@@ -103,7 +105,16 @@ function SettingsInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat,
-          googleClientId: clientId, googleClientSecret: clientSecret, businessLogo, businessAddress, twilioSid, twilioAuthToken, twilioPhone 
+          googleClientId: clientId,
+          googleClientSecret: clientSecret,
+          emailUser,
+          emailPass,
+          businessLogo,
+          businessAddress,
+          brandColor,
+          twilioSid,
+          twilioAuthToken,
+          twilioPhone
         })
       });
       if (res.ok) setMessage({ type: "success", text: "Settings saved successfully!" });
@@ -349,6 +360,16 @@ function SettingsInner() {
               </label>
             </div>
 
+            <div style={{ gridColumn: "1 / -1", borderTop: "1px solid var(--border)", margin: "1rem 0", paddingTop: "1rem" }}>
+              <label style={labelStyle}>Brand Color (Hex)</label>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input type="color" value={brandColor} onChange={e => setBrandColor(e.target.value)} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }} />
+                <input type="text" style={inputStyle} value={brandColor} onChange={e => setBrandColor(e.target.value)} placeholder="#0f172a" />
+              </div>
+              <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem' }}>This color syncs directly to the Client Portal theme.</p>
+            </div>
+            </div>
+
             <div style={{ gridColumn: "1 / -1", marginTop: "1rem" }}>
               <button type="submit" className="btn btn-primary" disabled={saving} style={{ width: "auto" }}>
                 {saving ? "Saving..." : "Save Business Profile"}
@@ -378,6 +399,7 @@ function SettingsInner() {
           )}
 
           <form onSubmit={handleUpdateAccount} className="space-y-4 mb-6">
+
             <div>
               <label style={labelStyle}>Login Email</label>
               <input type="email" style={inputStyle} value={loginEmail} onChange={e => setLoginEmail(e.target.value)} />

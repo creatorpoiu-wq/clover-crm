@@ -38,6 +38,7 @@ export async function GET() {
         hasEmailPass: !!(config.Email_Pass && config.Email_Pass.length > 0),
         businessLogo: config.Business_Logo || '',
         businessAddress: config.Business_Address || '',
+        brandColor: config.Brand_Color || '#0f172a',
         twilioSid: config.Twilio_Account_SID || '',
         twilioAuthToken: config.Twilio_Auth_Token || '',
         twilioPhone: config.Twilio_Phone_Number || '',
@@ -52,44 +53,50 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, googleClientId, googleClientSecret, emailUser, emailPass, businessLogo, businessAddress, twilioSid, twilioAuthToken, twilioPhone } = await req.json();
+    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, googleClientId, googleClientSecret, emailUser, emailPass, businessLogo, businessAddress, brandColor, twilioSid, twilioAuthToken, twilioPhone } = await req.json();
     
     // Check if the user has an AppConfig row
     const { data: userAuth } = await supabase.auth.getUser();
     if (!userAuth.user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
-    const updatePayload: any = {
-      Company_Name: companyName || '',
-      First_Name: firstName || '',
-      Last_Name: lastName || '',
-      Contact_Email: contactEmail || '',
-      Website: website || '',
-      Phone: phone || '',
-      Time_Zone: timeZone || '',
-      Date_Format: dateFormat || '',
-      Google_Client_ID: googleClientId || '',
-      Google_Client_Secret: googleClientSecret || '',
-      Email_User: emailUser || '',
-      Business_Logo: businessLogo !== undefined ? businessLogo : '',
-      Business_Address: businessAddress !== undefined ? businessAddress : '',
-      Twilio_Account_SID: twilioSid || '',
-      Twilio_Auth_Token: twilioAuthToken || '',
-      Twilio_Phone_Number: twilioPhone || ''
+    const { data: existing } = await supabase.from('AppConfig').select('Config_ID').single();
+
+    const payload: any = {
+      user_id: userAuth.user.id,
+      Company_Name: companyName,
+      First_Name: firstName,
+      Last_Name: lastName,
+      Contact_Email: contactEmail,
+      Website: website,
+      Phone: phone,
+      Time_Zone: timeZone,
+      Date_Format: dateFormat,
+      Google_Client_ID: googleClientId,
+      Google_Client_Secret: googleClientSecret,
+      Email_User: emailUser,
+      Business_Logo: businessLogo,
+      Business_Address: businessAddress,
+      Brand_Color: brandColor,
+      Twilio_Account_SID: twilioSid,
+      Twilio_Auth_Token: twilioAuthToken,
+      Twilio_Phone_Number: twilioPhone
     };
 
-    if (emailPass && emailPass.trim()) {
-      updatePayload.Email_Pass = emailPass.trim();
+    if (emailPass && emailPass.trim() !== '') {
+      payload.Email_Pass = emailPass;
     }
 
-    const { error } = await supabase
-      .from('AppConfig')
-      .upsert({ user_id: userAuth.user.id, ...updatePayload }, { onConflict: 'user_id' });
+    let error;
+    if (existing) {
+      ({ error } = await supabase.from('AppConfig').update(payload).eq('Config_ID', existing.Config_ID));
+    } else {
+      ({ error } = await supabase.from('AppConfig').insert(payload));
+    }
 
     if (error) throw error;
-
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Settings POST API Error:', JSON.stringify(error, null, 2));
-    return NextResponse.json({ success: false, error: error?.message || JSON.stringify(error) }, { status: 500 });
+    console.error('Settings API POST Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
