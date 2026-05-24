@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         Event_Date,
         Pipeline_Stage,
         Estimated_Value,
-        Contacts!inner ( Name, Email, Phone, Lead_Source ),
+        Contacts!inner ( Name, Email, Phone, Lead_Source, Package_ID ),
         Communications ( Last_Contact_Date, Last_Contact_By, Proposal_Link )
       `)
       .neq('Pipeline_Stage', 'Lost/Archived')
@@ -53,6 +53,7 @@ export async function GET(req: NextRequest) {
       const mappedInquiry = {
         Inquiry_ID: inq.Inquiry_ID,
         Contact_ID: inq.Contact_ID,
+        Package_ID: contact.Package_ID || null,
         Contact_Name: contact.Name,
         Email: contact.Email,
         Phone: contact.Phone,
@@ -83,7 +84,7 @@ export async function PUT(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { id, Service_Type, Pipeline_Stage, Estimated_Value, Event_Date, Deliverable_Milestones } = body;
+    const { id, Contact_ID, Package_ID, Service_Type, Pipeline_Stage, Estimated_Value, Event_Date, Deliverable_Milestones } = body;
     
     if (!id) return NextResponse.json({ success: false, error: "Missing ID" }, { status: 400 });
 
@@ -104,6 +105,16 @@ export async function PUT(req: NextRequest) {
       .eq('Inquiry_ID', id);
 
     if (error) throw error;
+
+    // Update Package_ID on the associated Contact if provided
+    if (Contact_ID && Package_ID !== undefined) {
+      const { error: contactError } = await supabase
+        .from('Contacts')
+        .update({ Package_ID: Package_ID })
+        .eq('Contact_ID', Contact_ID);
+        
+      if (contactError) throw contactError;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

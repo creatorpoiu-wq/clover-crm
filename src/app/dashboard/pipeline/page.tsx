@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon } from "lucide-react";
+import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon, Plus } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import DeliverablesManager from "@/components/DeliverablesManager";
 
 interface InquiryData {
   Inquiry_ID: number;
+  Contact_ID: number;
   Contact_Name: string;
   Email: string;
   Phone: string;
@@ -14,6 +15,7 @@ interface InquiryData {
   Pipeline_Stage: string;
   Estimated_Value: number;
   Status_Flag: string;
+  Package_ID?: number | null;
   Event_Date?: string | null;
 }
 
@@ -36,6 +38,20 @@ export default function PipelinePage() {
   const [editForm, setEditForm] = useState<Partial<InquiryData>>({});
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [packages, setPackages] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/packages?type=packages')
+      .then(res => res.json())
+      .then(data => { if (data.success) setPackages(data.packages || []); });
+  }, []);
+
+  useEffect(() => {
+    const closeDropdown = () => setOpenDropdownId(null);
+    document.addEventListener("click", closeDropdown);
+    return () => document.removeEventListener("click", closeDropdown);
+  }, []);
 
   const fetchInquiries = () => {
     setLoading(true);
@@ -61,6 +77,8 @@ export default function PipelinePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: selectedInquiry.Inquiry_ID,
+          Contact_ID: selectedInquiry.Contact_ID,
+          Package_ID: editForm.Package_ID,
           Service_Type: editForm.Service_Type,
           Pipeline_Stage: editForm.Pipeline_Stage,
           Estimated_Value: editForm.Estimated_Value,
@@ -158,17 +176,35 @@ export default function PipelinePage() {
                         </div>
                       )}
                       
-                      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.75rem", alignItems: "center" }}>
                         {inq.Email && (
-                          <a href={`mailto:${inq.Email}`} title={`Email ${inq.Email}`} style={{ color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, padding: "0.25rem 0.5rem", backgroundColor: "rgba(15, 118, 110, 0.1)", borderRadius: "0.25rem", transition: "background-color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "rgba(15, 118, 110, 0.2)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "rgba(15, 118, 110, 0.1)"}>
+                          <a href={`mailto:${inq.Email}`} title={`Email ${inq.Email}`} style={{ color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, padding: "0.25rem 0.5rem", backgroundColor: "rgba(15, 118, 110, 0.1)", borderRadius: "0.25rem", transition: "background-color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "rgba(15, 118, 110, 0.2)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "rgba(15, 118, 110, 0.1)"} onClick={(e) => e.stopPropagation()}>
                             <Mail size={16} /> Email
                           </a>
                         )}
                         {inq.Phone && (
-                          <a href={`tel:${inq.Phone}`} title={`Call ${inq.Phone}`} style={{ color: "var(--status-blue-fg)", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, padding: "0.25rem 0.5rem", backgroundColor: "rgba(30, 64, 175, 0.1)", borderRadius: "0.25rem", transition: "background-color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "rgba(30, 64, 175, 0.2)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "rgba(30, 64, 175, 0.1)"}>
+                          <a href={`tel:${inq.Phone}`} title={`Call ${inq.Phone}`} style={{ color: "var(--status-blue-fg)", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, padding: "0.25rem 0.5rem", backgroundColor: "rgba(30, 64, 175, 0.1)", borderRadius: "0.25rem", transition: "background-color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "rgba(30, 64, 175, 0.2)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "rgba(30, 64, 175, 0.1)"} onClick={(e) => e.stopPropagation()}>
                             <Phone size={16} /> Call
                           </a>
                         )}
+                        <div style={{ position: "relative", marginLeft: "auto" }} onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === inq.Inquiry_ID ? null : inq.Inquiry_ID); }}
+                            style={{ color: "var(--foreground)", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, padding: "0.25rem 0.5rem", backgroundColor: "var(--muted-bg)", borderRadius: "0.25rem", transition: "background-color 0.2s", border: "none", cursor: "pointer" }}
+                          >
+                            <Plus size={16} /> Create
+                          </button>
+                          {openDropdownId === inq.Inquiry_ID && (
+                            <div style={{ position: "absolute", top: "100%", right: 0, marginTop: "0.25rem", backgroundColor: "var(--background)", border: "1px solid var(--border)", borderRadius: "0.5rem", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", zIndex: 10, minWidth: "160px", overflow: "hidden" }}>
+                              <a href={`/dashboard/finance?tab=contracts&create=contract`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none", borderBottom: "1px solid var(--border)" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
+                                New Contract / Proposal
+                              </a>
+                              <a href={`/dashboard/finance?tab=invoices&create=invoice`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
+                                New Invoice
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -216,6 +252,13 @@ export default function PipelinePage() {
                   <label className="label">Pipeline Stage</label>
                   <select className="input" value={editForm.Pipeline_Stage || ""} onChange={(e) => setEditForm({ ...editForm, Pipeline_Stage: e.target.value })}>
                     {STAGES.map(stage => <option key={stage} value={stage}>{stage}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Assigned Package</label>
+                  <select className="input" value={editForm.Package_ID || ""} onChange={(e) => setEditForm({ ...editForm, Package_ID: e.target.value ? Number(e.target.value) : null })}>
+                    <option value="">No Package Assigned</option>
+                    {packages.map(pkg => <option key={pkg.Package_ID} value={pkg.Package_ID}>{pkg.Name} (${pkg.Price})</option>)}
                   </select>
                 </div>
                 <div>

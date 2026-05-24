@@ -89,6 +89,21 @@ export default function FinancePage() {
     fetchBuilderDrafts();
     fetchInvoiceBuilderDrafts();
     fetch('/api/contacts').then(r=>r.json()).then(d=>{ if(d.success) setAllContacts(d.contacts); });
+
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const create = params.get("create");
+    
+    if (tab) {
+      setActiveTab(tab);
+    }
+    
+    if (create === "invoice") {
+      setShowInvoiceBuilder(true);
+    } else if (create === "contract") {
+      setBuilderType("Contract");
+      setShowNewContractModal(true);
+    }
   }, []);
 
   const fetchInquiries = () => {
