@@ -408,40 +408,29 @@ export default function ClientPortal() {
                   <div style={{ fontSize: 14, color: '#64748b' }}>Your deliverables will appear here once they are ready.</div>
                 </div>
               ) : (
-                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
-                      <thead>
-                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                          <th style={{ padding: '16px 24px', fontWeight: 600 }}>Deliverable</th>
-                          <th style={{ padding: '16px 24px', fontWeight: 600 }}>Description / Note</th>
-                          <th style={{ padding: '16px 24px', fontWeight: 600, width: 140 }}>Link</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {deliverables?.map((d: any) => (
-                          <tr key={d.Deliverable_ID} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '16px 24px', fontWeight: 600, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 12 }}>
-                              <div style={{ background: `${brandColor}10`, width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <DownloadCloud size={16} color={brandColor} />
-                              </div>
-                              {d.Title}
-                            </td>
-                            <td style={{ padding: '16px 24px', color: '#475569', lineHeight: 1.5 }}>
-                              {d.Description || <span style={{ color: '#cbd5e1' }}>—</span>}
-                            </td>
-                            <td style={{ padding: '16px 24px' }}>
-                              {d.Link_URL ? (
-                                <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: `${brandColor}10`, color: brandColor, borderRadius: 6, fontWeight: 600, textDecoration: 'none', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
-                                  Open <ExternalLink size={14} />
-                                </a>
-                              ) : <span style={{ color: '#cbd5e1' }}>—</span>}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {deliverables?.map((d: any) => (
+                    <div key={d.Deliverable_ID} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16, justifyContent: 'space-between', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'default' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flex: 1, minWidth: 280 }}>
+                        <div style={{ background: `${brandColor}15`, width: 48, height: 48, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <DownloadCloud size={24} color={brandColor} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 16 }}>{d.Title}</div>
+                          {d.Description && (
+                            <div style={{ color: '#64748b', fontSize: 14, lineHeight: 1.5 }}>{d.Description}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        {d.Link_URL ? (
+                          <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: `${brandColor}`, color: '#fff', borderRadius: 8, fontWeight: 700, fontSize: 14, textDecoration: 'none', transition: 'opacity 0.2s', whiteSpace: 'nowrap', boxShadow: `0 4px 12px ${brandColor}40` }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+                            Access Link <ExternalLink size={16} />
+                          </a>
+                        ) : <span style={{ color: '#cbd5e1', fontSize: 14, fontWeight: 500 }}>Pending Link</span>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
