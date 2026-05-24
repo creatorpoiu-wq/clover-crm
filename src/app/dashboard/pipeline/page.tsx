@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon, Plus } from "lucide-react";
+import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon, Plus, Briefcase, MapPin, Package } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import DeliverablesManager from "@/components/DeliverablesManager";
 
@@ -231,12 +231,12 @@ export default function PipelinePage() {
       {selectedInquiry && (
         <div 
           className="mobile-overlay open" 
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", zIndex: 100 }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", zIndex: 100, backgroundColor: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)", animation: "fadeIn 0.2s ease" }}
           onClick={() => setSelectedInquiry(null)}
         >
           <div 
             className="glass-panel" 
-            style={{ width: "100%", maxWidth: "500px", maxHeight: "90vh", overflowY: "auto", padding: "2rem", backgroundColor: "var(--background)", position: "relative" }}
+            style={{ width: "100%", maxWidth: "550px", maxHeight: "90vh", overflowY: "auto", padding: "2.5rem", backgroundColor: "white", position: "relative", borderRadius: "1.5rem", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <button onClick={() => setSelectedInquiry(null)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}>
@@ -280,42 +280,77 @@ export default function PipelinePage() {
                 </div>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "var(--primary)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.25rem", fontWeight: 800 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", paddingBottom: "1.5rem", borderBottom: "1px solid #f0efe9" }}>
+                  <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg, var(--primary) 0%, #2dd4bf 100%)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", fontWeight: 800, boxShadow: "0 4px 10px rgba(15, 118, 110, 0.3)" }}>
                     {selectedInquiry.Contact_Name.charAt(0)}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: "1.25rem" }}>{selectedInquiry.Contact_Name}</div>
-                    <div style={{ fontSize: "0.875rem", color: "var(--muted)" }}>{selectedInquiry.Status_Flag}</div>
+                    <div style={{ fontWeight: 800, fontSize: "1.5rem", color: "#0f172a", letterSpacing: "-0.02em" }}>{selectedInquiry.Contact_Name}</div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 500 }}>{selectedInquiry.Status_Flag}</div>
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", backgroundColor: "var(--muted-bg)", padding: "1rem", borderRadius: "0.5rem" }}>
-                  <div>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Service Type</div>
-                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Service_Type}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "1rem", border: "1px solid #f1f5f9", transition: "transform 0.2s", cursor: "default" }} onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={(e) => e.currentTarget.style.transform = "none"}>
+                    <div style={{ padding: "0.75rem", backgroundColor: "#e0f2fe", color: "#0284c7", borderRadius: "0.75rem" }}>
+                      <Briefcase size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Service Type</div>
+                      <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem" }}>{selectedInquiry.Service_Type}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Stage</div>
-                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Pipeline_Stage}</div>
+
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "1rem", border: "1px solid #f1f5f9", transition: "transform 0.2s", cursor: "default" }} onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={(e) => e.currentTarget.style.transform = "none"}>
+                    <div style={{ padding: "0.75rem", backgroundColor: "#fef3c7", color: "#d97706", borderRadius: "0.75rem" }}>
+                      <MapPin size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Stage</div>
+                      <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem" }}>{selectedInquiry.Pipeline_Stage}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Estimated Value</div>
-                    <div style={{ fontWeight: 600, color: "var(--primary)" }}>{formatCurrency(selectedInquiry.Estimated_Value)}</div>
+
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "1rem", border: "1px solid #f1f5f9", transition: "transform 0.2s", cursor: "default", gridColumn: "1 / -1" }} onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={(e) => e.currentTarget.style.transform = "none"}>
+                    <div style={{ padding: "0.75rem", backgroundColor: "#f3e8ff", color: "#9333ea", borderRadius: "0.75rem" }}>
+                      <Package size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Assigned Package</div>
+                      <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem" }}>
+                        {packages.find(p => p.Package_ID === selectedInquiry.Package_ID)?.Name || "No Package Assigned"}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Event Date</div>
-                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Event_Date ? formatDate(selectedInquiry.Event_Date) : "Not Set"}</div>
+
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "1rem", border: "1px solid #f1f5f9", transition: "transform 0.2s", cursor: "default" }} onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={(e) => e.currentTarget.style.transform = "none"}>
+                    <div style={{ padding: "0.75rem", backgroundColor: "#ecfdf5", color: "#059669", borderRadius: "0.75rem" }}>
+                      <Calendar size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Event Date</div>
+                      <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem" }}>{selectedInquiry.Event_Date ? formatDate(selectedInquiry.Event_Date) : "Not Set"}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "1rem", border: "1px solid #f1f5f9", transition: "transform 0.2s", cursor: "default" }} onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={(e) => e.currentTarget.style.transform = "none"}>
+                    <div style={{ padding: "0.75rem", backgroundColor: "#fce7f3", color: "#db2777", borderRadius: "0.75rem" }}>
+                      <DollarSign size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Estimated Value</div>
+                      <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem" }}>{formatCurrency(selectedInquiry.Estimated_Value)}</div>
+                    </div>
                   </div>
                 </div>
 
                 <div style={{ display: "flex", gap: "1rem" }}>
-                  <a href={`mailto:${selectedInquiry.Email}`} className="btn btn-outline" style={{ flex: 1, padding: "0.5rem" }}><Mail size={16} /> Email</a>
-                  <a href={`tel:${selectedInquiry.Phone}`} className="btn btn-outline" style={{ flex: 1, padding: "0.5rem" }}><Phone size={16} /> Call</a>
+                  <a href={`mailto:${selectedInquiry.Email}`} className="btn btn-outline" style={{ flex: 1, padding: "0.75rem", borderRadius: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}><Mail size={16} /> Email</a>
+                  <a href={`tel:${selectedInquiry.Phone}`} className="btn btn-outline" style={{ flex: 1, padding: "0.75rem", borderRadius: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}><Phone size={16} /> Call</a>
                   <button 
                     className="btn btn-outline" 
-                    style={{ flex: 1, padding: "0.5rem", color: "var(--primary)", borderColor: "var(--primary)" }}
+                    style={{ flex: 1, padding: "0.75rem", borderRadius: "0.75rem", fontWeight: 600, color: "var(--primary)", borderColor: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
                     onClick={() => {
                       const portalUrl = `${window.location.origin}/portal/${selectedInquiry.Inquiry_ID}`;
                       navigator.clipboard.writeText(portalUrl);
@@ -327,19 +362,21 @@ export default function PipelinePage() {
                 </div>
 
                 <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", borderTop: "1px solid var(--border)", paddingTop: "1.5rem" }}>
-                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setIsEditing(true)}><Edit size={16} /> Edit Details</button>
+                  <button className="btn btn-primary" style={{ flex: 1, padding: "0.875rem", borderRadius: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "0 4px 6px -1px rgba(15, 118, 110, 0.2)" }} onClick={() => setIsEditing(true)}><Edit size={18} /> Edit Details</button>
                   <button 
                     className="btn btn-outline" 
                     style={{ 
                       flex: 1, 
-                      color: confirmDeleteId === selectedInquiry.Inquiry_ID ? "#fff" : "var(--status-red-fg)", 
-                      borderColor: "#dc2626",
-                      background: confirmDeleteId === selectedInquiry.Inquiry_ID ? "#dc2626" : "transparent"
+                      padding: "0.875rem", borderRadius: "0.75rem", fontWeight: 700,
+                      color: confirmDeleteId === selectedInquiry.Inquiry_ID ? "#fff" : "#ef4444", 
+                      borderColor: "#ef4444",
+                      background: confirmDeleteId === selectedInquiry.Inquiry_ID ? "#dc2626" : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem"
                     }} 
                     onClick={handleDelete} 
                     disabled={isDeleting}
                   >
-                    {isDeleting ? "Deleting..." : confirmDeleteId === selectedInquiry.Inquiry_ID ? "Confirm Delete?" : <><Trash2 size={16} /> Delete</>}
+                    {isDeleting ? "Deleting..." : confirmDeleteId === selectedInquiry.Inquiry_ID ? "Confirm Delete?" : <><Trash2 size={18} /> Delete Project</>}
                   </button>
                 </div>
 
