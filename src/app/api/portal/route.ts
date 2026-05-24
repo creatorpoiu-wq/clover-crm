@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     // 4. Fetch Deliverables linked to Inquiry
     const { data: deliverables } = await supabase
       .from('Deliverables')
-      .select('Deliverable_ID, Title, Link_URL, Description, Added_Date')
+      .select('Deliverable_ID, Title, Link_URL, Description, Added_Date, Client_Status, Client_Notes')
       .eq('Inquiry_ID', inquiryId)
       .order('Added_Date', { ascending: false });
 
