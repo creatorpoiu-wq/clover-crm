@@ -18,6 +18,8 @@ interface Contact {
   Lead_Source: string;
   Package_ID?: number | null;
   Package_Name?: string | null;
+  Company?: string;
+  Address?: string;
 }
 
 interface Communication {

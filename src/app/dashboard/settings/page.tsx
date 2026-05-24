@@ -368,7 +368,7 @@ function SettingsInner() {
               </div>
               <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem' }}>This color syncs directly to the Client Portal theme.</p>
             </div>
-            </div>
+
 
             <div style={{ gridColumn: "1 / -1", marginTop: "1rem" }}>
               <button type="submit" className="btn btn-primary" disabled={saving} style={{ width: "auto" }}>
