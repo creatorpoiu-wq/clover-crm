@@ -534,7 +534,16 @@ function SettingsInner() {
                 </div>
               </div>
               {!hasToken ? (
-                <a href="/api/gmail/auth" className="btn btn-primary" style={{ width: "auto", textDecoration: "none" }}>
+                <a href="/api/gmail/auth" 
+                  className="btn btn-primary" 
+                  style={{ width: "auto", textDecoration: "none" }}
+                  onClick={(e) => {
+                    if (!clientId || !clientSecret) {
+                      e.preventDefault();
+                      setMessage({ type: "error", text: "Please enter and save your Google Client ID and Secret first." });
+                    }
+                  }}
+                >
                   <LinkIcon size={16} /> Connect Account
                 </a>
               ) : (
