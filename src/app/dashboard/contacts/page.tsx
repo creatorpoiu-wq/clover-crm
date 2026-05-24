@@ -64,6 +64,14 @@ export default function ContactsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "true") {
+      setActiveTab("contact");
+      window.history.replaceState({}, '', '/dashboard/contacts');
+    }
+  }, []);
+
+  useEffect(() => {
     fetchInquiries();
     fetch('/api/packages?type=packages')
       .then(res => res.json())

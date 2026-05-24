@@ -101,10 +101,47 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Inquiries PUT Error:', error);
+    console.error('Inquiries API PUT Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const body = await req.json();
+    const { contactId, serviceType, eventDate, estimatedValue, pipelineStage } = body;
+    
+    if (!contactId || !serviceType) {
+      return NextResponse.json({ success: false, error: "Missing required fields (contactId, serviceType)" }, { status: 400 });
+    }
+
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
+    const { data, error } = await supabase
+      .from('Inquiries')
+      .insert({
+        user_id: userAuth.user.id,
+        Contact_ID: contactId,
+        Service_Type: serviceType,
+        Event_Date: eventDate || null,
+        Estimated_Value: estimatedValue ? parseFloat(estimatedValue) : 0,
+        Pipeline_Stage: pipelineStage || "New Inquiry"
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, inquiry: data });
+  } catch (error: any) {
+    console.error('Inquiries API POST Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+
 
 export async function DELETE(req: NextRequest) {
   try {

@@ -71,7 +71,10 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   const [showInvoiceBuilder, setShowInvoiceBuilder] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [showCreateDropdown, setShowCreateDropdown] = useState(false);
+  const [showNewInquiryModal, setShowNewInquiryModal] = useState(false);
   const [newSessionForm, setNewSessionForm] = useState({ Service_Type: "", Event_Date: "" });
+  const [newInquiryForm, setNewInquiryForm] = useState({ serviceType: "Wedding Photography", eventDate: "", estimatedValue: "", pipelineStage: "New Inquiry" });
+  const [isCreatingInquiry, setIsCreatingInquiry] = useState(false);
 
   const fetchContactData = () => {
     fetch(`/api/contacts/${id}`)
@@ -138,10 +141,42 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         const err = await res.json();
         alert("Could not save: " + err.error + ". Have you added Company/Address columns to the database?");
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update contact info");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCreateInquiry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreatingInquiry(true);
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contactId: id,
+          serviceType: newInquiryForm.serviceType,
+          eventDate: newInquiryForm.eventDate,
+          estimatedValue: newInquiryForm.estimatedValue,
+          pipelineStage: newInquiryForm.pipelineStage
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowNewInquiryModal(false);
+        setNewInquiryForm({ serviceType: "Wedding Photography", eventDate: "", estimatedValue: "", pipelineStage: "New Inquiry" });
+        fetchContactData(); // refresh everything
+      } else {
+        alert("Failed to create inquiry: " + data.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create inquiry");
+    } finally {
+      setIsCreatingInquiry(false);
     }
   };
 
@@ -222,6 +257,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
             </button>
             {showCreateDropdown && (
               <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid #f0efe9', width: '160px', zIndex: 50, overflow: 'hidden' }}>
+                <button onClick={() => { setShowCreateDropdown(false); setShowNewInquiryModal(true); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', borderBottom: '1px solid #f0efe9', fontSize: '0.875rem', color: '#0f172a', cursor: 'pointer' }} className="hover:bg-gray-50">New Project</button>
                 <button onClick={() => { setShowCreateDropdown(false); setShowSessionModal(true); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', borderBottom: '1px solid #f0efe9', fontSize: '0.875rem', color: '#0f172a', cursor: 'pointer' }} className="hover:bg-gray-50">New Session</button>
                 <button onClick={() => { setShowCreateDropdown(false); setShowInvoiceBuilder(true); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', borderBottom: '1px solid #f0efe9', fontSize: '0.875rem', color: '#0f172a', cursor: 'pointer' }} className="hover:bg-gray-50">New Invoice</button>
                 <button onClick={() => { setShowCreateDropdown(false); setShowContractBuilder(true); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.875rem', color: '#0f172a', cursor: 'pointer' }} className="hover:bg-gray-50">New Contract</button>
@@ -265,7 +301,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f0efe9', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
                 <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Projects</h2>
-                <button onClick={() => setShowSessionModal(true)} style={{ background: 'none', border: 'none', color: '#4da685', cursor: 'pointer' }}><Plus size={18} /></button>
+                <button onClick={() => setShowNewInquiryModal(true)} style={{ background: 'none', border: 'none', color: '#4da685', cursor: 'pointer' }}><Plus size={18} /></button>
               </div>
               
               {inquiries.length > 0 ? (
@@ -606,6 +642,55 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         />
       )}
       
+      {/* New Inquiry Modal */}
+      {showNewInquiryModal && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ backgroundColor: "white", padding: "2rem", borderRadius: "0.5rem", width: "100%", maxWidth: "500px" }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>New Project / Inquiry</h2>
+              <button onClick={() => setShowNewInquiryModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={20} color="#64748b" style={{display: 'none'}}/><Edit2 size={20} color="#64748b" style={{display: 'none'}}/><span style={{fontSize:'1.5rem', color:'#64748b'}}>&times;</span></button>
+            </div>
+            
+            <form onSubmit={handleCreateInquiry} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div>
+                <label className="label">Service Type</label>
+                <select className="input-field" value={newInquiryForm.serviceType} onChange={e => setNewInquiryForm({...newInquiryForm, serviceType: e.target.value})} required>
+                  <option value="Wedding Photography">Wedding Photography</option>
+                  <option value="Portrait Session">Portrait Session</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Pipeline Stage</label>
+                <select className="input-field" value={newInquiryForm.pipelineStage} onChange={e => setNewInquiryForm({...newInquiryForm, pipelineStage: e.target.value})} required>
+                  <option value="New Inquiry">New Inquiry</option>
+                  <option value="Discovery/Consultation">Discovery/Consultation</option>
+                  <option value="Proposal Drafted">Proposal Drafted</option>
+                  <option value="Proposal Sent">Proposal Sent</option>
+                  <option value="Negotiation/Revision">Negotiation/Revision</option>
+                  <option value="Booked">Booked</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Event Date (Optional)</label>
+                <input type="date" className="input-field" value={newInquiryForm.eventDate} onChange={e => setNewInquiryForm({...newInquiryForm, eventDate: e.target.value})} />
+              </div>
+              <div>
+                <label className="label">Estimated Value ($) (Optional)</label>
+                <input type="number" step="0.01" className="input-field" placeholder="e.g. 1500" value={newInquiryForm.estimatedValue} onChange={e => setNewInquiryForm({...newInquiryForm, estimatedValue: e.target.value})} />
+              </div>
+              
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1rem" }}>
+                <button type="button" onClick={() => setShowNewInquiryModal(false)} className="btn btn-outline" disabled={isCreatingInquiry}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={isCreatingInquiry}>
+                  {isCreatingInquiry ? "Creating..." : "Create Project"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

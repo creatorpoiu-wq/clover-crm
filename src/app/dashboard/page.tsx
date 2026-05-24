@@ -140,6 +140,10 @@ export default function DashboardPage() {
                  <FileSignature size={20} strokeWidth={1.5} />
                  <span>Contract</span>
                </a>
+               <a href="/dashboard/contacts?new=true" className="action-tile">
+                 <Users size={20} strokeWidth={1.5} />
+                 <span>Contact</span>
+               </a>
                <a href="/dashboard/questionnaire" className="action-tile">
                  <CheckSquare size={20} strokeWidth={1.5} />
                  <span>Questionnaire</span>
