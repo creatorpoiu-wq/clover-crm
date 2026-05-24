@@ -58,6 +58,7 @@ export default function HubPage() {
 
   useEffect(() => {
     fetchInquiries();
+    handleSync(true); // Auto-sync silently on load
   }, []);
 
   useEffect(() => {
@@ -66,24 +67,32 @@ export default function HubPage() {
     }
   }, [selectedInquiry]);
 
-  const handleSync = async () => {
-    setIsSyncing(true);
-    setSyncStatus('Syncing with Gmail...');
+  const handleSync = async (silent = false) => {
+    if (!silent) {
+      setIsSyncing(true);
+      setSyncStatus('Syncing with Gmail...');
+    }
     try {
       const res = await fetch('/api/gmail/sync', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
-        setSyncStatus(`Synced ${data.count} new emails.`);
-        fetchInquiries();
-        if (selectedInquiry) fetchMessages(selectedInquiry.Inquiry_ID);
+        if (!silent || data.count > 0) {
+          setSyncStatus(data.count > 0 ? `Synced ${data.count} new emails.` : 'Emails up to date.');
+          fetchInquiries();
+          if (selectedInquiry) fetchMessages(selectedInquiry.Inquiry_ID);
+        }
       } else {
-        setSyncStatus(`Sync Failed: ${data.error}`);
+        if (!silent) setSyncStatus(`Sync Failed: ${data.error}`);
       }
     } catch (error) {
-      setSyncStatus('Failed to sync.');
+      if (!silent) setSyncStatus('Failed to sync.');
     } finally {
-      setIsSyncing(false);
-      setTimeout(() => setSyncStatus(''), 5000);
+      if (!silent) {
+        setIsSyncing(false);
+        setTimeout(() => setSyncStatus(''), 5000);
+      } else if (syncStatus) {
+        setTimeout(() => setSyncStatus(''), 5000);
+      }
     }
   };
 
