@@ -158,7 +158,12 @@ export default function PipelinePage() {
                     <div 
                       key={inq.Inquiry_ID} 
                       onClick={() => { setSelectedInquiry(inq); setEditForm(inq); setIsEditing(false); }}
-                      style={{ padding: "1rem", borderRadius: "0.5rem", backgroundColor: "var(--background)", border: "1px solid var(--border)", cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease" }}
+                      style={{ 
+                        padding: "1rem", borderRadius: "0.5rem", backgroundColor: "var(--background)", 
+                        border: "1px solid var(--border)", cursor: "pointer", 
+                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                        position: "relative", zIndex: openDropdownId === inq.Inquiry_ID ? 50 : 1 
+                      }}
                       onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)"; }}
                       onMouseOut={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
                     >
