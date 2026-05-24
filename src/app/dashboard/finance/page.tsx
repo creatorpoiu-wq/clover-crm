@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { FileText, DollarSign, Plus, Edit2, Trash2, Check, X, Printer, Search, PieChart } from "lucide-react";
+import { FileText, DollarSign, Plus, Edit2, Trash2, Check, X, Printer, Search, PieChart, Send } from "lucide-react";
 import ContractBuilder from "@/components/ContractBuilder";
 import InvoiceBuilder from "@/components/InvoiceBuilder";
 import { formatDate } from "@/lib/formatDate";
@@ -45,6 +45,7 @@ interface Contract {
   Provider_Signature?: string;
   Client_Signature?: string;
   Signers?: string;
+  Type?: string;
 }
 
 export default function FinancePage() {
@@ -68,7 +69,8 @@ export default function FinancePage() {
   const [contractForm, setContractForm] = useState({ inquiryId: "", contractText: "This agreement is between the Service Provider and the Client...", status: "Draft", sentDate: "" });
   const [viewContract, setViewContract] = useState<Contract | null>(null);
   const [showFullBuilder, setShowFullBuilder] = useState(false);
-  const [builderDrafts, setBuilderDrafts] = useState<{Draft_ID:number;Title:string;Status:string;Updated_At:string;Signers:string}[]>([]);
+  const [builderType, setBuilderType] = useState<"Contract" | "Proposal">("Contract");
+  const [builderDrafts, setBuilderDrafts] = useState<{Draft_ID:number;Title:string;Status:string;Updated_At:string;Signers:string;Type?:string}[]>([]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [showNewContractModal, setShowNewContractModal] = useState(false);
   const [allContacts, setAllContacts] = useState<{Contact_ID:number;Name:string;Email:string}[]>([]);
@@ -228,6 +230,28 @@ export default function FinancePage() {
     fetchContracts();
   };
 
+  const [resendingId, setResendingId] = useState<number | null>(null);
+  const resendContract = async (id: number) => {
+    setResendingId(id);
+    try {
+      const res = await fetch("/api/contract-actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "resend_contract", contractId: id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Resent successfully to " + data.sentTo.join(', '));
+      } else {
+        alert("Failed to resend: " + data.error);
+      }
+    } catch (err) {
+      alert("Error resending document.");
+    } finally {
+      setResendingId(null);
+    }
+  };
+
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
 
   return (
@@ -311,6 +335,7 @@ export default function FinancePage() {
           onClose={() => { setShowFullBuilder(false); setSelectedClient(null); }} 
           onDraftSaved={fetchBuilderDrafts}
           initialClient={selectedClient || undefined}
+          documentType={builderType}
           onSave={(html) => { 
             setContractForm({...contractForm, contractText: html}); 
             setShowFullBuilder(false);
@@ -631,7 +656,7 @@ export default function FinancePage() {
                 <h2 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>
                   {activeTab === "contracts" ? "Legal Contracts" : "Proposals"}
                 </h2>
-                <button onClick={() => { setSelectedClient(null); setContactSearch(''); setShowNewContractModal(true); }} className="btn btn-primary" style={{ width: "auto" }}>
+                <button onClick={() => { setSelectedClient(null); setContactSearch(''); setBuilderType(activeTab === 'contracts' ? 'Contract' : 'Proposal'); setShowNewContractModal(true); }} className="btn btn-primary" style={{ width: "auto" }}>
                   <Plus size={18} /> {activeTab === "contracts" ? "Create Contract" : "Create Proposal"}
                 </button>
               </div>
@@ -651,7 +676,7 @@ export default function FinancePage() {
                     </thead>
                     <tbody>
                       {/* Builder Drafts */}
-                      {builderDrafts.map(draft => {
+                      {builderDrafts.filter(d => (d.Type || 'Contract') === (activeTab === 'contracts' ? 'Contract' : 'Proposal')).map(draft => {
                         const signerList = (() => { try { return JSON.parse(draft.Signers); } catch { return []; } })();
                         const clientSigner = signerList.find((s: any) => s.name && !s.name.includes('Photography'));
                         return (
@@ -687,9 +712,12 @@ export default function FinancePage() {
                         );
                       })}
                       {/* Saved Contracts */}
-                      {contracts.map(cnt => (
+                      {contracts.filter(c => (c.Type || 'Contract') === (activeTab === 'contracts' ? 'Contract' : 'Proposal')).map(cnt => (
                         <tr key={cnt.Contract_ID} style={{ borderBottom: "1px solid var(--border)", background: cnt.Status === 'Signed' ? 'rgba(22,163,74,0.03)' : 'transparent' }} className="hover:bg-[var(--muted-bg)]">
-                          <td style={{ padding: "1rem 0.5rem", fontWeight: 700 }}>CNT-{cnt.Contract_ID.toString().padStart(4, '0')}</td>
+                          <td style={{ padding: "1rem 0.5rem", fontWeight: 700 }}>
+                            {activeTab === "contracts" ? 'CNT-' : 'PRP-'}
+                            {cnt.Contract_ID.toString().padStart(4, '0')}
+                          </td>
                           <td style={{ padding: "1rem 0.5rem" }}>
                             <div style={{ fontWeight: 600 }}>{cnt.Contact_Name}</div>
                             <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{cnt.Service_Type}</div>
@@ -697,7 +725,7 @@ export default function FinancePage() {
                           <td style={{ padding: "1rem 0.5rem" }}>
                             {cnt.Status === 'Signed' ? (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, background: '#dcfce7', color: '#15803d', fontWeight: 700, fontSize: '0.75rem' }}>
-                                ✓ Signed
+                                ✓ {activeTab === "contracts" ? "Signed" : "Accepted"}
                               </span>
                             ) : (
                               <select 
@@ -707,7 +735,7 @@ export default function FinancePage() {
                               >
                                 <option value="Draft">Draft</option>
                                 <option value="Sent">Sent</option>
-                                <option value="Signed">Signed</option>
+                                <option value="Signed">{activeTab === "contracts" ? "Signed" : "Accepted"}</option>
                               </select>
                             )}
                           </td>
@@ -720,7 +748,8 @@ export default function FinancePage() {
                           </td>
                           <td style={{ padding: "1rem 0.5rem", textAlign: "right" }}>
                             <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-                              <button onClick={() => setViewContract(cnt)} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto" }} title="View Contract"><FileText size={16} /></button>
+                              <button onClick={() => setViewContract(cnt)} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto" }} title="View Document"><FileText size={16} /></button>
+                              <button onClick={() => resendContract(cnt.Contract_ID)} disabled={resendingId === cnt.Contract_ID} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto", opacity: resendingId === cnt.Contract_ID ? 0.5 : 1 }} title="Resend Email"><Send size={16} /></button>
                               <button
                                 onClick={() => deleteContract(cnt.Contract_ID)}
                                 className="btn btn-outline"

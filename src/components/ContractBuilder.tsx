@@ -274,9 +274,10 @@ interface ContractBuilderProps {
   onSave: (htmlContent: string) => void;
   onDraftSaved?: () => void;
   initialClient?: { Contact_ID: number; Name: string; Email: string };
+  documentType?: "Contract" | "Proposal";
 }
 
-export default function ContractBuilder({ onClose, onSave, onDraftSaved, initialClient }: ContractBuilderProps) {
+export default function ContractBuilder({ onClose, onSave, onDraftSaved, initialClient, documentType = "Contract" }: ContractBuilderProps) {
   const [expiryOn, setExpiryOn] = useState(false);
   const [remindersOn, setRemindersOn] = useState(false);
   const [showContactPicker, setShowContactPicker] = useState(false);
@@ -286,7 +287,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   const [draftId, setDraftId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [contractTitle, setContractTitle] = useState('Sample Client Contract');
+  const [contractTitle, setContractTitle] = useState(`Sample Client ${documentType}`);
   const [editingTitle, setEditingTitle] = useState(false);
   const [statusBadge, setStatusBadge] = useState<'Draft' | 'Sent'>('Draft');
   const [companyName, setCompanyName] = useState('');
@@ -300,7 +301,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
         if (name) {
           setCompanyName(name);
           setVariables(prev => ({ ...prev, 'Photographer Name': name }));
-          setEmailHeader(`You have received a contract from ${name}`);
+          setEmailHeader(`You have received a ${documentType.toLowerCase()} from ${name}`);
         }
       })
       .catch(() => {});
@@ -341,7 +342,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   }, [variables['Total Amount'], variables['Deposit Percentage']]);
 
   // Email header/footer
-  const [emailHeader, setEmailHeader] = useState('You have received a new contract');
+  const [emailHeader, setEmailHeader] = useState(`You have received a new ${documentType.toLowerCase()}`);
   const [emailFooter, setEmailFooter] = useState('Please review the agreement carefully. Reply to this email with any questions.');
 
   // Provider (owner) pre-saved signature
@@ -435,6 +436,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           content: editor.getHTML(),
           signers,
           draftId,
+          type: documentType,
         }),
       });
       const data = await res.json();
@@ -477,6 +479,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           providerSignatureDataUrl: providerSigDataUrl,
           emailHeader,
           emailFooter,
+          type: documentType,
         }),
       });
       const data = await res.json();
@@ -507,7 +510,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
       CheckboxNode,
     ],
     content: `
-      <h1 style="text-align:center;font-size:2rem;font-weight:800;margin-bottom:1rem;color:#111827;">Photography Services Agreement</h1>
+      <h1 style="text-align:center;font-size:2rem;font-weight:800;margin-bottom:1rem;color:#111827;">${documentType === 'Proposal' ? 'Project Proposal' : 'Photography Services Agreement'}</h1>
       <p style="text-align:center;color:#6b7280;margin-bottom:1.5rem;">Effective Date: <span data-variable="true" label="Effective Date"></span></p>
       <hr style="border:none;border-top:2px solid #e5e7eb;margin:1.5rem 0;"/>
       <p style="margin-bottom:1rem;line-height:1.7;color:#374151;">This Photography Services Agreement (the "Agreement") is entered into by and between <span data-variable="true" label="Client Name"></span> ("Client") and <span data-variable="true" label="Photographer Name"></span> ("Photographer").</p>
@@ -632,7 +635,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           onMouseEnter={e => { if (!isSending) e.currentTarget.style.background = '#0f766e'; }}
           onMouseLeave={e => { if (!isSending) e.currentTarget.style.background = '#0d9488'; }}
           >
-            {isSending ? 'Sending…' : 'Send Contract'}
+            {isSending ? 'Sending…' : `Send ${documentType}`}
           </button>
         </div>
       </div>
