@@ -12,6 +12,7 @@ export default function ClientPortal() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [feedbackNotes, setFeedbackNotes] = useState<any>({});
 
   // Message State
   const [newMessage, setNewMessage] = useState('');
@@ -63,6 +64,22 @@ export default function ClientPortal() {
       }
     } finally {
       setSendingMessage(false);
+    }
+  };
+
+  const submitFeedback = async (deliverableId: number, status: string) => {
+    const notes = feedbackNotes[deliverableId] || '';
+    try {
+      const res = await fetch('/api/deliverables', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deliverableId, clientStatus: status, clientNotes: notes, inquiryId })
+      });
+      if (res.ok) {
+        fetchPortalData(); // refresh deliverables list
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -131,6 +148,21 @@ export default function ClientPortal() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative', zIndex: 1 }}>
           {milestones.map((m: any, i: number) => {
             const isCompleted = m.status === 'completed';
+            let dueDateDisplay = 'Pending';
+            let countdownDisplay = null;
+            
+            if (isCompleted) {
+              dueDateDisplay = 'Completed';
+            } else if (m.dueDate) {
+              dueDateDisplay = new Date(m.dueDate).toLocaleDateString();
+              const days = calculateDaysUntil(m.dueDate);
+              if (days !== null) {
+                if (days < 0) countdownDisplay = <span style={{ color: '#ef4444' }}>Overdue</span>;
+                else if (days === 0) countdownDisplay = <span style={{ color: '#f59e0b' }}>Due Today</span>;
+                else countdownDisplay = <span style={{ color: brandColor }}>{days} Days Left</span>;
+              }
+            }
+
             return (
               <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                 <div style={{ 
@@ -142,8 +174,15 @@ export default function ClientPortal() {
                   {isCompleted && <CheckCircle2 size={10} color="#fff" />}
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: isCompleted ? '#0f172a' : '#64748b' }}>{m.name}</div>
-                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{isCompleted ? 'Completed' : 'Pending'}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: isCompleted ? '#0f172a' : '#64748b', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {m.name}
+                    {!isCompleted && countdownDisplay && (
+                      <span style={{ fontSize: 11, padding: '2px 6px', background: `${brandColor}15`, borderRadius: 4, fontWeight: 700 }}>
+                        {countdownDisplay}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{dueDateDisplay}</div>
                 </div>
               </div>
             );
@@ -410,24 +449,63 @@ export default function ClientPortal() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {deliverables?.map((d: any) => (
-                    <div key={d.Deliverable_ID} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16, justifyContent: 'space-between', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'default' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flex: 1, minWidth: 280 }}>
-                        <div style={{ background: `${brandColor}15`, width: 48, height: 48, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <DownloadCloud size={24} color={brandColor} />
+                    <div key={d.Deliverable_ID} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, transition: 'transform 0.2s, box-shadow 0.2s' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16, justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flex: 1, minWidth: 280 }}>
+                          <div style={{ background: `${brandColor}15`, width: 48, height: 48, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <DownloadCloud size={24} color={brandColor} />
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 16 }}>
+                              {d.Title}
+                              {d.Client_Status === 'approved' && <span style={{ marginLeft: 8, padding: '2px 6px', fontSize: 10, background: '#10b981', color: '#fff', borderRadius: 4 }}>Approved</span>}
+                              {d.Client_Status === 'revision' && <span style={{ marginLeft: 8, padding: '2px 6px', fontSize: 10, background: '#f59e0b', color: '#fff', borderRadius: 4 }}>Revision Requested</span>}
+                            </div>
+                            {d.Description && (
+                              <div style={{ color: '#64748b', fontSize: 14, lineHeight: 1.5 }}>{d.Description}</div>
+                            )}
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 16 }}>{d.Title}</div>
-                          {d.Description && (
-                            <div style={{ color: '#64748b', fontSize: 14, lineHeight: 1.5 }}>{d.Description}</div>
-                          )}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                          {d.Link_URL ? (
+                            <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: `${brandColor}`, color: '#fff', borderRadius: 8, fontWeight: 700, fontSize: 14, textDecoration: 'none', transition: 'opacity 0.2s', whiteSpace: 'nowrap', boxShadow: `0 4px 12px ${brandColor}40` }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+                              Access Link <ExternalLink size={16} />
+                            </a>
+                          ) : <span style={{ color: '#cbd5e1', fontSize: 14, fontWeight: 500 }}>Pending Link</span>}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                        {d.Link_URL ? (
-                          <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: `${brandColor}`, color: '#fff', borderRadius: 8, fontWeight: 700, fontSize: 14, textDecoration: 'none', transition: 'opacity 0.2s', whiteSpace: 'nowrap', boxShadow: `0 4px 12px ${brandColor}40` }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
-                            Access Link <ExternalLink size={16} />
-                          </a>
-                        ) : <span style={{ color: '#cbd5e1', fontSize: 14, fontWeight: 500 }}>Pending Link</span>}
+                      
+                      {/* Client Feedback Section */}
+                      <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px dashed #e2e8f0' }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8 }}>Provide Feedback</div>
+                        <textarea
+                          placeholder="Add your notes or revision requests here..."
+                          value={d.Client_Status === 'approved' ? d.Client_Notes || '' : (feedbackNotes[d.Deliverable_ID] !== undefined ? feedbackNotes[d.Deliverable_ID] : d.Client_Notes || '')}
+                          onChange={(e) => setFeedbackNotes({ ...feedbackNotes, [d.Deliverable_ID]: e.target.value })}
+                          disabled={d.Client_Status === 'approved'}
+                          style={{ width: '100%', minHeight: 60, padding: '12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, outline: 'none', resize: 'vertical', background: d.Client_Status === 'approved' ? '#f8fafc' : '#fff' }}
+                        />
+                        {d.Client_Status !== 'approved' && (
+                          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                            <button 
+                              onClick={() => submitFeedback(d.Deliverable_ID, 'approved')}
+                              style={{ padding: '8px 16px', background: '#10b981', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                            >
+                              <CheckCircle2 size={16} /> Approve
+                            </button>
+                            <button 
+                              onClick={() => submitFeedback(d.Deliverable_ID, 'revision')}
+                              style={{ padding: '8px 16px', background: '#f59e0b', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer' }}
+                            >
+                              Request Revision
+                            </button>
+                          </div>
+                        )}
+                        {d.Client_Status === 'approved' && (
+                          <div style={{ fontSize: 13, color: '#10b981', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <CheckCircle2 size={14} /> You have approved this deliverable.
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -15,6 +15,8 @@ export default function DeliverablesManager({ inquiryId }: Props) {
   const [newLink, setNewLink] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [newMilestoneName, setNewMilestoneName] = useState('');
+  const [newMilestoneDate, setNewMilestoneDate] = useState('');
 
   const fetchDeliverables = async () => {
     try {
@@ -37,10 +39,10 @@ export default function DeliverablesManager({ inquiryId }: Props) {
       } else {
         // Defaults
         setMilestones([
-          { name: "Sneak Peeks Delivered", status: "pending" },
-          { name: "Final Gallery Delivered", status: "pending" },
-          { name: "Album Design Approved", status: "pending" },
-          { name: "Physical Products Shipped", status: "pending" }
+          { name: "Sneak Peeks Delivered", status: "pending", dueDate: null },
+          { name: "Final Gallery Delivered", status: "pending", dueDate: null },
+          { name: "Album Design Approved", status: "pending", dueDate: null },
+          { name: "Physical Products Shipped", status: "pending", dueDate: null }
         ]);
       }
     } catch (err) {
@@ -83,11 +85,44 @@ export default function DeliverablesManager({ inquiryId }: Props) {
     }
   };
 
-  const updateMilestone = async (index: number, newStatus: string) => {
+  const updateMilestone = async (index: number, newStatus?: string, newDueDate?: string, newName?: string) => {
     const newMilestones = [...milestones];
-    newMilestones[index].status = newStatus;
+    if (newStatus !== undefined) newMilestones[index].status = newStatus;
+    if (newDueDate !== undefined) newMilestones[index].dueDate = newDueDate;
+    if (newName !== undefined) newMilestones[index].name = newName;
     setMilestones(newMilestones);
 
+    try {
+      await fetch('/api/inquiries', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: inquiryId, Deliverable_Milestones: newMilestones })
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addMilestone = async () => {
+    if (!newMilestoneName) return;
+    const newMilestones = [...milestones, { name: newMilestoneName, status: 'pending', dueDate: newMilestoneDate || null }];
+    setMilestones(newMilestones);
+    setNewMilestoneName('');
+    setNewMilestoneDate('');
+    try {
+      await fetch('/api/inquiries', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: inquiryId, Deliverable_Milestones: newMilestones })
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteMilestone = async (index: number) => {
+    const newMilestones = milestones.filter((_, i) => i !== index);
+    setMilestones(newMilestones);
     try {
       await fetch('/api/inquiries', {
         method: 'PUT',
@@ -125,8 +160,17 @@ export default function DeliverablesManager({ inquiryId }: Props) {
           deliverables.map(d => (
             <div key={d.Deliverable_ID} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', border: '1px solid #f1f5f9', borderRadius: '0.75rem', backgroundColor: '#fff', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1, minWidth: 200, boxSizing: 'border-box' }}>
-                <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem', wordBreak: 'break-word' }}>{d.Title}</div>
+                <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem', wordBreak: 'break-word' }}>
+                  {d.Title}
+                  {d.Client_Status === 'approved' && <span style={{ marginLeft: 8, padding: '2px 6px', fontSize: 10, background: '#10b981', color: '#fff', borderRadius: 4 }}>Approved</span>}
+                  {d.Client_Status === 'revision' && <span style={{ marginLeft: 8, padding: '2px 6px', fontSize: 10, background: '#f59e0b', color: '#fff', borderRadius: 4 }}>Revision Requested</span>}
+                </div>
                 {d.Description && <div style={{ fontSize: '0.75rem', color: '#64748b', wordBreak: 'break-word' }}>{d.Description}</div>}
+                {d.Client_Notes && (
+                  <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f8fafc', borderLeft: '3px solid #cbd5e1', fontSize: '0.75rem', color: '#475569', fontStyle: 'italic' }}>
+                    <strong>Client Note:</strong> {d.Client_Notes}
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0, boxSizing: 'border-box' }}>
                 {d.Link_URL && (
@@ -145,23 +189,48 @@ export default function DeliverablesManager({ inquiryId }: Props) {
 
       {/* Milestones Tracker */}
       <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem', letterSpacing: '-0.02em' }}>Deliverables Timeline</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
         {milestones.map((m, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', border: '1px solid #f1f5f9', borderRadius: '0.75rem', backgroundColor: '#fff', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: m.status === 'completed' ? '#059669' : '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div key={i} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', border: '1px solid #f1f5f9', borderRadius: '0.75rem', backgroundColor: '#fff', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 150 }}>
               {m.status === 'completed' && <CheckCircle2 size={18} color="#059669" />}
-              {m.name}
+              <input 
+                type="text" 
+                value={m.name} 
+                onChange={e => updateMilestone(i, undefined, undefined, e.target.value)} 
+                style={{ fontSize: '0.875rem', fontWeight: 700, color: m.status === 'completed' ? '#059669' : '#0f172a', border: 'none', background: 'transparent', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+              />
             </div>
-            <select 
-              value={m.status} 
-              onChange={e => updateMilestone(i, e.target.value)}
-              style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', fontWeight: 600, color: '#0f172a', backgroundColor: '#f8fafc', outline: 'none', cursor: 'pointer' }}
-            >
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <input 
+                type="date" 
+                value={m.dueDate || ''} 
+                onChange={e => updateMilestone(i, undefined, e.target.value, undefined)}
+                style={{ fontSize: '0.75rem', padding: '0.375rem 0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', color: '#475569', outline: 'none', boxSizing: 'border-box' }}
+              />
+              <select 
+                value={m.status} 
+                onChange={e => updateMilestone(i, e.target.value, undefined, undefined)}
+                style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', fontWeight: 600, color: '#0f172a', backgroundColor: '#f8fafc', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+              >
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+              <button onClick={() => deleteMilestone(i)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.375rem', boxSizing: 'border-box' }} title="Remove Step">
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
         ))}
+      </div>
+
+      {/* Add Timeline Step */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', background: '#f8fafc', padding: '1rem', borderRadius: '0.75rem', border: '1px dashed #cbd5e1', boxSizing: 'border-box' }}>
+        <input type="text" placeholder="New Step Name (e.g. Teasers)" value={newMilestoneName} onChange={e => setNewMilestoneName(e.target.value)} style={{ padding: '0.625rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 1, minWidth: 150, fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
+        <input type="date" value={newMilestoneDate} onChange={e => setNewMilestoneDate(e.target.value)} style={{ padding: '0.625rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
+        <button onClick={addMilestone} disabled={!newMilestoneName} style={{ padding: '0.625rem 1rem', background: '#e2e8f0', color: '#334155', borderRadius: '0.5rem', fontWeight: 600, border: 'none', cursor: newMilestoneName ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '0.25rem', boxSizing: 'border-box' }}>
+          <Plus size={16} /> Add Step
+        </button>
       </div>
     </div>
   );
