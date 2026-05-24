@@ -38,6 +38,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, fields: fields || [] });
     }
 
+    // ── Contract Fetch (for generated proposals) ───────────────────────────
+    if (type === 'contract' && searchParams.get('contractId')) {
+      const { data: contract, error } = await supabase
+        .from('Contracts')
+        .select('*')
+        .eq('Contract_ID', searchParams.get('contractId'))
+        .single();
+        
+      if (error) throw error;
+      return NextResponse.json({ success: true, contract });
+    }
+
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Missing userId' }, { status: 400 });
     }

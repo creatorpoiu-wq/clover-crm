@@ -36,7 +36,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Email configuration is missing. Please set up your SMTP credentials in Settings.' }, { status: 400 });
     }
 
-    // 3. Create the Proposal Link
+    // 3. Get the Contract Template and Create a Contract Record
+    let realContractId = contractId;
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (contractId) {
+      // Find the latest Inquiry for this contact to attach the Contract to
+      const { data: latestInq } = await supabase
+        .from('Inquiries')
+        .select('Inquiry_ID')
+        .eq('Contact_ID', contactId)
+        .order('Inquiry_ID', { ascending: false })
+        .limit(1)
+        .single();
+        
+      const inquiryId = latestInq?.Inquiry_ID || null;
+
+      // Fetch template
+      const { data: template } = await supabase
+        .from('Contract_Templates')
+        .select('Name, Content')
+        .eq('Template_ID', contractId)
+        .single();
+        
+      if (template) {
+        // Create Contract
+        const { data: newContract, error: insertError } = await supabase
+          .from('Contracts')
+          .insert({
+            user_id: userAuth.user.id,
+            Inquiry_ID: inquiryId,
+            Contract_Title: template.Name || 'Booking Proposal',
+            Contract_Text: template.Content,
+            Status: 'Sent',
+            Sent_Date: today,
+            Type: 'Proposal'
+          })
+          .select()
+          .single();
+          
+        if (newContract && !insertError) {
+          realContractId = newContract.Contract_ID.toString();
+        }
+      }
+    }
+
+    // 4. Create the Proposal Link
     // Use the incoming request host as the most reliable source of the app URL
     const userId = userAuth.user.id;
     const host = req.headers.get('host') || '';
@@ -44,9 +89,9 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_BASE_URL
       || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
       || `${protocol}://${host}`;
-    const proposalLink = `${appUrl}/booking?userId=${userId}&contractId=${contractId}&questionnaireId=${questionnaireId}`;
+    const proposalLink = `${appUrl}/booking?userId=${userId}&contractId=${realContractId}&questionnaireId=${questionnaireId}`;
 
-    // 4. Configure Nodemailer Transporter
+    // 5. Configure Nodemailer Transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: config.Email_User, pass: config.Email_Pass }
@@ -105,25 +150,22 @@ export async function POST(req: NextRequest) {
     });
 
     // 7. Update CRM Statuses
-    if (contractId) {
-      const today = new Date().toISOString().split('T')[0];
-      await supabase
-        .from('Contracts')
-        .update({ Status: 'Sent', Sent_Date: today })
-        .eq('Contract_ID', contractId);
-
-      // We need to fetch the Inquiry_ID for this Contract to update Pipeline
-      const { data: contractData } = await supabase
-        .from('Contracts')
+    // 7. Update CRM Statuses
+    if (contactId) {
+      // Find the latest Inquiry for this contact to update Pipeline
+      const { data: latestInq } = await supabase
+        .from('Inquiries')
         .select('Inquiry_ID')
-        .eq('Contract_ID', contractId)
+        .eq('Contact_ID', contactId)
+        .order('Inquiry_ID', { ascending: false })
+        .limit(1)
         .single();
         
-      if (contractData?.Inquiry_ID) {
+      if (latestInq?.Inquiry_ID) {
         await supabase
           .from('Inquiries')
           .update({ Pipeline_Stage: 'Sent Proposal' })
-          .eq('Inquiry_ID', contractData.Inquiry_ID);
+          .eq('Inquiry_ID', latestInq.Inquiry_ID);
       }
     }
 

@@ -59,13 +59,12 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
     const urlContractId = searchParams.get('contractId');
 
     if (urlContractId) {
-      fetch('/api/contract-templates')
+      fetch(`/api/public-booking?type=contract&contractId=${urlContractId}`)
         .then(res => res.json())
-        .then(tData => {
-          const matched = tData.templates?.find((t: any) => t.Template_ID.toString() === urlContractId);
-          if (matched) {
-            setTemplate(matched);
-            extractVariables(matched.Content);
+        .then(data => {
+          if (data.success && data.contract) {
+            setTemplate({ Content: data.contract.Contract_Text, Name: data.contract.Contract_Title });
+            extractVariables(data.contract.Contract_Text);
           }
         })
         .catch(() => {})

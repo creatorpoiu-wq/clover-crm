@@ -6,6 +6,7 @@ interface Props {
   questionnaire: any;
   pkg: any;
   addons: any[];
+  signature: string;
   onBack: () => void;
   funnelSettings: any;
 }
@@ -24,7 +25,10 @@ function PaymentIcon({ iconId }: { iconId: string }) {
   return <CreditCard size={20} />;
 }
 
-export default function PaymentCheckout({ questionnaire, pkg, addons, onBack, funnelSettings }: Props) {
+import { useSearchParams } from 'next/navigation';
+
+export default function PaymentCheckout({ questionnaire, pkg, addons, signature, onBack, funnelSettings }: Props) {
+  const searchParams = useSearchParams();
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -56,13 +60,38 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, onBack, fu
   const firstName = typeof clientNameStr === 'string' ? clientNameStr.split(' ')[0] : 'Client';
   const eventDateStr = questionnaire['Event Date'] || questionnaire.eventDate || 'your selected date';
 
-  const handlePay = (e: React.FormEvent) => {
+  const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      const payload = {
+        userId: searchParams.get('userId'),
+        contractId: searchParams.get('contractId'),
+        questionnaire,
+        pkg,
+        addons,
+        signature,
+        totalAmount: total,
+        depositAmount: deposit,
+      };
+
+      const res = await fetch('/api/public-booking/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to submit booking');
+      }
+
       setSuccess(true);
-    }, 2000);
+    } catch (err: any) {
+      alert(err.message || 'An error occurred while submitting your booking.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const isCardMethod = activeMethod && !activeMethod.details;

@@ -97,9 +97,7 @@ export async function POST(req: NextRequest) {
 
       const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: emailUser, pass: emailPass } });
       const contractTitle = title || 'Contract for Review';
-      const clientSigners = (signers as any[]).filter((s: any) =>
-        !s.name?.toLowerCase().includes('photography') && !s.name?.toLowerCase().includes('marx')
-      );
+      const clientSigners = signers as any[];
       const recipientEmails = clientSigners.map((s: any) => s.email).filter(Boolean);
 
       if (recipientEmails.length === 0) {
@@ -115,19 +113,25 @@ export async function POST(req: NextRequest) {
         || `${protocol}://${host}`;
       const signUrl = `${baseUrl}/sign/${signToken}`;
 
-      // Build signature block HTML
-      const signatureRowsHtml = (signers as any[]).map((s: any) => {
-        const isOwner = s.name?.toLowerCase().includes('photography') || s.name?.toLowerCase().includes('marx');
-        const sigHtml = isOwner && providerSignatureDataUrl
-          ? `<img src="${providerSignatureDataUrl}" alt="Signature" style="max-height:70px;max-width:220px;object-fit:contain;display:block;margin-bottom:6px;" />`
-          : `<div style="height:60px;border-bottom:2px solid #374151;margin-bottom:6px;"></div>`;
+      // Build signature block HTML for clients
+      let signatureRowsHtml = (signers as any[]).map((s: any) => {
+        const sigHtml = `<div style="height:60px;border-bottom:2px solid #374151;margin-bottom:6px;"></div>`;
         return `<div style="flex:1;min-width:200px;margin-right:32px;">
           ${sigHtml}
           <div style="font-weight:700;font-size:14px;color:#111827;">${s.name}</div>
-          <div style="font-size:12px;color:#6b7280;margin-top:2px;">${isOwner ? 'Service Provider' : 'Client'}</div>
-          ${isOwner && providerSignatureDataUrl ? `<div style="font-size:11px;color:#0d9488;margin-top:4px;">&#10003; Pre-signed</div>` : ''}
+          <div style="font-size:12px;color:#6b7280;margin-top:2px;">Client</div>
         </div>`;
       }).join('');
+
+      // Explicitly append the Service Provider's signature block if provided
+      if (providerSignatureDataUrl) {
+        signatureRowsHtml += `<div style="flex:1;min-width:200px;margin-right:32px;">
+          <img src="${providerSignatureDataUrl}" alt="Signature" style="max-height:70px;max-width:220px;object-fit:contain;display:block;margin-bottom:6px;" />
+          <div style="font-weight:700;font-size:14px;color:#111827;">Service Provider</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:2px;">Service Provider</div>
+          <div style="font-size:11px;color:#0d9488;margin-top:4px;">&#10003; Pre-signed</div>
+        </div>`;
+      }
 
       const es = emailSettings.contract || {};
       const firstClientName = clientSigners[0]?.name?.split(' ')[0] || 'there';

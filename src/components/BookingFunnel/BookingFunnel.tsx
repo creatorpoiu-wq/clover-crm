@@ -148,6 +148,7 @@ export default function BookingFunnel() {
                 questionnaire={questionnaireData} 
                 pkg={selectedPackage} 
                 addons={selectedAddons} 
+                signature={signature}
                 onBack={handleBack}
                 funnelSettings={funnelSettings}
               />

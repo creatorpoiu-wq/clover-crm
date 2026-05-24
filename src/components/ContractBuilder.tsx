@@ -393,9 +393,9 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
 
   const [signers, setSigners] = useState(() => {
     if (initialClient) {
-      return [buildClientSigner(initialClient, 0), ownerSigner];
+      return [buildClientSigner(initialClient, 0)];
     }
-    return [ownerSigner];
+    return [];
   });
 
   const addContactAsSigner = (c: { Contact_ID: number; Name: string; Email: string }) => {

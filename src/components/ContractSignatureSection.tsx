@@ -143,19 +143,15 @@ interface ContractSignatureSectionProps {
   onSignaturesChange?: (signatures: SignatureBlockData[]) => void;
 }
 
-const OWNER_KEYWORDS = ['photography', 'marx', 'you)'];
-
 export default function ContractSignatureSection({ signers, providerSignatureDataUrl, onSignaturesChange }: ContractSignatureSectionProps) {
-  const isOwnerSigner = (name: string) => OWNER_KEYWORDS.some(k => name.toLowerCase().includes(k));
-
   const [blocks, setBlocks] = useState<SignatureBlockData[]>(() =>
     signers.map(s => ({
       name: s.name,
-      role: isOwnerSigner(s.name) ? 'Service Provider' : 'Client',
-      isOwner: isOwnerSigner(s.name),
-      signatureDataUrl: isOwnerSigner(s.name) ? (providerSignatureDataUrl || null) : null,
-      signed: isOwnerSigner(s.name) && !!providerSignatureDataUrl,
-      signedAt: isOwnerSigner(s.name) && providerSignatureDataUrl ? new Date().toLocaleDateString() : null,
+      role: 'Client',
+      isOwner: false,
+      signatureDataUrl: null,
+      signed: false,
+      signedAt: null,
     }))
   );
 
@@ -163,14 +159,14 @@ export default function ContractSignatureSection({ signers, providerSignatureDat
   useEffect(() => {
     setBlocks(signers.map(s => ({
       name: s.name,
-      role: isOwnerSigner(s.name) ? 'Service Provider' : 'Client',
-      isOwner: isOwnerSigner(s.name),
-      signatureDataUrl: isOwnerSigner(s.name) ? (providerSignatureDataUrl || null) : null,
-      signed: isOwnerSigner(s.name) && !!providerSignatureDataUrl,
-      signedAt: isOwnerSigner(s.name) && providerSignatureDataUrl ? new Date().toLocaleDateString() : null,
+      role: 'Client',
+      isOwner: false,
+      signatureDataUrl: null,
+      signed: false,
+      signedAt: null,
     })));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signers.map(s => s.name).join(','), providerSignatureDataUrl]);
+  }, [signers.map(s => s.name).join(',')]);
 
   const handleChange = useCallback((idx: number, data: Pick<SignatureBlockData, 'signatureDataUrl' | 'signed' | 'signedAt'>) => {
     setBlocks(prev => {
@@ -196,19 +192,28 @@ export default function ContractSignatureSection({ signers, providerSignatureDat
         )}
       </div>
 
-      {blocks.length === 0 ? (
+      {blocks.length === 0 && !providerSignatureDataUrl ? (
         <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 13, border: '1.5px dashed #e5e7eb', borderRadius: 8 }}>
           Add signers from the left sidebar to generate signature blocks.
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
+          {/* Always render Service Provider if signature exists */}
+          {providerSignatureDataUrl && (
+            <SignatureBlock
+              name="Service Provider"
+              role="Service Provider"
+              isOwner={true}
+              preloadedSignature={providerSignatureDataUrl}
+              onChange={() => {}}
+            />
+          )}
           {blocks.map((block, i) => (
             <SignatureBlock
               key={`${block.name}-${i}`}
               name={block.name}
               role={block.role}
-              isOwner={block.isOwner}
-              preloadedSignature={block.isOwner ? providerSignatureDataUrl : null}
+              isOwner={false}
               onChange={(data) => handleChange(i, data)}
             />
           ))}
