@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       auth: { user: config.Email_User, pass: config.Email_Pass }
     });
 
-    const companyName = config.Company_Name || 'Clover';
+    const companyName = config.Company_Name || '';
 
     // 5. Send the Email
     await transporter.sendMail({

@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
           const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: config.Email_User, pass: config.Email_Pass } });
           const portalLink = `${req.nextUrl.origin}/portal/${inquiryId}`;
           await transporter.sendMail({
-            from: `"${config.Company_Name || 'Studio'}" <${config.Email_User}>`,
+            from: `"${config.Company_Name}" <${config.Email_User}>`,
             to: contact.Email,
             subject: `New Deliverable Ready: ${title}`,
             html: `<div style="font-family: sans-serif; padding: 20px;">
@@ -83,9 +83,17 @@ export async function PUT(req: NextRequest) {
 
     if (!id) return NextResponse.json({ success: false, error: 'Missing ID' }, { status: 400 });
 
+    const { data: currentDeliverable } = await supabase.from('Deliverables').select('Client_Notes').eq('Deliverable_ID', id).single();
+    let newNotes = clientNotes;
+    if (currentDeliverable?.Client_Notes && clientNotes) {
+      newNotes = currentDeliverable.Client_Notes + '\n\n---\n\n' + clientNotes;
+    } else if (currentDeliverable?.Client_Notes && !clientNotes) {
+      newNotes = currentDeliverable.Client_Notes;
+    }
+
     const { error } = await supabase.from('Deliverables').update({
       Client_Status: clientStatus,
-      Client_Notes: clientNotes
+      Client_Notes: newNotes
     }).eq('Deliverable_ID', id);
 
     if (error) throw error;
@@ -101,7 +109,7 @@ export async function PUT(req: NextRequest) {
           const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: config.Email_User, pass: config.Email_Pass } });
           const subject = clientStatus === 'approved' ? `Deliverable Approved: ${deliverable.Title}` : `Revision Requested: ${deliverable.Title}`;
           await transporter.sendMail({
-            from: `"${config.Company_Name || 'System'}" <${config.Email_User}>`,
+            from: `"${config.Company_Name}" <${config.Email_User}>`,
             to: config.Email_User, // Send to admin
             subject: subject,
             html: `<div style="font-family: sans-serif; padding: 20px;">

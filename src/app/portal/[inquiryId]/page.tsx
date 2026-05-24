@@ -83,6 +83,7 @@ export default function ClientPortal() {
       });
       if (res.ok) {
         showToast(status === 'approved' ? 'Deliverable approved!' : 'Revision request sent!');
+        setFeedbackNotes((prev: any) => ({ ...prev, [deliverableId]: '' }));
         fetchPortalData(); // refresh deliverables list
       }
     } catch (err) {
@@ -484,29 +485,41 @@ export default function ClientPortal() {
                       
                       {/* Client Feedback Section */}
                       <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px dashed #e2e8f0' }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8 }}>Provide Feedback</div>
-                        <textarea
-                          placeholder="Add your notes or revision requests here..."
-                          value={d.Client_Status === 'approved' ? d.Client_Notes || '' : (feedbackNotes[d.Deliverable_ID] !== undefined ? feedbackNotes[d.Deliverable_ID] : d.Client_Notes || '')}
-                          onChange={(e) => setFeedbackNotes({ ...feedbackNotes, [d.Deliverable_ID]: e.target.value })}
-                          disabled={d.Client_Status === 'approved'}
-                          style={{ width: '100%', minHeight: 60, padding: '12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, outline: 'none', resize: 'vertical', background: d.Client_Status === 'approved' ? '#f8fafc' : '#fff' }}
-                        />
-                        {d.Client_Status !== 'approved' && (
-                          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                            <button 
-                              onClick={() => submitFeedback(d.Deliverable_ID, 'approved')}
-                              style={{ padding: '8px 16px', background: '#10b981', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-                            >
-                              <CheckCircle2 size={16} /> Approve
-                            </button>
-                            <button 
-                              onClick={() => submitFeedback(d.Deliverable_ID, 'revision')}
-                              style={{ padding: '8px 16px', background: '#f59e0b', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer' }}
-                            >
-                              Request Revision
-                            </button>
+                        {d.Client_Status !== 'pending' && d.Client_Notes && (
+                          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', borderLeft: `3px solid ${d.Client_Status === 'approved' ? '#10b981' : '#f59e0b'}`, fontSize: 14, color: '#475569', marginBottom: 16 }}>
+                            <div style={{ fontWeight: 600, color: d.Client_Status === 'approved' ? '#10b981' : '#f59e0b', marginBottom: 4 }}>
+                              {d.Client_Status === 'approved' ? 'Approved' : 'Revision Requested'}:
+                            </div>
+                            <div style={{ whiteSpace: 'pre-wrap' }}>{d.Client_Notes}</div>
                           </div>
+                        )}
+                        
+                        {d.Client_Status !== 'approved' && (
+                          <>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8 }}>
+                              {d.Client_Status === 'revision' ? 'Send additional notes or approve:' : 'Provide Feedback'}
+                            </div>
+                            <textarea
+                              placeholder="Add your notes or revision requests here..."
+                              value={feedbackNotes[d.Deliverable_ID] !== undefined ? feedbackNotes[d.Deliverable_ID] : ''}
+                              onChange={(e) => setFeedbackNotes({ ...feedbackNotes, [d.Deliverable_ID]: e.target.value })}
+                              style={{ width: '100%', minHeight: 60, padding: '12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, outline: 'none', resize: 'vertical', background: '#fff' }}
+                            />
+                            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                              <button 
+                                onClick={() => submitFeedback(d.Deliverable_ID, 'approved')}
+                                style={{ padding: '8px 16px', background: '#10b981', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                              >
+                                <CheckCircle2 size={16} /> Approve
+                              </button>
+                              <button 
+                                onClick={() => submitFeedback(d.Deliverable_ID, 'revision')}
+                                style={{ padding: '8px 16px', background: '#f59e0b', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer' }}
+                              >
+                                Request Revision
+                              </button>
+                            </div>
+                          </>
                         )}
                         {d.Client_Status === 'approved' && (
                           <div style={{ fontSize: 13, color: '#10b981', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
