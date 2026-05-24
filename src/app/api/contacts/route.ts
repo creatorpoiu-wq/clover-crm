@@ -27,7 +27,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { id, name, email, phone, leadSource, packageId } = await req.json();
+    const { id, name, email, phone, leadSource, packageId, company, address } = await req.json();
     
     if (!id || !name) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -40,7 +40,9 @@ export async function PUT(req: NextRequest) {
         Email: email || "",
         Phone: phone || "",
         Lead_Source: leadSource || "Website",
-        Package_ID: packageId || null
+        Package_ID: packageId || null,
+        Company: company || null,
+        Address: address || null
       })
       .eq('Contact_ID', id);
 

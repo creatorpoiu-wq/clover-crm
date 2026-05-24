@@ -182,8 +182,13 @@ export default function ContactsPage() {
     try {
       const payload = { 
         id, 
-        ...editForm,
-        packageId: editForm.Package_ID 
+        name: editForm.Name,
+        email: editForm.Email,
+        phone: editForm.Phone,
+        leadSource: editForm.Lead_Source,
+        packageId: editForm.Package_ID,
+        company: editForm.Company,
+        address: editForm.Address
       };
       const res = await fetch("/api/contacts", {
         method: "PUT",
@@ -193,9 +198,13 @@ export default function ContactsPage() {
       if (res.ok) {
         setEditingId(null);
         fetchContacts();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to save: ${errorData.error || 'Unknown error'}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert(`Network error: ${err.message}`);
     }
   };
 
