@@ -157,13 +157,15 @@ export default function ClientPortal() {
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', sans-serif" }}>
       
       {/* Mobile Nav Toggle */}
-      <button 
-        onClick={() => setMobileMenuOpen(true)}
-        style={{ position: 'fixed', top: 16, left: 16, zIndex: 50, background: '#fff', border: '1px solid #e2e8f0', padding: 8, borderRadius: 8, display: 'flex' }}
-        className="lg:hidden"
-      >
-        <Menu size={20} />
-      </button>
+      {!mobileMenuOpen && (
+        <button 
+          onClick={() => setMobileMenuOpen(true)}
+          style={{ position: 'fixed', top: 16, left: 16, zIndex: 50, background: '#fff', border: '1px solid #e2e8f0', padding: 8, borderRadius: 8, display: 'flex' }}
+          className="lg:hidden"
+        >
+          <Menu size={20} />
+        </button>
+      )}
 
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
