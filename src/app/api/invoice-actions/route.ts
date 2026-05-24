@@ -291,6 +291,12 @@ export async function POST(req: NextRequest) {
 
           if (latestInq) {
             inqId = latestInq.Inquiry_ID;
+
+            // Advance Pipeline Stage
+            await supabase
+              .from('Inquiries')
+              .update({ Pipeline_Stage: 'Sent Invoice' })
+              .eq('Inquiry_ID', inqId);
           } else {
             const { data: inqRes } = await supabase
               .from('Inquiries')

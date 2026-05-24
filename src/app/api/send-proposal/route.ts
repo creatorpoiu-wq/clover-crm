@@ -104,6 +104,29 @@ export async function POST(req: NextRequest) {
       text: `${greeting}\n\n${body}\n\nClick here to view your booking proposal:\n${proposalLink}\n\n${footerText}`
     });
 
+    // 7. Update CRM Statuses
+    if (contractId) {
+      const today = new Date().toISOString().split('T')[0];
+      await supabase
+        .from('Contracts')
+        .update({ Status: 'Sent', Sent_Date: today })
+        .eq('Contract_ID', contractId);
+
+      // We need to fetch the Inquiry_ID for this Contract to update Pipeline
+      const { data: contractData } = await supabase
+        .from('Contracts')
+        .select('Inquiry_ID')
+        .eq('Contract_ID', contractId)
+        .single();
+        
+      if (contractData?.Inquiry_ID) {
+        await supabase
+          .from('Inquiries')
+          .update({ Pipeline_Stage: 'Sent Proposal' })
+          .eq('Inquiry_ID', contractData.Inquiry_ID);
+      }
+    }
+
     return NextResponse.json({ success: true, message: 'Proposal sent successfully via email.' });
   } catch (error: any) {
     console.error('Send Proposal API Error:', error);

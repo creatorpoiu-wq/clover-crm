@@ -100,6 +100,20 @@ export async function POST(req: NextRequest) {
 
     if (updateError) throw updateError;
 
+    // Advance Pipeline Stage to Contract Signed
+    const { data: contractDetails } = await supabase
+      .from('Contracts')
+      .select('Inquiry_ID')
+      .eq('Contract_ID', contract.Contract_ID)
+      .single();
+
+    if (contractDetails?.Inquiry_ID) {
+      await supabase
+        .from('Inquiries')
+        .update({ Pipeline_Stage: 'Contract Signed' })
+        .eq('Inquiry_ID', contractDetails.Inquiry_ID);
+    }
+
     // --- AUTOMATIONS TRIGGER ---
     try {
       const { data: contractDetails } = await supabase
