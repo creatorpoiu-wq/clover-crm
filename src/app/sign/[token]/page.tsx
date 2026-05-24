@@ -14,8 +14,12 @@ export default function SignPage() {
   const [signed, setSigned] = useState(false);
   const [signedDate, setSignedDate] = useState('');
   const [companyName, setCompanyName] = useState('Clover');
+  
+  // Signature pad states
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const padRef = useRef<SignaturePad | null>(null);
+  const [showSigPad, setShowSigPad] = useState(false);
+  const [signature, setSignature] = useState('');
 
   useEffect(() => {
     fetch(`/api/sign?token=${token}`)
@@ -30,32 +34,35 @@ export default function SignPage() {
   }, [token]);
 
   useEffect(() => {
-    if (!contract || alreadySigned || signed) return;
+    if (!showSigPad || !canvasRef.current) return;
     const canvas = canvasRef.current;
-    if (!canvas) return;
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
     canvas.width = canvas.offsetWidth * ratio;
     canvas.height = canvas.offsetHeight * ratio;
     const ctx = canvas.getContext('2d');
     if (ctx) ctx.scale(ratio, ratio);
+    
+    // Clear old instance to avoid memory leak if re-mounted
+    if (padRef.current) {
+      padRef.current.off();
+    }
+    
     padRef.current = new SignaturePad(canvas, {
       minWidth: 1, maxWidth: 2.5, penColor: '#1e3a5f', backgroundColor: 'rgba(0,0,0,0)',
     });
-    return () => { padRef.current?.off(); };
-  }, [contract, alreadySigned, signed]);
+  }, [showSigPad]);
 
   const handleSubmit = async () => {
-    if (!padRef.current || padRef.current.isEmpty()) {
-      alert('Please sign before submitting.');
+    if (!signature || !signature.startsWith('data:image')) {
+      alert('Please sign and save your signature before submitting.');
       return;
     }
     setSubmitting(true);
     try {
-      const dataUrl = padRef.current.toDataURL('image/png');
       const res = await fetch('/api/sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, signatureDataUrl: dataUrl }),
+        body: JSON.stringify({ token, signatureDataUrl: signature }),
       });
       const data = await res.json();
       if (data.success) {
@@ -164,19 +171,55 @@ export default function SignPage() {
             {/* Client signature pad */}
             <div style={{ flex: 1, minWidth: 280 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 8 }}>Your Signature</div>
-              <div style={{ border: '2px dashed #0d9488', borderRadius: 8, background: '#f0fdfa', position: 'relative', overflow: 'hidden' }}>
-                <canvas
-                  ref={canvasRef}
-                  style={{ display: 'block', width: '100%', height: 120, cursor: 'crosshair' }}
-                />
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#99f6e4', fontSize: 12, fontWeight: 600, pointerEvents: 'none', userSelect: 'none' }}>
-                  Sign here
+              
+              {signature && signature.startsWith('data:image') ? (
+                <div>
+                  <div style={{ border: '2px solid #e5e7eb', borderRadius: 8, background: '#fff', padding: 8, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={signature} alt="Client Signature" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setSignature('');
+                      setShowSigPad(true);
+                    }}
+                    style={{ marginTop: 12, padding: '10px 16px', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer', width: '100%' }}
+                  >
+                    Re-sign Document
+                  </button>
                 </div>
-              </div>
-              <button
-                onClick={() => padRef.current?.clear()}
-                style={{ marginTop: 6, fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >Clear</button>
+              ) : showSigPad ? (
+                <div>
+                  <div style={{ border: '2px dashed #0d9488', borderRadius: 8, height: 120, position: 'relative', background: '#f0fdfa', cursor: 'crosshair' }}>
+                    <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 12, color: '#99f6e4', pointerEvents: 'none', fontWeight: 600 }}>Sign here</span>
+                    <canvas ref={canvasRef} style={{ width: '100%', height: '100%', borderRadius: 8, display: 'block' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                    <button 
+                      onClick={() => {
+                        if (!padRef.current || padRef.current.isEmpty()) return;
+                        setSignature(padRef.current.toDataURL('image/png'));
+                        setShowSigPad(false);
+                      }} 
+                      style={{ flex: 2, padding: '10px', border: 'none', borderRadius: 8, background: '#111827', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
+                    >
+                      Save Signature
+                    </button>
+                    <button 
+                      onClick={() => padRef.current?.clear()}
+                      style={{ flex: 1, padding: '10px', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151', fontWeight: 600 }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setShowSigPad(true)}
+                  style={{ width: '100%', padding: '16px', border: '2px dashed #0d9488', borderRadius: 8, background: '#f0fdfa', cursor: 'pointer', fontSize: 15, color: '#0f766e', fontWeight: 700, transition: 'all 0.2s' }}
+                >
+                  Click here to sign
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -185,11 +228,11 @@ export default function SignPage() {
         <div style={{ textAlign: 'center' }}>
           <button
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || !signature}
             style={{
-              padding: '14px 40px', background: submitting ? '#6b7280' : '#0d9488', color: '#fff',
-              border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 12px rgba(13,148,136,0.35)',
+              padding: '14px 40px', background: submitting || !signature ? '#9ca3af' : '#0d9488', color: '#fff',
+              border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: submitting || !signature ? 'not-allowed' : 'pointer',
+              boxShadow: submitting || !signature ? 'none' : '0 4px 12px rgba(13,148,136,0.35)', transition: 'all 0.2s'
             }}
           >
             {submitting ? 'Submitting…' : '✍️  Submit My Signature'}
