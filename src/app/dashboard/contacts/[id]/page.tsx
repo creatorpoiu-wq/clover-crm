@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { ArrowLeft, ChevronDown, Edit2, Plus, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Edit2, Plus, MoreHorizontal, Trash2, Save, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ContractBuilder from "@/components/ContractBuilder";
@@ -76,6 +76,12 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   const [newInquiryForm, setNewInquiryForm] = useState({ serviceType: "Wedding Photography", eventDate: "", estimatedValue: "", pipelineStage: "New Inquiry" });
   const [isCreatingInquiry, setIsCreatingInquiry] = useState(false);
 
+  const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
+  const [isEditingInquiry, setIsEditingInquiry] = useState(false);
+  const [editInquiryForm, setEditInquiryForm] = useState<any>({});
+  const [packages, setPackages] = useState<any[]>([]);
+  const STAGES = ["New Inquiry", "Consultation", "Proposal Sent", "Booked", "Lost/Archived"];
+
   const fetchContactData = () => {
     fetch(`/api/contacts/${id}`)
       .then(res => res.json())
@@ -95,6 +101,9 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     fetchContactData();
+    fetch('/api/packages?type=packages')
+      .then(res => res.json())
+      .then(data => { if (data.success) setPackages(data.packages || []); });
   }, [id]);
 
   if (loading) {
@@ -177,6 +186,49 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
       alert("Failed to create inquiry");
     } finally {
       setIsCreatingInquiry(false);
+    }
+  };
+
+  const handleUpdateInquiry = async () => {
+    if (!selectedInquiry) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedInquiry.Inquiry_ID,
+          Contact_ID: id,
+          Package_ID: editInquiryForm.Package_ID,
+          Service_Type: editInquiryForm.Service_Type,
+          Pipeline_Stage: editInquiryForm.Pipeline_Stage,
+          Estimated_Value: editInquiryForm.Estimated_Value,
+          Event_Date: editInquiryForm.Event_Date,
+        }),
+      });
+      if (res.ok) {
+        setSelectedInquiry(null);
+        setIsEditingInquiry(false);
+        fetchContactData();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const handleDeleteInquiry = async () => {
+    if (!selectedInquiry || !confirm("Delete this inquiry?")) return;
+    try {
+      const res = await fetch(`/api/inquiries?id=${selectedInquiry.Inquiry_ID}`, { method: "DELETE" });
+      if (res.ok) {
+        setSelectedInquiry(null);
+        setIsEditingInquiry(false);
+        fetchContactData();
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -307,8 +359,14 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
               {inquiries.length > 0 ? (
                 <div className="space-y-2">
                   {inquiries.map(inq => (
-                    <div key={inq.Inquiry_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0', borderBottom: '1px solid #f0efe9' }}>
-                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>{contact.Name.split(' ')[0]}'s Project</span>
+                    <div 
+                      key={inq.Inquiry_ID} 
+                      onClick={() => { setSelectedInquiry(inq); setEditInquiryForm(inq); setIsEditingInquiry(false); }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid #f0efe9', cursor: 'pointer', transition: "background-color 0.2s ease", borderRadius: "0.5rem" }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                    >
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>{contact.Name.split(' ')[0]}'s Project - {inq.Service_Type}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <span style={{ fontSize: '0.65rem', padding: '0.25rem 0.5rem', backgroundColor: '#fff8f0', color: '#d97706', borderRadius: '1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           <span style={{ display: 'inline-block', width: '6px', height: '6px', backgroundColor: '#d97706', borderRadius: '50%', marginRight: '4px' }}></span>
@@ -591,34 +649,114 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
 
       {/* New Session Modal */}
       {showSessionModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', width: '100%', maxWidth: '500px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>New Session / Project</h2>
+        <div className="mobile-overlay open" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 100 }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: '2rem', backgroundColor: 'white' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: '#0f172a' }}>New Session</h2>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Service Type</label>
-              <input 
-                type="text" 
-                value={newSessionForm.Service_Type}
-                onChange={e => setNewSessionForm({ ...newSessionForm, Service_Type: e.target.value })}
-                placeholder="e.g. Wedding Photography"
-                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.375rem' }}
-              />
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Service Type</label>
+              <input type="text" value={newSessionForm.Service_Type} onChange={e => setNewSessionForm({...newSessionForm, Service_Type: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #f0efe9', borderRadius: '0.25rem' }} />
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Event Date (Optional)</label>
-              <input 
-                type="date" 
-                value={newSessionForm.Event_Date}
-                onChange={e => setNewSessionForm({ ...newSessionForm, Event_Date: e.target.value })}
-                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.375rem' }}
-              />
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Event Date</label>
+              <input type="date" value={newSessionForm.Event_Date} onChange={e => setNewSessionForm({...newSessionForm, Event_Date: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #f0efe9', borderRadius: '0.25rem' }} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-              <button onClick={() => setShowSessionModal(false)} style={{ background: 'none', border: 'none', color: '#a0a0a0', cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
-              <button onClick={handleCreateSession} disabled={isSaving || !newSessionForm.Service_Type.trim()} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontWeight: 600, cursor: 'pointer', opacity: (isSaving || !newSessionForm.Service_Type.trim()) ? 0.5 : 1 }}>
-                {isSaving ? 'Creating...' : 'Create Session'}
-              </button>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={() => setShowSessionModal(false)} style={{ flex: 1, padding: '0.5rem', background: 'none', border: '1px solid #f0efe9', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+              <button onClick={handleCreateSession} disabled={isSaving} style={{ flex: 1, padding: '0.5rem', backgroundColor: '#4da685', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600 }}>Create</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inquiry Preview / Edit Modal */}
+      {selectedInquiry && (
+        <div 
+          className="mobile-overlay open" 
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", zIndex: 100 }}
+          onClick={() => setSelectedInquiry(null)}
+        >
+          <div 
+            className="glass-panel" 
+            style={{ width: "100%", maxWidth: "500px", maxHeight: "90vh", overflowY: "auto", padding: "2rem", backgroundColor: "var(--background)", position: "relative" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button onClick={() => setSelectedInquiry(null)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}>
+              <X size={20} />
+            </button>
+            
+            <h2 className="section-header" style={{ border: "none", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {isEditingInquiry ? "Edit Inquiry" : "Inquiry Details"}
+            </h2>
+
+            {isEditingInquiry ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div>
+                  <label className="label">Service Type</label>
+                  <input type="text" className="input" value={editInquiryForm.Service_Type || ""} onChange={(e) => setEditInquiryForm({ ...editInquiryForm, Service_Type: e.target.value })} />
+                </div>
+                <div>
+                  <label className="label">Pipeline Stage</label>
+                  <select className="input" value={editInquiryForm.Pipeline_Stage || ""} onChange={(e) => setEditInquiryForm({ ...editInquiryForm, Pipeline_Stage: e.target.value })}>
+                    {STAGES.map(stage => <option key={stage} value={stage}>{stage}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Assigned Package</label>
+                  <select className="input" value={editInquiryForm.Package_ID || ""} onChange={(e) => setEditInquiryForm({ ...editInquiryForm, Package_ID: e.target.value ? Number(e.target.value) : null })}>
+                    <option value="">No Package Assigned</option>
+                    {packages.map(pkg => <option key={pkg.Package_ID} value={pkg.Package_ID}>{pkg.Name} (${pkg.Price})</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Event Date</label>
+                  <input type="date" className="input" value={editInquiryForm.Event_Date || ""} onChange={(e) => setEditInquiryForm({ ...editInquiryForm, Event_Date: e.target.value })} />
+                </div>
+                <div>
+                  <label className="label">Estimated Value ($)</label>
+                  <input type="number" className="input" value={editInquiryForm.Estimated_Value || ""} onChange={(e) => setEditInquiryForm({ ...editInquiryForm, Estimated_Value: Number(e.target.value) })} />
+                </div>
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleUpdateInquiry} disabled={isSaving}>
+                    <Save size={16} /> {isSaving ? "Saving..." : "Save Changes"}
+                  </button>
+                  <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setIsEditingInquiry(false)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "var(--primary)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.25rem", fontWeight: 800 }}>
+                    {contact.Name.charAt(0)}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: "1.25rem" }}>{contact.Name}</div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--muted)" }}>Project Details</div>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", backgroundColor: "var(--muted-bg)", padding: "1rem", borderRadius: "0.5rem" }}>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Service Type</div>
+                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Service_Type}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Stage</div>
+                    <div style={{ fontWeight: 600 }}>{selectedInquiry.Pipeline_Stage}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Assigned Package</div>
+                    <div style={{ fontWeight: 600 }}>
+                      {packages.find(p => p.Package_ID === selectedInquiry.Package_ID)?.Name || "None"}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setIsEditingInquiry(true)}><Edit2 size={16} /> Edit Details</button>
+                  <button className="btn btn-outline" style={{ flex: 1, color: "var(--status-red-fg)", borderColor: "var(--status-red)" }} onClick={handleDeleteInquiry}><Trash2 size={16} /> Delete</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
