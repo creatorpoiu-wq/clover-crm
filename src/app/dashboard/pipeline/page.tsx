@@ -188,8 +188,16 @@ export default function PipelinePage() {
 
       {/* Inquiry Preview / Edit Modal */}
       {selectedInquiry && (
-        <div className="mobile-overlay open" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", zIndex: 100 }}>
-          <div className="glass-panel" style={{ width: "100%", maxWidth: "500px", padding: "2rem", backgroundColor: "var(--background)", position: "relative" }}>
+        <div 
+          className="mobile-overlay open" 
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", zIndex: 100 }}
+          onClick={() => setSelectedInquiry(null)}
+        >
+          <div 
+            className="glass-panel" 
+            style={{ width: "100%", maxWidth: "500px", maxHeight: "90vh", overflowY: "auto", padding: "2rem", backgroundColor: "var(--background)", position: "relative" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button onClick={() => setSelectedInquiry(null)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}>
               <X size={20} />
             </button>

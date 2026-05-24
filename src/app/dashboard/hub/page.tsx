@@ -174,7 +174,7 @@ export default function HubPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {syncStatus && <span style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{syncStatus}</span>}
-          <button className="btn btn-outline" style={{ width: 'auto' }} onClick={handleSync} disabled={isSyncing}>
+          <button className="btn btn-outline" style={{ width: 'auto' }} onClick={() => handleSync(false)} disabled={isSyncing}>
             <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> {isSyncing ? "Syncing..." : "Sync Gmail"}
           </button>
         </div>
