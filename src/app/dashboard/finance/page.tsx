@@ -409,6 +409,9 @@ export default function FinancePage() {
           <button onClick={() => setActiveTab("invoices")} style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "invoices" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "invoices" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <DollarSign size={18} /> Invoices
           </button>
+          <button onClick={() => setActiveTab("proposals")} style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "proposals" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "proposals" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <FileText size={18} /> Proposals
+          </button>
           <button onClick={() => setActiveTab("contracts")} style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "contracts" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "contracts" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <FileText size={18} /> Contracts
           </button>
@@ -621,13 +624,15 @@ export default function FinancePage() {
             </div>
           )}
 
-          {/* CONTRACTS TAB */}
-          {activeTab === "contracts" && (
+          {/* CONTRACTS & PROPOSALS TAB */}
+          {(activeTab === "contracts" || activeTab === "proposals") && (
             <div className="animate-fade-in">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h2 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>Legal Contracts</h2>
+                <h2 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>
+                  {activeTab === "contracts" ? "Legal Contracts" : "Proposals"}
+                </h2>
                 <button onClick={() => { setSelectedClient(null); setContactSearch(''); setShowNewContractModal(true); }} className="btn btn-primary" style={{ width: "auto" }}>
-                  <Plus size={18} /> Create Contract
+                  <Plus size={18} /> {activeTab === "contracts" ? "Create Contract" : "Create Proposal"}
                 </button>
               </div>
 
@@ -731,7 +736,7 @@ export default function FinancePage() {
                           </td>
                         </tr>
                       ))}
-                      {contracts.length === 0 && builderDrafts.length === 0 && <tr><td colSpan={5} style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>No contracts found. Click "Create Contract" to get started.</td></tr>}
+                      {contracts.length === 0 && builderDrafts.length === 0 && <tr><td colSpan={5} style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>No {activeTab === "contracts" ? "contracts" : "proposals"} found. Click &quot;Create {activeTab === "contracts" ? "Contract" : "Proposal"}&quot; to get started.</td></tr>}
                     </tbody>
                   </table>
                 </div>

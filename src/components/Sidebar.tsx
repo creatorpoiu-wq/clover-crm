@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle } from "lucide-react";
+import { LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle, PieChart } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface SidebarProps {
@@ -46,11 +46,11 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { name: "Projects",           href: "/dashboard/pipeline",          icon: Kanban },
     { name: "Calendar & Reminders", href: "/dashboard/calendar",        icon: Calendar },
     { name: "Contacts",           href: "/dashboard/contacts",          icon: Database },
-    { name: "Finance & Legal",    href: "/dashboard/finance",           icon: DollarSign },
+    { name: "Documents",          href: "/dashboard/finance",           icon: FileText },
     { name: "Packages & Sessions",href: "/dashboard/packages",          icon: Package },
     { name: "Email Templates",    href: "/dashboard/templates",         icon: MailOpen },
     { name: "Email Design",       href: "/dashboard/email-settings",    icon: MailOpen },
-    { name: "Reports",            href: "/dashboard/reports",           icon: FileText },
+    { name: "Reports",            href: "/dashboard/reports",           icon: PieChart },
     { name: "Automations",        href: "/dashboard/automations",       icon: Zap },
   ];
 
