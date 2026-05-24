@@ -102,39 +102,39 @@ export default function DeliverablesManager({ inquiryId }: Props) {
   if (loading) return <div style={{ padding: 20, color: '#6b7280' }}>Loading Deliverables...</div>;
 
   return (
-    <div style={{ marginTop: '2rem', borderTop: '1px solid #f0efe9', paddingTop: '2rem' }}>
+    <div style={{ marginTop: '2rem', borderTop: '1px solid #f0efe9', paddingTop: '2rem', boxSizing: 'border-box' }}>
       <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem', letterSpacing: '-0.02em' }}>Deliverables & Links</h3>
       
       {/* Add New Deliverable Form */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: '#f8fafc', padding: '1.25rem', borderRadius: '1rem', marginBottom: '1.5rem', border: '1px solid #f1f5f9' }}>
-        <input type="text" placeholder="Deliverable Title (e.g. Final Gallery)" value={newTitle} onChange={e => setNewTitle(e.target.value)} style={{ padding: '0.875rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', width: '100%', fontSize: '0.875rem', outline: 'none' }} />
-        <input type="text" placeholder="Description (Optional)" value={newDesc} onChange={e => setNewDesc(e.target.value)} style={{ padding: '0.875rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', width: '100%', fontSize: '0.875rem', outline: 'none' }} />
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <input type="text" placeholder="URL Link (Optional)" value={newLink} onChange={e => setNewLink(e.target.value)} style={{ padding: '0.875rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', width: '100%', fontSize: '0.875rem', outline: 'none' }} />
-          <button onClick={addDeliverable} disabled={!newTitle || isAdding} style={{ padding: '0.875rem 1.5rem', background: 'var(--primary)', color: '#fff', borderRadius: '0.5rem', fontWeight: 700, cursor: (!newTitle || isAdding) ? 'not-allowed' : 'pointer', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: '#f8fafc', padding: '1.25rem', borderRadius: '1rem', marginBottom: '1.5rem', border: '1px solid #f1f5f9', boxSizing: 'border-box' }}>
+        <input type="text" placeholder="Deliverable Title (e.g. Final Gallery)" value={newTitle} onChange={e => setNewTitle(e.target.value)} style={{ padding: '0.875rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', width: '100%', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
+        <input type="text" placeholder="Description (Optional)" value={newDesc} onChange={e => setNewDesc(e.target.value)} style={{ padding: '0.875rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', width: '100%', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
+        <div style={{ display: 'flex', gap: '0.75rem', width: '100%', boxSizing: 'border-box' }}>
+          <input type="text" placeholder="URL Link (Optional)" value={newLink} onChange={e => setNewLink(e.target.value)} style={{ padding: '0.875rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 1, minWidth: 0, fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
+          <button onClick={addDeliverable} disabled={!newTitle || isAdding} style={{ padding: '0.875rem 1.5rem', background: 'var(--primary)', color: '#fff', borderRadius: '0.5rem', fontWeight: 700, cursor: (!newTitle || isAdding) ? 'not-allowed' : 'pointer', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap', flexShrink: 0, boxSizing: 'border-box' }}>
             <Plus size={18} /> {isAdding ? 'Adding...' : 'Add'}
           </button>
         </div>
       </div>
 
       {/* Deliverables List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2.5rem', boxSizing: 'border-box' }}>
         {deliverables.length === 0 ? (
-          <div style={{ fontSize: '0.875rem', color: '#64748b', textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: '0.75rem', border: '1px dashed #cbd5e1' }}>No deliverables added yet.</div>
+          <div style={{ fontSize: '0.875rem', color: '#64748b', textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: '0.75rem', border: '1px dashed #cbd5e1', boxSizing: 'border-box' }}>No deliverables added yet.</div>
         ) : (
           deliverables.map(d => (
-            <div key={d.Deliverable_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', border: '1px solid #f1f5f9', borderRadius: '0.75rem', backgroundColor: '#fff', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{d.Title}</div>
-                {d.Description && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{d.Description}</div>}
+            <div key={d.Deliverable_ID} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', border: '1px solid #f1f5f9', borderRadius: '0.75rem', backgroundColor: '#fff', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1, minWidth: 200, boxSizing: 'border-box' }}>
+                <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem', wordBreak: 'break-word' }}>{d.Title}</div>
+                {d.Description && <div style={{ fontSize: '0.75rem', color: '#64748b', wordBreak: 'break-word' }}>{d.Description}</div>}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0, boxSizing: 'border-box' }}>
                 {d.Link_URL && (
-                  <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.375rem 0.75rem', backgroundColor: 'rgba(15, 118, 110, 0.1)', borderRadius: '0.375rem', textDecoration: 'none', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(15, 118, 110, 0.2)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(15, 118, 110, 0.1)'}>
+                  <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.375rem 0.75rem', backgroundColor: 'rgba(15, 118, 110, 0.1)', borderRadius: '0.375rem', textDecoration: 'none', transition: 'background-color 0.2s', boxSizing: 'border-box' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(15, 118, 110, 0.2)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(15, 118, 110, 0.1)'}>
                     <LinkIcon size={14}/> Open Link
                   </a>
                 )}
-                <button onClick={() => deleteDeliverable(d.Deliverable_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.25rem', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                <button onClick={() => deleteDeliverable(d.Deliverable_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.25rem', transition: 'background-color 0.2s', boxSizing: 'border-box' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                   <Trash2 size={18} />
                 </button>
               </div>
