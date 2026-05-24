@@ -105,7 +105,8 @@ export default function ClientPortal() {
   };
   const daysUntil = calculateDaysUntil(event.eventDate);
 
-  const pendingContracts = contracts.filter((c: any) => c.Status !== 'Signed');
+  const pendingContracts = contracts.filter((c: any) => c.Status !== 'Signed' && c.Type !== 'Proposal');
+  const pendingProposals = contracts.filter((c: any) => c.Status !== 'Signed' && c.Type === 'Proposal');
   const pendingInvoices = invoices.filter((i: any) => i.Status !== 'Paid');
   const milestones = event.deliverableMilestones || [];
 
@@ -118,6 +119,9 @@ export default function ClientPortal() {
 
   const renderActionItems = () => {
     const items = [];
+    if (pendingProposals.length > 0) {
+      items.push({ text: `Review ${pendingProposals[0].Contract_Title}`, tab: 'documents' });
+    }
     if (pendingContracts.length > 0) {
       items.push({ text: `Sign ${pendingContracts[0].Contract_Title}`, tab: 'documents' });
     }
@@ -389,21 +393,45 @@ export default function ClientPortal() {
                 <p style={{ color: '#64748b', fontSize: 14, marginBottom: 24 }}>View and manage your contracts and invoices.</p>
               </div>
 
-              {/* Contracts */}
+              {/* Proposals */}
               <div>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}><FileText size={18} color={brandColor} /> Contracts</h3>
-                {contracts.length === 0 ? (
-                  <div style={{ padding: 24, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, color: '#64748b', fontSize: 14 }}>No contracts available.</div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}><FileText size={18} color={brandColor} /> Proposals</h3>
+                {contracts.filter((c: any) => c.Type === 'Proposal').length === 0 ? (
+                  <div style={{ padding: 24, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, color: '#64748b', fontSize: 14 }}>No proposals available.</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {contracts.map((c: any) => (
+                    {contracts.filter((c: any) => c.Type === 'Proposal').map((c: any) => (
                       <div key={c.Contract_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12 }}>
                         <div>
                           <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{c.Contract_Title}</div>
                           <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Status: <span style={{ color: c.Status === 'Signed' ? '#10b981' : '#f59e0b', fontWeight: 600 }}>{c.Status}</span></div>
                         </div>
                         {c.Status !== 'Signed' ? (
-                          <a href={c.Type === 'Proposal' ? `/booking?userId=${vendor.id}&contractId=${c.Contract_ID}` : `/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Review & Sign</a>
+                          <a href={`/booking?userId=${vendor.id}&contractId=${c.Contract_ID}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Review Proposal</a>
+                        ) : (
+                          <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Contracts */}
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}><FileText size={18} color={brandColor} /> Contracts</h3>
+                {contracts.filter((c: any) => c.Type !== 'Proposal').length === 0 ? (
+                  <div style={{ padding: 24, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, color: '#64748b', fontSize: 14 }}>No contracts available.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {contracts.filter((c: any) => c.Type !== 'Proposal').map((c: any) => (
+                      <div key={c.Contract_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12 }}>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{c.Contract_Title}</div>
+                          <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Status: <span style={{ color: c.Status === 'Signed' ? '#10b981' : '#f59e0b', fontWeight: 600 }}>{c.Status}</span></div>
+                        </div>
+                        {c.Status !== 'Signed' ? (
+                          <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Review & Sign</a>
                         ) : (
                           <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
                         )}
