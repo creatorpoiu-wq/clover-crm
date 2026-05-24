@@ -88,11 +88,22 @@ export default function FinancePage() {
     fetchExpenses();
     fetchBuilderDrafts();
     fetchInvoiceBuilderDrafts();
-    fetch('/api/contacts').then(r=>r.json()).then(d=>{ if(d.success) setAllContacts(d.contacts); });
-
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
     const create = params.get("create");
+    const clientId = params.get("client");
+
+    fetch('/api/contacts').then(r=>r.json()).then(d=>{ 
+      if(d.success) {
+        setAllContacts(d.contacts); 
+        if (clientId) {
+          const clientObj = d.contacts.find((c: any) => c.Contact_ID === Number(clientId));
+          if (clientObj) {
+            setSelectedClient(clientObj);
+          }
+        }
+      } 
+    });
     
     if (tab) {
       setActiveTab(tab);

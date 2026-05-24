@@ -196,10 +196,10 @@ export default function PipelinePage() {
                           </button>
                           {openDropdownId === inq.Inquiry_ID && (
                             <div style={{ position: "absolute", top: "100%", right: 0, marginTop: "0.25rem", backgroundColor: "var(--background)", border: "1px solid var(--border)", borderRadius: "0.5rem", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", zIndex: 10, minWidth: "160px", overflow: "hidden" }}>
-                              <a href={`/dashboard/finance?tab=contracts&create=contract`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none", borderBottom: "1px solid var(--border)" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
+                              <a href={`/dashboard/finance?tab=contracts&create=contract&client=${inq.Contact_ID}`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none", borderBottom: "1px solid var(--border)" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
                                 New Contract / Proposal
                               </a>
-                              <a href={`/dashboard/finance?tab=invoices&create=invoice`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
+                              <a href={`/dashboard/finance?tab=invoices&create=invoice&client=${inq.Contact_ID}`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
                                 New Invoice
                               </a>
                             </div>
