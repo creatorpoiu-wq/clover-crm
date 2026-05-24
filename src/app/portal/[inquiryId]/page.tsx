@@ -255,6 +255,25 @@ export default function ClientPortal() {
                     {renderTimeline()}
                   </div>
                 </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <DownloadCloud size={18} color={brandColor} /> Deliverables Summary
+                  </h2>
+                  <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 24 }}>
+                    {deliverables?.length === 0 ? (
+                      <div style={{ color: '#64748b', fontSize: 14 }}>No deliverables available yet.</div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                        {deliverables.map((d: any) => (
+                           <a key={d.Deliverable_ID} href={d.Link_URL || '#'} target={d.Link_URL ? "_blank" : "_self"} style={{ padding: '12px 20px', borderRadius: 8, background: `${brandColor}10`, color: brandColor, textDecoration: 'none', fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                             <DownloadCloud size={16} /> {d.Title}
+                           </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -389,22 +408,40 @@ export default function ClientPortal() {
                   <div style={{ fontSize: 14, color: '#64748b' }}>Your deliverables will appear here once they are ready.</div>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 20 }}>
-                  {deliverables?.map((d: any) => (
-                    <div key={d.Deliverable_ID} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', height: '100%' }}>
-                      <div style={{ background: `${brandColor}10`, width: 40, height: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                        <DownloadCloud size={20} color={brandColor} />
-                      </div>
-                      <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>{d.Title}</h3>
-                      {d.Description && <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16, flex: 1 }}>{d.Description}</p>}
-                      
-                      {d.Link_URL && (
-                        <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', background: '#f1f5f9', color: '#0f172a', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none', transition: 'background 0.2s', marginTop: 'auto' }}>
-                          Open Link <ExternalLink size={14} />
-                        </a>
-                      )}
-                    </div>
-                  ))}
+                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
+                      <thead>
+                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+                          <th style={{ padding: '16px 24px', fontWeight: 600 }}>Deliverable</th>
+                          <th style={{ padding: '16px 24px', fontWeight: 600 }}>Description / Note</th>
+                          <th style={{ padding: '16px 24px', fontWeight: 600, width: 140 }}>Link</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {deliverables?.map((d: any) => (
+                          <tr key={d.Deliverable_ID} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '16px 24px', fontWeight: 600, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div style={{ background: `${brandColor}10`, width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <DownloadCloud size={16} color={brandColor} />
+                              </div>
+                              {d.Title}
+                            </td>
+                            <td style={{ padding: '16px 24px', color: '#475569', lineHeight: 1.5 }}>
+                              {d.Description || <span style={{ color: '#cbd5e1' }}>—</span>}
+                            </td>
+                            <td style={{ padding: '16px 24px' }}>
+                              {d.Link_URL ? (
+                                <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: `${brandColor}10`, color: brandColor, borderRadius: 6, fontWeight: 600, textDecoration: 'none', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
+                                  Open <ExternalLink size={14} />
+                                </a>
+                              ) : <span style={{ color: '#cbd5e1' }}>—</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>

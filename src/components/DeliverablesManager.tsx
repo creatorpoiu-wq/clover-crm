@@ -105,30 +105,52 @@ export default function DeliverablesManager({ inquiryId }: Props) {
     <div style={{ marginTop: '2rem', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
       <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>Deliverables & Links</h3>
       
-      {/* Deliverables List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        {deliverables.length === 0 ? (
-          <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>No deliverables added yet.</div>
-        ) : (
-          deliverables.map(d => (
-            <div key={d.Deliverable_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', background: '#f8fafc' }}>
-              <div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>{d.Title}</div>
-                {d.Link_URL && <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', color: '#2563eb', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}><LinkIcon size={12}/> {d.Link_URL}</a>}
-              </div>
-              <button onClick={() => deleteDeliverable(d.Deliverable_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
-            </div>
-          ))
-        )}
+      {/* Add New Deliverable Form */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '0.5rem', background: '#f1f5f9', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+        <input type="text" placeholder="Title (e.g. Final Gallery)" value={newTitle} onChange={e => setNewTitle(e.target.value)} style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', width: '100%' }} />
+        <input type="text" placeholder="Description (Optional)" value={newDesc} onChange={e => setNewDesc(e.target.value)} style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', width: '100%' }} />
+        <input type="text" placeholder="URL Link (Optional)" value={newLink} onChange={e => setNewLink(e.target.value)} style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', width: '100%' }} />
+        <button onClick={addDeliverable} disabled={!newTitle || isAdding} style={{ padding: '0.5rem 1rem', background: '#0f172a', color: '#fff', borderRadius: '0.375rem', fontWeight: 600, cursor: (!newTitle || isAdding) ? 'not-allowed' : 'pointer', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Plus size={16} /> {isAdding ? 'Adding...' : 'Add'}
+        </button>
       </div>
 
-      {/* Add New Deliverable */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#f1f5f9', padding: '1rem', borderRadius: '0.5rem', marginBottom: '2rem' }}>
-        <input type="text" placeholder="Title (e.g. Final Gallery)" value={newTitle} onChange={e => setNewTitle(e.target.value)} style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1' }} />
-        <input type="text" placeholder="URL Link (optional)" value={newLink} onChange={e => setNewLink(e.target.value)} style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1' }} />
-        <button onClick={addDeliverable} disabled={!newTitle || isAdding} style={{ padding: '0.5rem', background: '#0f172a', color: '#fff', borderRadius: '0.375rem', fontWeight: 600, cursor: (!newTitle || isAdding) ? 'not-allowed' : 'pointer' }}>
-          {isAdding ? 'Adding...' : 'Add Deliverable'}
-        </button>
+      {/* Deliverables Table */}
+      <div style={{ overflowX: 'auto', marginBottom: '2rem' }}>
+        {deliverables.length === 0 ? (
+          <div style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', padding: '1rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>No deliverables added yet.</div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+                <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontWeight: 600 }}>Title</th>
+                <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontWeight: 600 }}>Description</th>
+                <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontWeight: 600 }}>Link</th>
+                <th style={{ textAlign: 'right', padding: '0.75rem 1rem', fontWeight: 600 }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deliverables.map(d => (
+                <tr key={d.Deliverable_ID} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#0f172a' }}>{d.Title}</td>
+                  <td style={{ padding: '0.75rem 1rem', color: '#475569' }}>{d.Description || <span style={{ color: '#cbd5e1' }}>—</span>}</td>
+                  <td style={{ padding: '0.75rem 1rem' }}>
+                    {d.Link_URL ? (
+                      <a href={d.Link_URL} target="_blank" rel="noreferrer" style={{ color: '#2563eb', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                        <LinkIcon size={14}/> Open Link
+                      </a>
+                    ) : <span style={{ color: '#cbd5e1' }}>—</span>}
+                  </td>
+                  <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                    <button onClick={() => deleteDeliverable(d.Deliverable_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem' }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Milestones Tracker */}
