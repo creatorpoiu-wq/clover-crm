@@ -409,7 +409,10 @@ export default function ClientPortal() {
                         {c.Status !== 'Signed' ? (
                           <a href={`/booking?userId=${vendor.id}&contractId=${c.Contract_ID}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Review Proposal</a>
                         ) : (
-                          <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
+                            <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '6px 12px', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>View</a>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -433,7 +436,10 @@ export default function ClientPortal() {
                         {c.Status !== 'Signed' ? (
                           <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Review & Sign</a>
                         ) : (
-                          <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
+                            <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '6px 12px', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>View</a>
+                          </div>
                         )}
                       </div>
                     ))}

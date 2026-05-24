@@ -111,16 +111,7 @@ export default function SignPage() {
     </div>
   );
 
-  if (alreadySigned) return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>✍️</div>
-        <h2 style={{ margin: '0 0 8px', color: '#111827' }}>Already Signed</h2>
-        <p style={{ color: '#6b7280' }}>This contract has already been signed. No further action is required.</p>
-        {contract?.Signed_Date && <p style={{ color: '#9ca3af', fontSize: 13, marginTop: 8 }}>Signed on {formatDate(contract.Signed_Date)}</p>}
-      </div>
-    </div>
-  );
+  // Removed early return for `alreadySigned` so the document actually renders.
 
   return (
     <div style={styles.page}>
@@ -133,7 +124,12 @@ export default function SignPage() {
             <div style={{ fontSize: 12, color: '#9ca3af' }}>Digital Contract Signing</div>
           </div>
         </div>
-        <span style={{ padding: '4px 12px', background: '#fef3c7', color: '#92400e', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>ACTION REQUIRED</span>
+        {!alreadySigned && (
+          <span style={{ padding: '4px 12px', background: '#fef3c7', color: '#92400e', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>ACTION REQUIRED</span>
+        )}
+        {alreadySigned && (
+          <span style={{ padding: '4px 12px', background: '#dcfce7', color: '#166534', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>COMPLETED</span>
+        )}
       </div>
 
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 24px 80px' }}>
@@ -172,7 +168,19 @@ export default function SignPage() {
             <div style={{ flex: 1, minWidth: 280 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 8 }}>Your Signature</div>
               
-              {signature && signature.startsWith('data:image') ? (
+              {alreadySigned ? (
+                <div>
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', padding: 12, position: 'relative' }}>
+                    {contract?.Client_Signature ? (
+                      <img src={contract.Client_Signature} alt="Your signature" style={{ maxHeight: 70, maxWidth: '100%', objectFit: 'contain', display: 'block' }} />
+                    ) : (
+                      <div style={{ height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 14 }}>Signature captured.</div>
+                    )}
+                    <span style={{ position: 'absolute', top: 8, right: 8, fontSize: 10, color: '#0d9488', fontWeight: 700 }}>✓ Signed</span>
+                  </div>
+                  {contract?.Signed_Date && <p style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>Signed on: {formatDate(contract.Signed_Date)}</p>}
+                </div>
+              ) : signature && signature.startsWith('data:image') ? (
                 <div>
                   <div style={{ border: '2px solid #e5e7eb', borderRadius: 8, background: '#fff', padding: 8, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img src={signature} alt="Client Signature" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
@@ -225,22 +233,24 @@ export default function SignPage() {
         </div>
 
         {/* Submit */}
-        <div style={{ textAlign: 'center' }}>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting || !signature}
-            style={{
-              padding: '14px 40px', background: submitting || !signature ? '#9ca3af' : '#0d9488', color: '#fff',
-              border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: submitting || !signature ? 'not-allowed' : 'pointer',
-              boxShadow: submitting || !signature ? 'none' : '0 4px 12px rgba(13,148,136,0.35)', transition: 'all 0.2s'
-            }}
-          >
-            {submitting ? 'Submitting…' : '✍️  Submit My Signature'}
-          </button>
-          <p style={{ marginTop: 12, fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>
-            By submitting, you agree this digital signature is legally binding under ESIGN and UETA.
-          </p>
-        </div>
+        {!alreadySigned && (
+          <div style={{ textAlign: 'center' }}>
+            <button
+              onClick={handleSubmit}
+              disabled={submitting || !signature}
+              style={{
+                padding: '14px 40px', background: submitting || !signature ? '#9ca3af' : '#0d9488', color: '#fff',
+                border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: submitting || !signature ? 'not-allowed' : 'pointer',
+                boxShadow: submitting || !signature ? 'none' : '0 4px 12px rgba(13,148,136,0.35)', transition: 'all 0.2s'
+              }}
+            >
+              {submitting ? 'Submitting…' : '✍️  Submit My Signature'}
+            </button>
+            <p style={{ marginTop: 12, fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>
+              By submitting, you agree this digital signature is legally binding under ESIGN and UETA.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
