@@ -13,6 +13,12 @@ export default function ClientPortal() {
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [feedbackNotes, setFeedbackNotes] = useState<any>({});
+  const [toastMsg, setToastMsg] = useState('');
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3000);
+  };
 
   // Message State
   const [newMessage, setNewMessage] = useState('');
@@ -76,6 +82,7 @@ export default function ClientPortal() {
         body: JSON.stringify({ id: deliverableId, clientStatus: status, clientNotes: notes, inquiryId })
       });
       if (res.ok) {
+        showToast(status === 'approved' ? 'Deliverable approved!' : 'Revision request sent!');
         fetchPortalData(); // refresh deliverables list
       }
     } catch (err) {
@@ -517,6 +524,13 @@ export default function ClientPortal() {
         </div>
       </main>
 
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#10b981', color: '#fff', padding: '12px 24px', borderRadius: 8, fontWeight: 600, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 100, animation: 'fadeIn 0.3s ease-in-out' }}>
+          <CheckCircle2 size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: 8 }} />
+          {toastMsg}
+        </div>
+      )}
     </div>
   );
 }
