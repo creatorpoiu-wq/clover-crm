@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { ArrowLeft, ChevronDown, Edit2, Plus, MoreHorizontal, Trash2, Save, X, Briefcase, MapPin, Package, Calendar, DollarSign } from "lucide-react";
+import { ArrowLeft, ChevronDown, Edit2, Plus, MoreHorizontal, Trash2, Save, X, Briefcase, MapPin, Package, Calendar, DollarSign, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ContractBuilder from "@/components/ContractBuilder";
@@ -464,7 +464,20 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
               {isEditingInfo ? (
                 <input type="tel" value={editForm.Phone || ''} onChange={e => setEditForm({ ...editForm, Phone: e.target.value })} style={{ width: '100%', padding: '0.25rem 0.5rem', border: '1px solid #f0efe9', borderRadius: '4px' }} />
               ) : (
-                <div style={{ color: '#0f172a' }}>{contact.Phone || '-'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: '#0f172a' }}>{contact.Phone || '-'}</span>
+                  {contact.Phone && (
+                    <a 
+                      href={`https://wa.me/${contact.Phone.replace(/[^0-9]/g, '')}`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#25D366', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#e8f5e9', padding: '0.1rem 0.5rem', borderRadius: '1rem' }}
+                      title="Send WhatsApp Message"
+                    >
+                      <MessageCircle size={12} /> WhatsApp
+                    </a>
+                  )}
+                </div>
               )}
 
               <div style={{ color: '#a0a0a0', display: 'flex', alignItems: 'center' }}>Company</div>
