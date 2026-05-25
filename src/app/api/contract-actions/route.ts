@@ -147,6 +147,16 @@ export async function POST(req: NextRequest) {
       const headerText = emailHeader || bannerText;
       const footerText = emailFooter || bodyText;
 
+      const todayString = new Date().toLocaleDateString();
+      const firstClientFullName = clientSigners[0]?.name || 'Client Name';
+      let finalContent = content || '';
+      finalContent = finalContent.replace(/\[Client Name\]/gi, firstClientFullName);
+      finalContent = finalContent.replace(/\[Name\]/gi, firstClientName);
+      finalContent = finalContent.replace(/\[Company\]/gi, companyName);
+      finalContent = finalContent.replace(/\[Company Name\]/gi, companyName);
+      finalContent = finalContent.replace(/\[Date\]/gi, todayString);
+      finalContent = finalContent.replace(/\[Today's Date\]/gi, todayString);
+
       const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
         <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">
           <div style="max-width:680px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
@@ -159,7 +169,7 @@ export async function POST(req: NextRequest) {
               <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${greeting}</p>
               <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${footerText}</p>
               <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
-                ${content}
+                ${finalContent}
               </div>
               <div style="border-top:2px solid #e5e7eb;padding-top:28px;">
                 <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#111827;margin:0 0 20px;">Signatures</h3>
@@ -262,7 +272,7 @@ export async function POST(req: NextRequest) {
             .insert({
               user_id: userId,
               Inquiry_ID: inquiryId,
-              Contract_Text: content,
+              Contract_Text: finalContent,
               Contract_Title: contractTitle,
               Status: 'Sent',
               Sent_Date: today,
@@ -362,6 +372,16 @@ export async function POST(req: NextRequest) {
       const headerText = bannerText;
       const footerText = bodyText;
 
+      const todayString = new Date().toLocaleDateString();
+      const firstClientFullName = clientSigners[0]?.name || 'Client Name';
+      let finalContentStr = contentStr;
+      finalContentStr = finalContentStr.replace(/\[Client Name\]/gi, firstClientFullName);
+      finalContentStr = finalContentStr.replace(/\[Name\]/gi, firstClientName);
+      finalContentStr = finalContentStr.replace(/\[Company\]/gi, companyName);
+      finalContentStr = finalContentStr.replace(/\[Company Name\]/gi, companyName);
+      finalContentStr = finalContentStr.replace(/\[Date\]/gi, todayString);
+      finalContentStr = finalContentStr.replace(/\[Today's Date\]/gi, todayString);
+
       const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
         <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">
           <div style="max-width:680px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
@@ -374,7 +394,7 @@ export async function POST(req: NextRequest) {
               <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${greeting}</p>
               <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${footerText}</p>
               <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
-                ${contentStr}
+                ${finalContentStr}
               </div>
               <div style="border-top:2px solid #e5e7eb;padding-top:28px;">
                 <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#111827;margin:0 0 20px;">Signatures</h3>

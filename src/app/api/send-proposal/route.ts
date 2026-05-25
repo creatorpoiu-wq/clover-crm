@@ -60,6 +60,16 @@ export async function POST(req: NextRequest) {
         .single();
         
       if (template) {
+        const clientNameForVars = contact?.Name || 'Client Name';
+        const todayString = new Date().toLocaleDateString();
+        let finalContent = template.Content;
+        finalContent = finalContent.replace(/\[Client Name\]/gi, clientNameForVars);
+        finalContent = finalContent.replace(/\[Name\]/gi, clientNameForVars.split(' ')[0]);
+        finalContent = finalContent.replace(/\[Company\]/gi, config?.Company_Name || 'Your Photographer');
+        finalContent = finalContent.replace(/\[Company Name\]/gi, config?.Company_Name || 'Your Photographer');
+        finalContent = finalContent.replace(/\[Date\]/gi, todayString);
+        finalContent = finalContent.replace(/\[Today's Date\]/gi, todayString);
+
         // Create Contract
         const { data: newContract, error: insertError } = await supabase
           .from('Contracts')
@@ -67,7 +77,7 @@ export async function POST(req: NextRequest) {
             user_id: userAuth.user.id,
             Inquiry_ID: inquiryId,
             Contract_Title: template.Name || 'Booking Proposal',
-            Contract_Text: template.Content,
+            Contract_Text: finalContent,
             Status: 'Sent',
             Sent_Date: today,
             Type: 'Proposal'

@@ -146,6 +146,16 @@ export async function POST(req: NextRequest) {
       const footer = emailFooter || esFooterText;
       const theme  = accentColor;
 
+      const todayString = new Date().toLocaleDateString();
+      const firstClientFullName = clientName || 'Client Name';
+      let finalContent = content || '';
+      finalContent = finalContent.replace(/\[Client Name\]/gi, firstClientFullName);
+      finalContent = finalContent.replace(/\[Name\]/gi, clientFirstName);
+      finalContent = finalContent.replace(/\[Company\]/gi, companyName);
+      finalContent = finalContent.replace(/\[Company Name\]/gi, companyName);
+      finalContent = finalContent.replace(/\[Date\]/gi, todayString);
+      finalContent = finalContent.replace(/\[Today's Date\]/gi, todayString);
+
       // Build line items table HTML
       const items: { description: string; quantity: number; price: number }[] = lineItems || [];
       const subtotal = items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
@@ -229,7 +239,7 @@ export async function POST(req: NextRequest) {
               </div>
 
               <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
-                ${content}
+                ${finalContent}
               </div>
               
               ${lineItemsHtml}
