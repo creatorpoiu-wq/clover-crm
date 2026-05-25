@@ -211,8 +211,8 @@ export default function ClientPortal() {
       {!mobileMenuOpen && (
         <button 
           onClick={() => setMobileMenuOpen(true)}
-          style={{ position: 'fixed', top: 16, left: 16, zIndex: 50, background: '#fff', border: '1px solid #e2e8f0', padding: 8, borderRadius: 8, display: 'flex' }}
-          className="lg:hidden"
+          style={{ position: 'fixed', top: 16, left: 16, zIndex: 50, background: '#fff', border: '1px solid #e2e8f0', padding: 8, borderRadius: 8 }}
+          className="flex lg:hidden items-center justify-center"
         >
           <Menu size={20} />
         </button>
@@ -275,7 +275,9 @@ export default function ClientPortal() {
                 <div style={{ display: 'flex', gap: 24, marginTop: 32, flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8 }}>Event Date</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>{event.eventDate || 'TBD'}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                      {event.eventDate ? (event.eventDate.includes('-') ? event.eventDate.split('T')[0].split('-').reverse().join('/') : event.eventDate) : 'TBD'}
+                    </div>
                   </div>
                   {daysUntil !== null && daysUntil >= 0 && (
                     <div>
