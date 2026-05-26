@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ContractBuilder from "@/components/ContractBuilder";
 import InvoiceBuilder from "@/components/InvoiceBuilder";
+import { supabase } from "@/lib/supabase";
 
 interface Contact {
   Contact_ID: number;
@@ -57,6 +58,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   const [communications, setCommunications] = useState<Communication[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -75,6 +77,11 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   const [newSessionForm, setNewSessionForm] = useState({ Service_Type: "", Event_Date: "" });
   const [newInquiryForm, setNewInquiryForm] = useState({ serviceType: "Wedding Photography", eventDate: "", estimatedValue: "", pipelineStage: "New Inquiry" });
   const [isCreatingInquiry, setIsCreatingInquiry] = useState(false);
+
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadForm, setUploadForm] = useState({ title: '', type: 'Contract' });
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
   const [isEditingInquiry, setIsEditingInquiry] = useState(false);
@@ -99,8 +106,16 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
       .finally(() => setLoading(false));
   };
 
+  const fetchUploadedDocs = () => {
+    fetch(`/api/contacts/${id}/documents`)
+      .then(res => res.json())
+      .then(data => { if (data.success) setUploadedDocs(data.documents); })
+      .catch(console.error);
+  };
+
   useEffect(() => {
     fetchContactData();
+    fetchUploadedDocs();
     fetch('/api/packages?type=packages')
       .then(res => res.json())
       .then(data => { if (data.success) setPackages(data.packages || []); });
@@ -109,6 +124,56 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   if (loading) {
     return <div className="p-8 text-center text-gray-500">Loading contact details...</div>;
   }
+
+  const handleUploadDocument = async () => {
+    if (!uploadFile || !uploadForm.title) return alert("Please select a file and provide a title.");
+    setIsUploading(true);
+    
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const fileData = e.target?.result as string;
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        const res = await fetch(`/api/contacts/${id}/documents`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: session?.user?.id,
+            title: uploadForm.title,
+            type: uploadForm.type,
+            fileType: uploadFile.type,
+            fileData: fileData
+          })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          setUploadedDocs([data.document, ...uploadedDocs]);
+          setShowUploadModal(false);
+          setUploadForm({ title: '', type: 'Contract' });
+          setUploadFile(null);
+        } else {
+          alert("Error: " + data.error);
+        }
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(uploadFile);
+    } catch (err) {
+      console.error(err);
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteUploadedDoc = async (docId: number) => {
+    if (!confirm("Delete this uploaded document?")) return;
+    try {
+      const res = await fetch(`/api/contacts/${id}/documents?docId=${docId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setUploadedDocs(uploadedDocs.filter(d => d.Document_ID !== docId));
+      }
+    } catch (e) { console.error(e); }
+  };
 
   if (!contact) {
     return <div className="p-8 text-center text-red-500">Contact not found.</div>;
@@ -512,7 +577,10 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', border: '1px solid #f0efe9' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Documents & Contracts</h2>
-            <button onClick={() => setShowContractBuilder(true)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>New Contract</button>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={() => { setUploadForm({ title: '', type: 'Contract' }); setShowUploadModal(true); }} style={{ backgroundColor: '#fff', color: '#4da685', border: '1px solid #4da685', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Upload</button>
+              <button onClick={() => setShowContractBuilder(true)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>New Contract</button>
+            </div>
           </div>
           {contracts.length > 0 ? (
             <div className="space-y-4">
@@ -537,6 +605,35 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           ) : (
             <p style={{ color: '#a0a0a0', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No contracts have been generated for this contact.</p>
           )}
+
+          {uploadedDocs.filter(d => d.Type === 'Contract').length > 0 && (
+            <div className="mt-8 pt-6" style={{ borderTop: '1px solid #f0efe9' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>Uploaded Contracts</h3>
+              <div className="space-y-4">
+                {uploadedDocs.filter(d => d.Type === 'Contract').map(doc => (
+                  <div key={doc.Document_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', border: '1px solid #f0efe9', borderRadius: '0.5rem', backgroundColor: '#fafafa' }}>
+                    <div>
+                      <h4 style={{ fontSize: '0.875rem', fontWeight: 600, margin: '0 0 0.25rem 0', color: '#0f172a' }}>{doc.Title}</h4>
+                      <div style={{ fontSize: '0.75rem', color: '#a0a0a0' }}>Uploaded: {new Date(doc.Upload_Date).toLocaleDateString()}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <button onClick={() => {
+                        const win = window.open();
+                        if (win) {
+                          if (doc.File_Data.startsWith('data:application/pdf')) {
+                            win.document.write(`<iframe src="${doc.File_Data}" width="100%" height="100%" style="border:none;"></iframe>`);
+                          } else {
+                            win.document.write(`<img src="${doc.File_Data}" style="max-width:100%;" />`);
+                          }
+                        }
+                      }} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>View</button>
+                      <button onClick={() => handleDeleteUploadedDoc(doc.Document_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -544,7 +641,10 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', border: '1px solid #f0efe9' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Invoices & Payments</h2>
-            <button onClick={() => setShowInvoiceBuilder(true)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>New Invoice</button>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={() => { setUploadForm({ title: '', type: 'Invoice' }); setShowUploadModal(true); }} style={{ backgroundColor: '#fff', color: '#4da685', border: '1px solid #4da685', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Upload</button>
+              <button onClick={() => setShowInvoiceBuilder(true)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>New Invoice</button>
+            </div>
           </div>
           {invoices.length > 0 ? (
             <div className="space-y-4">
@@ -571,6 +671,35 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
             </div>
           ) : (
              <p style={{ color: '#a0a0a0', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No invoices exist for this contact.</p>
+          )}
+
+          {uploadedDocs.filter(d => d.Type === 'Invoice').length > 0 && (
+            <div className="mt-8 pt-6" style={{ borderTop: '1px solid #f0efe9' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>Uploaded Invoices</h3>
+              <div className="space-y-4">
+                {uploadedDocs.filter(d => d.Type === 'Invoice').map(doc => (
+                  <div key={doc.Document_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', border: '1px solid #f0efe9', borderRadius: '0.5rem', backgroundColor: '#fafafa' }}>
+                    <div>
+                      <h4 style={{ fontSize: '0.875rem', fontWeight: 600, margin: '0 0 0.25rem 0', color: '#0f172a' }}>{doc.Title}</h4>
+                      <div style={{ fontSize: '0.75rem', color: '#a0a0a0' }}>Uploaded: {new Date(doc.Upload_Date).toLocaleDateString()}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <button onClick={() => {
+                        const win = window.open();
+                        if (win) {
+                          if (doc.File_Data.startsWith('data:application/pdf')) {
+                            win.document.write(`<iframe src="${doc.File_Data}" width="100%" height="100%" style="border:none;"></iframe>`);
+                          } else {
+                            win.document.write(`<img src="${doc.File_Data}" style="max-width:100%;" />`);
+                          }
+                        }
+                      }} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>View</button>
+                      <button onClick={() => handleDeleteUploadedDoc(doc.Document_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
