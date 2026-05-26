@@ -1008,6 +1008,37 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
+
+      {showUploadModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '0.5rem', width: '100%', maxWidth: 400 }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: '#0f172a' }}>Upload Document</h2>
+            <div className="space-y-4">
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: '#333' }}>Title</label>
+                <input type="text" value={uploadForm.title} onChange={e => setUploadForm({...uploadForm, title: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.25rem' }} placeholder="e.g. Old Contract 2023" />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: '#333' }}>Type</label>
+                <select value={uploadForm.type} onChange={e => setUploadForm({...uploadForm, type: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.25rem', background: '#fff' }}>
+                  <option value="Contract">Contract</option>
+                  <option value="Invoice">Invoice</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: '#333' }}>File (PDF/Image)</label>
+                <input type="file" accept="application/pdf,image/*" onChange={e => setUploadFile(e.target.files?.[0] || null)} style={{ width: '100%', fontSize: '0.875rem' }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+              <button onClick={() => setShowUploadModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+              <button onClick={handleUploadDocument} disabled={isUploading || !uploadFile} style={{ backgroundColor: '#4da685', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontWeight: 600, cursor: (isUploading || !uploadFile) ? 'not-allowed' : 'pointer' }}>
+                {isUploading ? 'Uploading...' : 'Upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
