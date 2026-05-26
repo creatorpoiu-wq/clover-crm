@@ -94,7 +94,7 @@ export default function ClientPortal() {
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#64748b' }}>Loading your portal...</div>;
   if (error || !data) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#ef4444' }}>{error}</div>;
 
-  const { vendor, client, event, contracts, invoices, deliverables, communications } = data;
+  const { vendor, client, event, contracts, invoices, deliverables, communications, uploadedDocs } = data;
   const firstName = client?.name?.split(' ')[0] || 'there';
   const brandColor = vendor.brandColor || '#0f172a';
 
@@ -449,6 +449,33 @@ export default function ClientPortal() {
                 )}
               </div>
 
+              {/* Uploaded Contracts */}
+              {uploadedDocs && uploadedDocs.filter((d: any) => d.Type === 'Contract').length > 0 && (
+                <div>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}><FileText size={18} color={brandColor} /> Uploaded Contracts</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {uploadedDocs.filter((d: any) => d.Type === 'Contract').map((doc: any) => (
+                      <div key={doc.Document_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12 }}>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{doc.Title}</div>
+                          <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Uploaded: {new Date(doc.Upload_Date).toLocaleDateString()}</div>
+                        </div>
+                        <button onClick={() => {
+                          const win = window.open();
+                          if (win) {
+                            if (doc.File_Data.startsWith('data:application/pdf')) {
+                              win.document.write(`<iframe src="${doc.File_Data}" width="100%" height="100%" style="border:none;"></iframe>`);
+                            } else {
+                              win.document.write(`<img src="${doc.File_Data}" style="max-width:100%;" />`);
+                            }
+                          }
+                        }} style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none', border: 'none', cursor: 'pointer' }}>View</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Invoices */}
               <div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}><DollarSign size={18} color={brandColor} /> Invoices</h3>
@@ -473,6 +500,33 @@ export default function ClientPortal() {
                   </div>
                 )}
               </div>
+
+              {/* Uploaded Invoices */}
+              {uploadedDocs && uploadedDocs.filter((d: any) => d.Type === 'Invoice').length > 0 && (
+                <div>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}><DollarSign size={18} color={brandColor} /> Uploaded Invoices</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {uploadedDocs.filter((d: any) => d.Type === 'Invoice').map((doc: any) => (
+                      <div key={doc.Document_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12 }}>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{doc.Title}</div>
+                          <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Uploaded: {new Date(doc.Upload_Date).toLocaleDateString()}</div>
+                        </div>
+                        <button onClick={() => {
+                          const win = window.open();
+                          if (win) {
+                            if (doc.File_Data.startsWith('data:application/pdf')) {
+                              win.document.write(`<iframe src="${doc.File_Data}" width="100%" height="100%" style="border:none;"></iframe>`);
+                            } else {
+                              win.document.write(`<img src="${doc.File_Data}" style="max-width:100%;" />`);
+                            }
+                          }
+                        }} style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none', border: 'none', cursor: 'pointer' }}>View</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

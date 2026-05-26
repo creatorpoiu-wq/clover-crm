@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       .from('Inquiries')
       .select(`
         user_id,
+        Contact_ID,
         Service_Type,
         Event_Date,
         Pipeline_Stage,
@@ -77,6 +78,13 @@ export async function GET(req: NextRequest) {
       .eq('user_id', userId)
       .single();
 
+    // 7. Fetch Uploaded Documents
+    const { data: uploadedDocs } = await supabase
+      .from('Contact_Documents')
+      .select('Document_ID, Title, Type, File_Data, Upload_Date')
+      .eq('Contact_ID', inquiry.Contact_ID)
+      .order('Upload_Date', { ascending: false });
+
     return NextResponse.json({
       success: true,
       portal: {
@@ -102,7 +110,8 @@ export async function GET(req: NextRequest) {
         contracts: contracts || [],
         invoices: invoices || [],
         deliverables: deliverables || [],
-        communications: communications || []
+        communications: communications || [],
+        uploadedDocs: uploadedDocs || []
       }
     });
 
