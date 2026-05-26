@@ -133,13 +133,11 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
       const reader = new FileReader();
       reader.onload = async (e) => {
         const fileData = e.target?.result as string;
-        const { data: { session } } = await supabase.auth.getSession();
         
         const res = await fetch(`/api/contacts/${id}/documents`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: session?.user?.id,
             title: uploadForm.title,
             type: uploadForm.type,
             fileType: uploadFile.type,
