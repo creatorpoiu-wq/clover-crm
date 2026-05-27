@@ -130,16 +130,16 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           )}
         </div>
 
-        {/* Booking Proposal Expandable */}
+        {/* Booking Funnels Expandable */}
         <div style={{ marginTop: 'auto' }}>
           <button 
             onClick={() => setBookingExpanded(!bookingExpanded)} 
-            className={`nav-item ${pathname.includes('booking') || pathname.includes('questionnaire') ? "active" : ""}`}
+            className={`nav-item ${pathname.includes('booking') || pathname.includes('questionnaire') || pathname.includes('portrait') ? "active" : ""}`}
             style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <ExternalLink size={18} strokeWidth={2} />
-              Booking Proposal
+              Booking Funnels
             </div>
             <span style={{ fontSize: 12 }}>{bookingExpanded ? '▼' : '▶'}</span>
           </button>
@@ -150,10 +150,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 Questionnaire Builder
               </Link>
               <Link href="/dashboard/booking" onClick={onClose} className={`nav-item ${pathname === '/dashboard/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Funnel Settings
+                Wedding Funnel Settings
               </Link>
               <Link href="/booking" onClick={onClose} className={`nav-item ${pathname === '/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                View Live Proposal
+                Live Wedding Funnel
+              </Link>
+              <Link href="/portrait/inquiry" onClick={onClose} className={`nav-item ${pathname === '/portrait/inquiry' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+                Live Portrait Funnel
               </Link>
             </div>
           )}
