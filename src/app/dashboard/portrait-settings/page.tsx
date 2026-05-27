@@ -1,14 +1,21 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Save, Type, CheckCircle, FileText } from "lucide-react";
+import { Save, Type, CheckCircle, FileText, Settings, Image as ImageIcon, DollarSign } from "lucide-react";
 
 const TABS = [
+  { id: "general", label: "General Intro", icon: Settings },
+  { id: "sessions", label: "Session Types", icon: ImageIcon },
   { id: "steps",   label: "Step Text",     icon: Type },
   { id: "contract", label: "Contract Template", icon: FileText },
   { id: "confirm", label: "Confirmation",  icon: CheckCircle },
 ];
 
 const DEFAULT_SETTINGS = {
+  heroHeadline: "Let's plan your perfect session.",
+  heroSubheadline: "Fill out the details below to start the booking process.",
+  aboutText: "",
+  sessionTypes: ["Family Portrait", "Maternity", "Newborn", "Couples/Engagement", "Senior Portraits", "Headshots/Branding"],
+  retainerAmount: 100,
   steps: [
     { title: "Choose Your Experience", subtitle: "Select the date and time for your portrait session." },
     { title: "Review & Sign Your Contract", subtitle: "Please review and sign the agreement below." },
@@ -20,11 +27,14 @@ const DEFAULT_SETTINGS = {
 };
 
 export default function PortraitSettingsPage() {
-  const [tab, setTab] = useState("steps");
+  const [tab, setTab] = useState("general");
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [cTemplates, setCTemplates] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  // New session type input state
+  const [newSessionType, setNewSessionType] = useState("");
 
   useEffect(() => {
     fetch("/api/portrait-settings")
@@ -66,17 +76,30 @@ export default function PortraitSettingsPage() {
     setSettings(s => ({ ...s, steps }));
   };
 
+  const addSessionType = (e: React.KeyboardEvent | React.MouseEvent) => {
+    if ('key' in e && e.key !== 'Enter') return;
+    e.preventDefault();
+    if (newSessionType.trim() && !settings.sessionTypes.includes(newSessionType.trim())) {
+      setSettings(s => ({ ...s, sessionTypes: [...s.sessionTypes, newSessionType.trim()] }));
+      setNewSessionType("");
+    }
+  };
+
+  const removeSessionType = (typeToRemove: string) => {
+    setSettings(s => ({ ...s, sessionTypes: s.sessionTypes.filter(t => t !== typeToRemove) }));
+  };
+
   const inputCls = { width: "100%", padding: "10px 14px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, outline: "none", background: "var(--background)", color: "var(--foreground)", boxSizing: "border-box" as const };
   const labelCls = { display: "block", fontSize: 12, fontWeight: 700 as const, color: "var(--muted)", textTransform: "uppercase" as const, letterSpacing: "0.05em", marginBottom: 6 };
 
-  const STEP_LABELS = ["Step 1 — Date & Time", "Step 2 — Contract", "Step 3 — Payment"];
+  const STEP_LABELS = ["Step 1 — Intro / Booking Form", "Step 2 — Contract & Calendar", "Step 3 — Payment"];
 
   return (
     <div className="animate-fade-in" style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto", paddingBottom: "100px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2.5rem" }}>
         <div>
           <h1 className="page-title" style={{ fontSize: "2rem", fontWeight: 900, marginBottom: "0.5rem" }}>Portrait Funnel Settings</h1>
-          <p className="page-subtitle" style={{ color: "var(--muted)" }}>Customize the steps and contract for the Portrait Funnel.</p>
+          <p className="page-subtitle" style={{ color: "var(--muted)" }}>Customize the design, steps, and flow for your public Portrait Booking Page.</p>
         </div>
         <button onClick={save} disabled={saving} className="btn btn-primary" style={{ width: "auto", display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: "8px", fontWeight: 700, backgroundColor: "var(--primary)", color: "#fff", border: "none", cursor: "pointer" }}>
           <Save size={16} /> {saving ? "Saving..." : "Save Changes"}
@@ -84,7 +107,7 @@ export default function PortraitSettingsPage() {
       </div>
 
       {/* Tab Nav */}
-      <div style={{ display: "flex", gap: 4, marginBottom: "2rem", borderBottom: "2px solid var(--border)", paddingBottom: 0 }}>
+      <div style={{ display: "flex", flexWrap: 'wrap', gap: 4, marginBottom: "2rem", borderBottom: "2px solid var(--border)", paddingBottom: 0 }}>
         {TABS.map(t => {
           const Icon = t.icon;
           return (
@@ -100,6 +123,86 @@ export default function PortraitSettingsPage() {
           );
         })}
       </div>
+
+      {/* GENERAL TAB */}
+      {tab === "general" && (
+        <div className="glass-panel" style={{ padding: "2rem", background: "var(--card)", borderRadius: "12px", border: "1px solid var(--border)" }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 24px" }}>General Intro Text</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div>
+              <label style={labelCls}>Hero Headline</label>
+              <input style={inputCls} value={settings.heroHeadline} onChange={e => setSettings(s => ({ ...s, heroHeadline: e.target.value }))} placeholder="e.g. Let's plan your perfect session." />
+            </div>
+            <div>
+              <label style={labelCls}>Hero Subheadline</label>
+              <input style={inputCls} value={settings.heroSubheadline} onChange={e => setSettings(s => ({ ...s, heroSubheadline: e.target.value }))} placeholder="e.g. Fill out the details below to start the booking process." />
+            </div>
+            <div>
+              <label style={labelCls}>About Text (Optional)</label>
+              <textarea 
+                style={{ ...inputCls, resize: "vertical" }} 
+                rows={4}
+                value={settings.aboutText} 
+                onChange={e => setSettings(s => ({ ...s, aboutText: e.target.value }))} 
+                placeholder="Optional text block to display underneath the hero section." 
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SESSIONS TAB */}
+      {tab === "sessions" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          
+          <div className="glass-panel" style={{ padding: "2rem", background: "var(--card)", borderRadius: "12px", border: "1px solid var(--border)" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 24px" }}>Session Types</h3>
+            <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 24 }}>These are the session types the client can choose from when filling out the initial booking form.</p>
+            
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.5rem" }}>
+              {settings.sessionTypes.map(type => (
+                <div key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--primary)", color: "white", padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: 14, fontWeight: 600 }}>
+                  {type}
+                  <button onClick={() => removeSessionType(type)} style={{ background: "none", border: "none", color: "white", cursor: "pointer", display: "flex", alignItems: "center", padding: 0, opacity: 0.7 }}>
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <input 
+                style={inputCls} 
+                value={newSessionType} 
+                onChange={e => setNewSessionType(e.target.value)} 
+                onKeyDown={addSessionType}
+                placeholder="Type a new session (e.g. Boudoir) and press Enter" 
+              />
+              <button onClick={addSessionType} style={{ background: "var(--primary)", color: "white", border: "none", borderRadius: 8, padding: "0 1.5rem", fontWeight: 600, cursor: "pointer" }}>
+                Add
+              </button>
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ padding: "2rem", background: "var(--card)", borderRadius: "12px", border: "1px solid var(--border)" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 24px" }}>Retainer Settings</h3>
+            <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 24 }}>Specify the standard retainer fee collected at the time of booking.</p>
+            <div>
+              <label style={labelCls}>Retainer Amount ($)</label>
+              <div style={{ position: "relative" }}>
+                <DollarSign size={16} style={{ position: "absolute", left: 14, top: 12, color: "var(--muted)" }} />
+                <input 
+                  type="number" 
+                  style={{ ...inputCls, paddingLeft: 36 }} 
+                  value={settings.retainerAmount} 
+                  onChange={e => setSettings(s => ({ ...s, retainerAmount: parseFloat(e.target.value) || 0 }))} 
+                />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      )}
 
       {/* STEPS TAB */}
       {tab === "steps" && (

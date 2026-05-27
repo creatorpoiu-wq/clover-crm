@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
 const DEFAULTS = {
+  Hero_Headline: "Let's plan your perfect session.",
+  Hero_Subheadline: "Fill out the details below to start the booking process.",
+  About_Text: "",
+  Session_Types: JSON.stringify(["Family Portrait", "Maternity", "Newborn", "Couples/Engagement", "Senior Portraits", "Headshots/Branding"]),
+  Retainer_Amount: 100,
   Step1_Title: 'Choose Your Experience',
   Step1_Subtitle: 'Select the date and time for your portrait session.',
   Step2_Title: 'Review & Sign Your Contract',
@@ -16,8 +21,6 @@ export async function GET() {
   try {
     const supabase = await createClient();
     
-    // Auth is required to fetch settings for the dashboard.
-    // (For the public funnel, we'll fetch via /api/public-booking?type=portrait_settings)
     const { data: userAuth } = await supabase.auth.getUser();
     if (!userAuth.user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
@@ -30,6 +33,11 @@ export async function GET() {
     if (error && error.code !== 'PGRST116') throw error;
 
     const settings = {
+      heroHeadline: row?.Hero_Headline || DEFAULTS.Hero_Headline,
+      heroSubheadline: row?.Hero_Subheadline || DEFAULTS.Hero_Subheadline,
+      aboutText: row?.About_Text || DEFAULTS.About_Text,
+      sessionTypes: row?.Session_Types ? JSON.parse(row.Session_Types) : JSON.parse(DEFAULTS.Session_Types),
+      retainerAmount: row?.Retainer_Amount || DEFAULTS.Retainer_Amount,
       steps: [
         { title: row?.Step1_Title || DEFAULTS.Step1_Title, subtitle: row?.Step1_Subtitle || DEFAULTS.Step1_Subtitle },
         { title: row?.Step2_Title || DEFAULTS.Step2_Title, subtitle: row?.Step2_Subtitle || DEFAULTS.Step2_Subtitle },
@@ -50,7 +58,7 @@ export async function PUT(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { steps, contractTemplateId, confirmationTitle, confirmationMessage } = body;
+    const { heroHeadline, heroSubheadline, aboutText, sessionTypes, retainerAmount, steps, contractTemplateId, confirmationTitle, confirmationMessage } = body;
 
     const { data: userAuth } = await supabase.auth.getUser();
     if (!userAuth.user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -62,6 +70,11 @@ export async function PUT(req: NextRequest) {
       .from('Portrait_Settings')
       .upsert({
         user_id: userId,
+        Hero_Headline: heroHeadline || DEFAULTS.Hero_Headline,
+        Hero_Subheadline: heroSubheadline || DEFAULTS.Hero_Subheadline,
+        About_Text: aboutText || DEFAULTS.About_Text,
+        Session_Types: sessionTypes ? JSON.stringify(sessionTypes) : DEFAULTS.Session_Types,
+        Retainer_Amount: retainerAmount || DEFAULTS.Retainer_Amount,
         Step1_Title: s1?.title || DEFAULTS.Step1_Title,
         Step1_Subtitle: s1?.subtitle || DEFAULTS.Step1_Subtitle,
         Step2_Title: s2?.title || DEFAULTS.Step2_Title,
