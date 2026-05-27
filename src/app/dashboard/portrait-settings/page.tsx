@@ -214,7 +214,31 @@ export default function PortraitSettingsPage() {
                       const file = e.target.files?.[0];
                       if (!file) return;
                       const reader = new FileReader();
-                      reader.onloadend = () => setSettings(s => ({ ...s, welcomeHeroPhotoUrl: reader.result as string }));
+                      reader.onloadend = () => {
+                        const img = new Image();
+                        img.onload = () => {
+                          const canvas = document.createElement('canvas');
+                          let width = img.width;
+                          let height = img.height;
+                          
+                          // Max width 1920px for hero
+                          if (width > 1920) {
+                            height = Math.round((height * 1920) / width);
+                            width = 1920;
+                          }
+                          
+                          canvas.width = width;
+                          canvas.height = height;
+                          const ctx = canvas.getContext('2d');
+                          if (ctx) {
+                            ctx.drawImage(img, 0, 0, width, height);
+                            // Compress as JPEG at 60% quality
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                            setSettings(s => ({ ...s, welcomeHeroPhotoUrl: compressedBase64 }));
+                          }
+                        };
+                        img.src = reader.result as string;
+                      };
                       reader.readAsDataURL(file);
                     }}
                   />
