@@ -145,6 +145,7 @@ export default function PortraitFunnel() {
             onBack={() => setCurrentStep(2)}
             themeColor={themeColor}
             vendorInfo={vendorInfo}
+            selectedPackageName={searchParams.get('package')}
           />
         )}
       </div>

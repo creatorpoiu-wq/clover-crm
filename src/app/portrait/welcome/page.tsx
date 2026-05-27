@@ -10,6 +10,7 @@ function WelcomeGuideContent() {
   const inquiryId = searchParams.get('inquiryId');
   
   const [vendorInfo, setVendorInfo] = useState<any>(null);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
   useEffect(() => {
     if (userId) {
@@ -76,12 +77,14 @@ function WelcomeGuideContent() {
       {/* Feature / Style Section */}
       <section className="funnel-section" style={{ backgroundColor: 'white', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
         <div className="funnel-flex-responsive" style={{ maxWidth: '1024px', margin: '0 auto', alignItems: 'center' }}>
-          <div style={{ flex: '1 1 auto', width: '100%', maxWidth: '400px', backgroundColor: '#f1f5f9', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', aspectRatio: '4/5' }}>
-            <img 
-              src={vendorInfo?.stylePhotoUrl || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"}
-              alt="Portrait Style" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
-            />
+          <div style={{ flex: '1 1 400px', height: '600px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+            {vendorInfo && (
+              <img 
+                src={vendorInfo.stylePhotoUrl || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"}
+                alt="Portrait Style" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+              />
+            )}
           </div>
           <div style={{ flex: '1 1 400px' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>Our Signature Style</div>
@@ -123,34 +126,48 @@ function WelcomeGuideContent() {
             { name: 'The Mini', price: 350, description: 'Perfect for quick updates or headshots.', features: ['30 Minute Session', '15 Edited Images', '1 Location'], featured: false },
             { name: 'The Classic', price: 650, description: 'The ideal balance for families and couples.', features: ['60 Minute Session', '50+ Edited Images', 'Up to 2 Outfits'], featured: true },
             { name: 'The Extended', price: 950, description: 'For editorial or multi-location shoots.', features: ['2 Hour Session', '100+ Edited Images', 'Multiple Locations'], featured: false }
-          ]).map((pkg: any, idx: number) => (
-            pkg.featured ? (
-              <div key={idx} style={{ backgroundColor: '#0f172a', color: 'white', padding: '2rem', borderRadius: '1.5rem', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', transform: 'translateY(-1rem)' }}>
-                <div style={{ position: 'absolute', top: 0, right: '2rem', transform: 'translateY(-50%)', backgroundColor: '#facc15', color: '#713f12', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <Star size={12}/> Most Popular
-                </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>{pkg.name}</h3>
-                <div style={{ fontSize: '1.875rem', fontWeight: 900, marginBottom: '1rem', color: 'white' }}>${pkg.price}</div>
-                <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>{pkg.description}</p>
-                <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem', fontWeight: 500, color: 'rgba(255,255,255,0.9)', marginBottom: '2rem' }}>
+          ]).map((pkg: any, idx: number) => {
+            const isSelected = selectedPackage === pkg.name;
+            return (
+              <div 
+                key={idx} 
+                onClick={() => setSelectedPackage(pkg.name)}
+                style={{ 
+                  backgroundColor: pkg.featured ? '#0f172a' : 'white', 
+                  color: pkg.featured ? 'white' : '#1e293b', 
+                  padding: '2rem', 
+                  borderRadius: '1.5rem', 
+                  position: 'relative', 
+                  boxShadow: isSelected ? `0 0 0 4px ${themeColor}` : pkg.featured ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : 'none', 
+                  border: isSelected ? `2px solid ${themeColor}` : '1px solid #e2e8f0',
+                  transform: pkg.featured ? 'translateY(-1rem)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                {pkg.featured && (
+                  <div style={{ position: 'absolute', top: 0, right: '2rem', transform: 'translateY(-50%)', backgroundColor: '#facc15', color: '#713f12', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Star size={12}/> Most Popular
+                  </div>
+                )}
+                {isSelected && (
+                  <div style={{ position: 'absolute', top: '-0.75rem', left: '2rem', backgroundColor: themeColor, color: 'white', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '0.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                    <CheckCircle2 size={12}/> Selected
+                  </div>
+                )}
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem', color: pkg.featured ? 'white' : '#1e293b' }}>{pkg.name}</h3>
+                <div style={{ fontSize: '1.875rem', fontWeight: 900, marginBottom: '1rem', color: pkg.featured ? 'white' : '#0f172a' }}>${pkg.price}</div>
+                <p style={{ color: pkg.featured ? '#94a3b8' : '#64748b', fontSize: '0.875rem', marginBottom: '1.5rem' }}>{pkg.description}</p>
+                <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem', fontWeight: 500, color: pkg.featured ? 'rgba(255,255,255,0.9)' : '#334155', marginBottom: '2rem' }}>
                   {pkg.features.map((feature: string, fIdx: number) => (
-                    <li key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle2 size={16} color="rgba(255,255,255,0.3)"/> {feature}</li>
+                    <li key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <CheckCircle2 size={16} color={pkg.featured ? "rgba(255,255,255,0.3)" : "#cbd5e1"}/> {feature}
+                    </li>
                   ))}
                 </ul>
               </div>
-            ) : (
-              <div key={idx} className="glass-panel" style={{ padding: '2rem', borderRadius: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem' }}>{pkg.name}</h3>
-                <div style={{ fontSize: '1.875rem', fontWeight: 900, marginBottom: '1rem' }}>${pkg.price}</div>
-                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1.5rem' }}>{pkg.description}</p>
-                <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem', fontWeight: 500, color: '#334155', marginBottom: '2rem' }}>
-                  {pkg.features.map((feature: string, fIdx: number) => (
-                    <li key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle2 size={16} color="#cbd5e1"/> {feature}</li>
-                  ))}
-                </ul>
-              </div>
-            )
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -197,7 +214,7 @@ function WelcomeGuideContent() {
           Click below to access our live calendar and secure your session immediately.
         </p>
         <Link 
-          href={`/portrait/book?userId=${userId}&inquiryId=${inquiryId}`}
+          href={`/portrait/book?userId=${userId}&inquiryId=${inquiryId}${selectedPackage ? `&package=${encodeURIComponent(selectedPackage)}` : ''}`}
           className="btn btn-primary"
           style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '1.25rem', fontWeight: 800, padding: '1.25rem 2.5rem', borderRadius: '9999px', backgroundColor: themeColor, color: 'white', textDecoration: 'none', boxShadow: `0 4px 14px 0 ${themeColor}60` }}
         >

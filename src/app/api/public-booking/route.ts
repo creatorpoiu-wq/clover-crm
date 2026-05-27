@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
 
       const [{ data: row }, { data: appConfig }] = await Promise.all([
         supabase.from('Portrait_Settings').select('*').eq('user_id', userId).single(),
-        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User').eq('user_id', userId).single(),
+        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User, Website').eq('user_id', userId).single(),
       ]);
 
       return NextResponse.json({
@@ -122,7 +122,8 @@ export async function GET(req: NextRequest) {
           companyName:    appConfig?.Company_Name   || 'Portrait Studio',
           brandColor:     appConfig?.Brand_Color    || '#1e293b',
           businessLogo:   appConfig?.Business_Logo  || null,
-          contactEmail:   appConfig?.Email_User     || null,
+          emailUser:      appConfig?.Email_User     || null,
+          website:        appConfig?.Website        || '',
           // Hero / intro
           heroHeadline:    row?.Hero_Headline    || "Let's plan your perfect session.",
           heroSubheadline: row?.Hero_Subheadline || 'Fill out the details below to start the booking process.',

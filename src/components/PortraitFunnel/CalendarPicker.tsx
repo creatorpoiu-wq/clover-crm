@@ -48,7 +48,7 @@ export default function CalendarPicker({
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const isPast = dateObj < today;
       const isBooked = bookedDates.includes(dateStr);
-      const isAvailable = !isPast && !isBooked && dateObj.getDay() !== 0 && dateObj.getDay() !== 6;
+      const isAvailable = !isPast && !isBooked;
       const isSelected = selectedDate === dateStr;
 
       days.push(

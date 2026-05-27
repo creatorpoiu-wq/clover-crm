@@ -10,17 +10,21 @@ interface RetainerCheckoutProps {
   onBack: () => void;
   themeColor: string;
   vendorInfo: any;
+  selectedPackageName?: string | null;
 }
 
 export default function RetainerCheckout({
-  userId, inquiryId, selectedDate, selectedTime, signature, onBack, themeColor, vendorInfo
+  userId, inquiryId, selectedDate, selectedTime, signature, onBack, themeColor, vendorInfo, selectedPackageName
 }: RetainerCheckoutProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Placeholder Retainer Amount (could be dynamic in the future)
-  const retainerAmount = 250;
+  // Dynamic Retainer Amount and Package Selection
+  const selectedPackage = (vendorInfo?.packages || []).find((p: any) => p.name === selectedPackageName) || null;
+  const packageTotal = selectedPackage?.price ? Number(selectedPackage.price) : 0;
+  const retainerAmount = vendorInfo?.retainerAmount ? Number(vendorInfo.retainerAmount) : 100;
+  const balanceDue = packageTotal > retainerAmount ? packageTotal - retainerAmount : 0;
 
   // Placeholder Payment Methods (modeled after the Invoice Builder)
   const paymentMethods = [
@@ -64,10 +68,10 @@ export default function RetainerCheckout({
             'Event Date': selectedDate,
             'Event Time': selectedTime
           },
-          pkg: { Name: 'Portrait Session Retainer', Price: retainerAmount },
+          pkg: selectedPackage ? { Name: selectedPackage.name, Price: packageTotal } : { Name: 'Portrait Session', Price: packageTotal || retainerAmount },
           addons: [],
           signature,
-          totalAmount: retainerAmount,
+          totalAmount: packageTotal || retainerAmount,
           depositAmount: retainerAmount
         })
       });
@@ -103,7 +107,7 @@ export default function RetainerCheckout({
           Your session on <strong style={{ color: '#1e293b' }}>{new Date(selectedDate + 'T00:00:00').toLocaleDateString()}</strong> at <strong style={{ color: '#1e293b' }}>{selectedTime}</strong> is securely locked in. A copy of your contract and the receipt have been sent to your email.
         </p>
         <button
-          onClick={() => window.location.href = vendorInfo?.Website || 'https://google.com'}
+          onClick={() => window.location.href = vendorInfo?.website || 'https://google.com'}
           className="btn btn-primary"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backgroundColor: themeColor, border: 'none', cursor: 'pointer' }}
         >
@@ -129,20 +133,27 @@ export default function RetainerCheckout({
         
         {/* Invoice Summary */}
         <div style={{ backgroundColor: '#f8fafc', padding: '2rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>Retainer Invoice</h3>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>Invoice Summary</h3>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: '#475569', fontWeight: 500 }}>
-            <span>Portrait Session Retainer</span>
-            <span>${retainerAmount.toFixed(2)}</span>
+            <span>{selectedPackage?.name || 'Portrait Session'}</span>
+            <span>{packageTotal ? `$${packageTotal.toFixed(2)}` : 'TBD'}</span>
           </div>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', color: '#64748b', fontSize: '0.875rem' }}>
             <span>Date Lock ({new Date(selectedDate + 'T00:00:00').toLocaleDateString()})</span>
             <span>Included</span>
           </div>
+
+          {packageTotal > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', color: '#64748b', fontSize: '0.875rem' }}>
+              <span>Remaining Balance (Due Later)</span>
+              <span>${balanceDue.toFixed(2)}</span>
+            </div>
+          )}
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0', fontWeight: 900, fontSize: '1.25rem', color: '#1e293b' }}>
-            <span>Total Due Today</span>
+            <span>Retainer Due Today</span>
             <span>${retainerAmount.toFixed(2)}</span>
           </div>
         </div>
