@@ -55,9 +55,9 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left column (2 fractions) */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2">
           
-          <div className="glass-panel" style={{ padding: "2rem" }}>
+          <div className="glass-panel" style={{ padding: "2rem", marginBottom: "2rem" }}>
              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Revenue Trend (Trailing & Projected)</h2>
              {data?.monthlyData && data.monthlyData.length > 0 ? (
                <div style={{ height: 280, width: '100%' }}>
@@ -83,7 +83,7 @@ export default function DashboardPage() {
              )}
           </div>
 
-          <div className="glass-panel" style={{ padding: "2rem" }}>
+          <div className="glass-panel" style={{ padding: "2rem", marginBottom: "2rem" }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Recent Projects</h2>
             <div className="space-y-0">
               {data?.stageCounts && data.stageCounts.length > 0 ? (
@@ -103,7 +103,7 @@ export default function DashboardPage() {
             <a href="/dashboard/pipeline" style={{ color: '#4da685', fontWeight: 600, display: 'inline-block', marginTop: '1.5rem', fontSize: '0.875rem' }}>View more projects</a>
           </div>
 
-          <div className="glass-panel" style={{ padding: "2rem" }}>
+          <div className="glass-panel" style={{ padding: "2rem", marginBottom: "2rem" }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Pipeline Overview</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div style={{ padding: 0 }}>
@@ -125,7 +125,7 @@ export default function DashboardPage() {
 
         {/* Right column (1 fraction) */}
         <div className="lg:col-span-1">
-           <div className="glass-panel" style={{ padding: "2rem", height: 'fit-content' }}>
+           <div className="glass-panel" style={{ padding: "2rem", height: 'fit-content', marginBottom: "2rem" }}>
              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Create New</h2>
              <div className="grid grid-cols-2 gap-4">
                <a href="/dashboard/pipeline" className="action-tile">
