@@ -16,6 +16,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const router = useRouter();
   const [companyName, setCompanyName] = useState("Clover");
   const [businessLogo, setBusinessLogo] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -24,6 +25,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         router.push("/login");
         return;
       }
+      setUserId(user.id);
       // Load company name from API
       fetch('/api/settings').then(r => r.json()).then(data => {
         if (data.config?.companyName) setCompanyName(data.config.companyName);
@@ -149,13 +151,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <Link href="/dashboard/questionnaire" onClick={onClose} className={`nav-item ${pathname === '/dashboard/questionnaire' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
                 Questionnaire Builder
               </Link>
-              <Link href="/dashboard/booking" onClick={onClose} className={`nav-item ${pathname === '/dashboard/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+              <Link href={`/dashboard/booking`} onClick={onClose} className={`nav-item ${pathname === '/dashboard/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
                 Wedding Funnel Settings
               </Link>
-              <Link href="/booking" onClick={onClose} className={`nav-item ${pathname === '/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+              <Link href={userId ? `/booking?userId=${userId}` : '/booking'} onClick={onClose} className={`nav-item ${pathname === '/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
                 Live Wedding Funnel
               </Link>
-              <Link href="/portrait/inquiry" onClick={onClose} className={`nav-item ${pathname === '/portrait/inquiry' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+              <Link href={userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry'} onClick={onClose} className={`nav-item ${pathname === '/portrait/inquiry' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
                 Live Portrait Funnel
               </Link>
             </div>
