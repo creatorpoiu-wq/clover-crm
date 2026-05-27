@@ -291,6 +291,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   const [editingTitle, setEditingTitle] = useState(false);
   const [statusBadge, setStatusBadge] = useState<'Draft' | 'Sent'>('Draft');
   const [companyName, setCompanyName] = useState('');
+  const [sendMethod, setSendMethod] = useState<'Standalone' | 'PortraitFunnel' | 'WeddingFunnel'>('Standalone');
 
   // Fetch company name from settings
   useEffect(() => {
@@ -480,6 +481,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           emailHeader,
           emailFooter,
           type: documentType,
+          sendMethod, // Standalone, PortraitFunnel, or WeddingFunnel
         }),
       });
       const data = await res.json();
@@ -622,6 +624,23 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           >
             <Save size={14} /> {isSaving ? 'Saving…' : 'Save Draft'}
           </button>
+          
+          <div style={{ width: 1, height: 24, background: '#e5e7eb', margin: '0 4px' }} />
+          
+          {/* Send Method Dropdown */}
+          <select 
+            value={sendMethod}
+            onChange={(e) => setSendMethod(e.target.value as any)}
+            style={{
+              padding: '6px 12px', border: '1px solid #e5e7eb', borderRadius: 6,
+              background: '#f9fafb', fontSize: 13, color: '#374151',
+              outline: 'none', cursor: 'pointer',
+            }}
+          >
+            <option value="Standalone">Direct Link</option>
+            <option value="PortraitFunnel">Portrait Funnel</option>
+            <option value="WeddingFunnel">Wedding Funnel</option>
+          </select>
           {/* Send Contract */}
           <button onClick={sendContract} disabled={isSending} style={{
             padding: '8px 20px',

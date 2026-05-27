@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     // ── Send Contract by Email ──────────────────────────────────────
     if (action === 'send_contract') {
-      const { providerSignatureDataUrl, emailHeader, emailFooter } = body;
+      const { providerSignatureDataUrl, emailHeader, emailFooter, sendMethod } = body;
 
       if (!signers || signers.length === 0) {
         return NextResponse.json({ success: false, error: 'No signers added.' }, { status: 400 });
@@ -104,6 +104,23 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: 'No client email found. Ensure signers have valid emails.' }, { status: 400 });
       }
 
+      const todayString = new Date().toLocaleDateString();
+      const firstClientFullName = clientSigners[0]?.name || 'Client Name';
+      const firstClientName = firstClientFullName.split(' ')[0] || 'there';
+
+      const replaceVars = (text: string) => {
+        if (!text) return '';
+        return text
+          .replace(/\[Client Name\]|\{Client Name\}/gi, firstClientFullName)
+          .replace(/\[Name\]|\{Name\}/gi, firstClientName)
+          .replace(/\[Company\]|\{Company\}/gi, companyName)
+          .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+          .replace(/\[Date\]|\{Date\}/gi, todayString)
+          .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
+      };
+
+      let finalContent = replaceVars(content || '');
+
       // Generate sign token FIRST so the SAME token is in both the email link and the DB row
       const signToken = randomUUID();
       const host = req.headers.get('host') || '';
@@ -111,7 +128,99 @@ export async function POST(req: NextRequest) {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
         || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
         || `${protocol}://${host}`;
-      const signUrl = `${baseUrl}/sign/${signToken}`;
+
+      // Auto-save contract to Finance Contracts table with sign token BEFORE generating signUrl
+      let actualContractId = null;
+      let actualInquiryId = null;
+
+      if (clientSigners.length > 0) {
+        const clientEmail = clientSigners[0].email;
+        const clientName = clientSigners[0].name || 'Unknown Client';
+
+        let contactId = null;
+        const { data: contact } = await supabase
+          .from('Contacts')
+          .select('Contact_ID')
+          .eq('Email', clientEmail)
+          .single();
+
+        if (contact) {
+          contactId = contact.Contact_ID;
+        } else {
+          const { data: cRes } = await supabase
+            .from('Contacts')
+            .insert({ user_id: userId, Name: clientName, Email: clientEmail })
+            .select()
+            .single();
+          contactId = cRes?.Contact_ID;
+        }
+
+        if (contactId) {
+          const { data: latestInq } = await supabase
+            .from('Inquiries')
+            .select('Inquiry_ID')
+            .eq('Contact_ID', contactId)
+            .order('Inquiry_ID', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (latestInq) {
+            actualInquiryId = latestInq.Inquiry_ID;
+            // Advance Pipeline Stage
+            await supabase
+              .from('Inquiries')
+              .update({ Pipeline_Stage: 'Sent Contract' })
+              .eq('Inquiry_ID', actualInquiryId);
+          } else {
+            const { data: iRes } = await supabase
+              .from('Inquiries')
+              .insert({
+                user_id: userId,
+                Contact_ID: contactId,
+                Service_Type: 'General Services',
+                Pipeline_Stage: 'Sent Contract'
+              })
+              .select()
+              .single();
+            actualInquiryId = iRes?.Inquiry_ID;
+          }
+        }
+
+        if (actualInquiryId) {
+          const today = new Date().toISOString().split('T')[0];
+          const { data: cData } = await supabase
+            .from('Contracts')
+            .insert({
+              user_id: userId,
+              Inquiry_ID: actualInquiryId,
+              Contract_Text: finalContent,
+              Contract_Title: contractTitle,
+              Status: 'Sent',
+              Sent_Date: today,
+              Signed_Date: '',
+              Sign_Token: signToken,
+              Provider_Signature: providerSignatureDataUrl || '',
+              Signers: JSON.stringify(signers),
+              Type: type || 'Contract'
+            })
+            .select('Contract_ID')
+            .single();
+          
+          if (cData) actualContractId = cData.Contract_ID;
+        }
+      }
+
+      // Determine the correct URL based on sendMethod
+      let signUrl = `${baseUrl}/sign/${signToken}`;
+      let ctaTextBase = 'Review & Sign Contract';
+
+      if (sendMethod === 'WeddingFunnel' && actualInquiryId && actualContractId) {
+        signUrl = `${baseUrl}/booking?userId=${userId}&inquiryId=${actualInquiryId}&contractId=${actualContractId}`;
+        ctaTextBase = 'Proceed to Booking';
+      } else if (sendMethod === 'PortraitFunnel' && actualInquiryId && actualContractId) {
+        signUrl = `${baseUrl}/portrait/welcome?userId=${userId}&inquiryId=${actualInquiryId}&contractId=${actualContractId}`;
+        ctaTextBase = 'Proceed to Booking';
+      }
 
       // Build signature block HTML for clients
       let signatureRowsHtml = (signers as any[]).map((s: any) => {
@@ -133,26 +242,11 @@ export async function POST(req: NextRequest) {
         </div>`;
       }
 
-      const todayString = new Date().toLocaleDateString();
-      const firstClientFullName = clientSigners[0]?.name || 'Client Name';
-      const firstClientName = firstClientFullName.split(' ')[0] || 'there';
-
-      const replaceVars = (text: string) => {
-        if (!text) return '';
-        return text
-          .replace(/\[Client Name\]|\{Client Name\}/gi, firstClientFullName)
-          .replace(/\[Name\]|\{Name\}/gi, firstClientName)
-          .replace(/\[Company\]|\{Company\}/gi, companyName)
-          .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
-          .replace(/\[Date\]|\{Date\}/gi, todayString)
-          .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
-      };
-
       const es = emailSettings.contract || {};
       const bannerText    = replaceVars(es.headerText || 'Your contract is ready for review and signature.');
       const greeting      = replaceVars(es.greeting   || 'Hello [Name],');
       const bodyText      = replaceVars(es.body       || 'Please review the agreement carefully. Click the button below to read the full contract and add your digital signature to finalise your booking.');
-      const ctaText       = replaceVars(es.ctaText    || 'Review & Sign Contract');
+      const ctaText       = replaceVars(es.ctaText    || ctaTextBase);
       const accentColor   = es.accentColor || '#0d9488';
       const emailSubject  = replaceVars(es.subject    || 'Contract Ready for Your Signature');
       const footerLine    = replaceVars(es.footerText || 'Digital signatures are legally binding under ESIGN and UETA. Reply to this email with any questions.');
@@ -160,8 +254,6 @@ export async function POST(req: NextRequest) {
       // legacy emailHeader / emailFooter from builder UI take precedence if explicitly provided
       const headerText = emailHeader ? replaceVars(emailHeader) : bannerText;
       const footerText = emailFooter ? replaceVars(emailFooter) : bodyText;
-
-      let finalContent = replaceVars(content || '');
 
       const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
         <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">
@@ -184,7 +276,7 @@ export async function POST(req: NextRequest) {
               </div>
               <!-- Sign CTA -->
               <div style="margin-top:32px;text-align:center;padding:28px;background:#f0fdfa;border-radius:10px;border:1px solid #ccfbf1;">
-                <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#111827;">Ready to sign?</p>
+                <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#111827;">Ready to proceed?</p>
                 <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Click the button below to review and sign this contract securely.</p>
                 <a href="${signUrl}" style="display:inline-block;padding:14px 36px;background:${accentColor};color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;box-shadow:0 4px 12px rgba(13,148,136,0.35);">${ctaText}</a>
                 <p style="margin:16px 0 0;font-size:11px;color:#9ca3af;">Or copy this link: <span style="color:${accentColor};word-break:break-all;">${signUrl}</span></p>
@@ -213,82 +305,6 @@ export async function POST(req: NextRequest) {
           .from('Contract_Drafts')
           .update({ Status: 'Sent', Updated_At: new Date().toISOString() })
           .eq('Draft_ID', draftId);
-      }
-
-      // Auto-save contract to Finance Contracts table with sign token
-      if (clientSigners.length > 0) {
-        const clientEmail = clientSigners[0].email;
-        const clientName = clientSigners[0].name || 'Unknown Client';
-
-        let contactId = null;
-        const { data: contact } = await supabase
-          .from('Contacts')
-          .select('Contact_ID')
-          .eq('Email', clientEmail)
-          .single();
-
-        if (contact) {
-          contactId = contact.Contact_ID;
-        } else {
-          const { data: cRes } = await supabase
-            .from('Contacts')
-            .insert({ user_id: userId, Name: clientName, Email: clientEmail })
-            .select()
-            .single();
-          contactId = cRes?.Contact_ID;
-        }
-
-        let inquiryId = null;
-        if (contactId) {
-          const { data: latestInq } = await supabase
-            .from('Inquiries')
-            .select('Inquiry_ID')
-            .eq('Contact_ID', contactId)
-            .order('Inquiry_ID', { ascending: false })
-            .limit(1)
-            .single();
-
-          if (latestInq) {
-            inquiryId = latestInq.Inquiry_ID;
-            
-            // Advance Pipeline Stage
-            await supabase
-              .from('Inquiries')
-              .update({ Pipeline_Stage: 'Sent Contract' })
-              .eq('Inquiry_ID', inquiryId);
-          } else {
-            const { data: iRes } = await supabase
-              .from('Inquiries')
-              .insert({
-                user_id: userId,
-                Contact_ID: contactId,
-                Service_Type: 'General Services',
-                Pipeline_Stage: 'Sent Contract'
-              })
-              .select()
-              .single();
-            inquiryId = iRes?.Inquiry_ID;
-          }
-        }
-
-        if (inquiryId) {
-          const today = new Date().toISOString().split('T')[0];
-          await supabase
-            .from('Contracts')
-            .insert({
-              user_id: userId,
-              Inquiry_ID: inquiryId,
-              Contract_Text: finalContent,
-              Contract_Title: contractTitle,
-              Status: 'Sent',
-              Sent_Date: today,
-              Signed_Date: '',
-              Sign_Token: signToken,
-              Provider_Signature: providerSignatureDataUrl || '',
-              Signers: JSON.stringify(signers),
-              Type: type || 'Contract'
-            });
-        }
       }
 
       return NextResponse.json({ success: true, sentTo: recipientEmails, signUrl });

@@ -726,18 +726,19 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           {inquiries.length > 0 ? (
             <div className="space-y-4">
               {inquiries.map(inq => (
-                <div key={inq.Inquiry_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '1px solid #f0efe9', borderRadius: '0.5rem' }}>
+                <div key={inq.Inquiry_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '1px solid #f0efe9', borderRadius: '0.5rem', transition: 'box-shadow 0.2s' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'} onMouseOut={e => e.currentTarget.style.boxShadow = 'none'}>
                   <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: '0 0 0.5rem 0' }}>{inq.Service_Type || "Custom Project"}</h3>
-                    <div style={{ fontSize: '0.875rem', color: '#a0a0a0' }}>
-                      Inquiry ID: #{inq.Inquiry_ID}
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: '0 0 0.25rem 0' }}>{inq.Service_Type || "Custom Project"}</h3>
+                    <div style={{ fontSize: '0.8rem', color: '#a0a0a0', display: 'flex', gap: '1rem' }}>
+                      {inq.Event_Date && <span>📅 {new Date(inq.Event_Date).toLocaleDateString()}</span>}
+                      {inq.Estimated_Value && <span>💰 ${Number(inq.Estimated_Value).toLocaleString()}</span>}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: '#e8f0fe', color: '#1a73e8' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: '#e8f0fe', color: '#1a73e8' }}>
                       {inq.Pipeline_Stage}
                     </span>
-                    <button onClick={() => setSelectedInquiry(inq)} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>Manage</button>
+                    <button onClick={() => { setSelectedInquiry(inq); setEditInquiryForm(inq); setIsEditingInquiry(false); }} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '0.375rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>Manage</button>
                   </div>
                 </div>
               ))}

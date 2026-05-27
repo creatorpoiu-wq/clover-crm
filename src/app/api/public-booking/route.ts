@@ -104,6 +104,38 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, packages: packages || [] });
     }
 
+    // ── Portrait Settings ────────────────────────────────────────────────────
+    if (type === 'portrait_settings') {
+      const { data: row } = await supabase
+        .from('Portrait_Settings')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      const DEFAULTS = {
+        Step1_Title: 'Choose Your Experience',
+        Step1_Subtitle: 'Select the date and time for your portrait session.',
+        Step2_Title: 'Review & Sign Your Contract',
+        Step2_Subtitle: 'Please review and sign the agreement below.',
+        Step3_Title: 'Complete Your Booking',
+        Step3_Subtitle: 'Secure your session by submitting the retainer.',
+      };
+
+      return NextResponse.json({
+        success: true,
+        settings: {
+          steps: [
+            { title: row?.Step1_Title || DEFAULTS.Step1_Title, subtitle: row?.Step1_Subtitle || DEFAULTS.Step1_Subtitle },
+            { title: row?.Step2_Title || DEFAULTS.Step2_Title, subtitle: row?.Step2_Subtitle || DEFAULTS.Step2_Subtitle },
+            { title: row?.Step3_Title || DEFAULTS.Step3_Title, subtitle: row?.Step3_Subtitle || DEFAULTS.Step3_Subtitle },
+          ],
+          contractTemplateId: row?.Contract_Template_ID || null,
+          confirmationTitle: row?.Confirmation_Title || 'Booking Confirmed!',
+          confirmationMessage: row?.Confirmation_Message || 'Your deposit has been received and your session is securely booked. We look forward to working with you!',
+        }
+      });
+    }
+
     return NextResponse.json({ success: false, error: 'Invalid type' }, { status: 400 });
   } catch (error: any) {
     console.error('Public booking API error:', error);

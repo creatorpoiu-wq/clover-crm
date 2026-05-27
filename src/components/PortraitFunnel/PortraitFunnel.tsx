@@ -27,7 +27,7 @@ export default function PortraitFunnel() {
       return;
     }
 
-    const fetchVendorInfo = fetch(`/api/public-booking?type=settings&userId=${userId}`)
+    const fetchVendorInfo = fetch(`/api/public-booking?type=portrait_settings&userId=${userId}`)
       .then(res => res.json())
       .then(data => { if (data.success) setVendorInfo(data.settings); })
       .catch(() => {});
@@ -131,6 +131,7 @@ export default function PortraitFunnel() {
             onNext={() => setCurrentStep(3)}
             onBack={() => setCurrentStep(1)}
             themeColor={themeColor}
+            vendorInfo={vendorInfo}
           />
         )}
 

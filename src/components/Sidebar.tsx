@@ -151,11 +151,15 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <Link href="/dashboard/questionnaire" onClick={onClose} className={`nav-item ${pathname === '/dashboard/questionnaire' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
                 Questionnaire Builder
               </Link>
-              <Link href={`/dashboard/booking`} onClick={onClose} className={`nav-item ${pathname === '/dashboard/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+              <Link href="/dashboard/portrait-settings" onClick={onClose} className={`nav-item ${pathname === '/dashboard/portrait-settings' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+                Portrait Funnel Settings
+              </Link>
+              <Link href="/dashboard/booking" onClick={onClose} className={`nav-item ${pathname === '/dashboard/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
                 Wedding Funnel Settings
               </Link>
-              <Link href={userId ? `/booking?userId=${userId}` : '/booking'} onClick={onClose} className={`nav-item ${pathname === '/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Live Wedding Funnel
+              <Link href={userId ? `/booking?userId=${userId}` : '/booking'} onClick={onClose} target="_blank" className={`nav-item ${pathname === '/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Live Wedding Funnel</span>
+                <ExternalLink size={14} style={{ opacity: 0.5 }} />
               </Link>
               <Link href={userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry'} onClick={onClose} className={`nav-item ${pathname === '/portrait/inquiry' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
                 Live Portrait Funnel
