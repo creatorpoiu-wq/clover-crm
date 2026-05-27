@@ -55,16 +55,28 @@ const DEFAULT_SETTINGS = {
 
 export default function PortraitSettingsPage() {
   const [tab, setTab] = useState("general");
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<typeof DEFAULT_SETTINGS & { userId?: string }>(DEFAULT_SETTINGS);
   const [cTemplates, setCTemplates] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Input states for list additions
   const [newSessionType, setNewSessionType] = useState("");
   const [newStyleBullet, setNewStyleBullet] = useState("");
   const [newPaymentMethod, setNewPaymentMethod] = useState("");
-  const [newPackageFeature, setNewPackageFeature] = useState(""); // per package, simpler just to edit JSON but we will do a minimal UI
+  const [newPackageFeature, setNewPackageFeature] = useState("");
+
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
+  const publicLink = settings.userId ? `${baseUrl}/portrait?userId=${settings.userId}` : null;
+
+  const copyLink = () => {
+    if (!publicLink) return;
+    navigator.clipboard.writeText(publicLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
 
   useEffect(() => {
     fetch("/api/portrait-settings")
@@ -108,7 +120,7 @@ export default function PortraitSettingsPage() {
 
   return (
     <div className="animate-fade-in" style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto", paddingBottom: "100px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
         <div>
           <h1 className="page-title" style={{ fontSize: "2rem", fontWeight: 900, marginBottom: "0.5rem" }}>Portrait Funnel Settings</h1>
           <p className="page-subtitle" style={{ color: "var(--muted)" }}>Customize the design, steps, and flow for your public Portrait Booking Page.</p>
@@ -117,6 +129,36 @@ export default function PortraitSettingsPage() {
           <Save size={16} /> {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
+
+      {/* Public Link Banner */}
+      {publicLink && (
+        <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", marginBottom: 4 }}>
+              📎 Your Public Portrait Booking Page
+            </div>
+            <div style={{ fontFamily: "monospace", fontSize: 13, color: "#e2e8f0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {publicLink}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={copyLink}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: copied ? "#10b981" : "rgba(255,255,255,0.1)", color: "white", transition: "all 0.2s", whiteSpace: "nowrap" }}
+            >
+              {copied ? "✓ Copied!" : "Copy Link"}
+            </button>
+            <a
+              href={publicLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: "var(--primary)", color: "white", textDecoration: "none", whiteSpace: "nowrap" }}
+            >
+              Preview ↗
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Tab Nav */}
       <div style={{ display: "flex", flexWrap: 'wrap', gap: 4, marginBottom: "2rem", borderBottom: "2px solid var(--border)", paddingBottom: 0 }}>

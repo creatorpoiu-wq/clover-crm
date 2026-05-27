@@ -67,6 +67,7 @@ export async function GET() {
     if (error && error.code !== 'PGRST116') throw error;
 
     const settings = {
+      userId:            userAuth.user.id,
       heroHeadline:      row?.Hero_Headline      || DEFAULTS.heroHeadline,
       heroSubheadline:   row?.Hero_Subheadline   || DEFAULTS.heroSubheadline,
       aboutText:         row?.About_Text         || DEFAULTS.aboutText,
