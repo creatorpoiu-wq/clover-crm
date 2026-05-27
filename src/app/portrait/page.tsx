@@ -37,6 +37,16 @@ function PortraitBookingContent() {
         .then(data => {
           if (data.success && data.settings) {
             setVendorInfo(data.settings);
+            // Update page title and description
+            document.title = `${data.settings.companyName || 'Portrait Studio'} | Booking Process`;
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (!metaDesc) {
+              metaDesc = document.createElement('meta');
+              metaDesc.setAttribute('name', 'description');
+              document.head.appendChild(metaDesc);
+            }
+            metaDesc.setAttribute('content', 'Booking Process');
+
             // Initialize custom questions in form data
             if (data.settings.customQuestions && Array.isArray(data.settings.customQuestions)) {
               const initialCustomAnswers: Record<string, any> = {};
