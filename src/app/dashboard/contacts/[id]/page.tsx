@@ -737,7 +737,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: '#e8f0fe', color: '#1a73e8' }}>
                       {inq.Pipeline_Stage}
                     </span>
-                    <button onClick={() => router.push('/dashboard/pipeline')} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>Manage</button>
+                    <button onClick={() => setSelectedInquiry(inq)} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>Manage</button>
                   </div>
                 </div>
               ))}
