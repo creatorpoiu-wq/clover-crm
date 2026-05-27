@@ -392,12 +392,12 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Modern Navigation Tabs */}
-        <div className="flex overflow-x-auto hide-scrollbar gap-2 p-1.5 bg-slate-100/80 backdrop-blur-md rounded-2xl border border-slate-200">
+        <div className="flex overflow-x-auto hide-scrollbar gap-2 p-2 bg-slate-100/80 backdrop-blur-md rounded-2xl border border-slate-200">
           {tabs.map(tab => (
             <button 
               key={tab}
               onClick={() => setActiveTab(tab.toLowerCase())}
-              className={`whitespace-nowrap px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center ${activeTab === tab.toLowerCase() ? 'bg-white text-teal-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+              className={`whitespace-nowrap px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center ${activeTab === tab.toLowerCase() ? 'bg-white text-teal-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
             >
               {tab}
             </button>
@@ -466,7 +466,15 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
               {communications.length > 0 ? (
                 <div className="space-y-5">
                   {communications.slice(0, 3).map(comm => {
-                    const d = new Date(comm.Last_Contact_Date + "Z");
+                    const formatSafeDate = (dStr: string) => {
+                      if (!dStr) return 'Unknown Date';
+                      const hasTz = dStr.endsWith('Z') || dStr.match(/[+-]\d{2}:?\d{2}$/);
+                      const d = new Date(hasTz ? dStr : dStr + "Z");
+                      if (isNaN(d.getTime())) return 'Invalid Date';
+                      return `${d.toLocaleDateString()} • ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                    };
+                    const displayDate = formatSafeDate(comm.Last_Contact_Date);
+
                     return (
                       <div key={comm.Communication_ID} className="p-5 bg-white border border-slate-200 rounded-2xl relative group hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300">
                         <div className="flex justify-between items-center mb-4">
@@ -477,16 +485,17 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                             {comm.Last_Contact_By === "Me" ? "You" : contact.Name}
                           </span>
                           <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">{d.toLocaleDateString()} • {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">{displayDate}</span>
                             <button onClick={() => handleDeleteCommunication(comm.Communication_ID)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-white transition-all bg-red-50 hover:bg-red-500 p-2 rounded-xl" title="Delete">
                               <Trash2 size={16} />
                             </button>
                           </div>
                         </div>
                         <div className="ml-12 pl-4 border-l-2 border-slate-100">
-                          <p className="text-sm font-semibold text-slate-600 leading-relaxed">
-                            {comm.Message || "No notes."}
-                          </p>
+                          <p 
+                            className="text-sm font-semibold text-slate-600 leading-relaxed break-words"
+                            dangerouslySetInnerHTML={{ __html: comm.Message || "No notes." }}
+                          />
                         </div>
                       </div>
                     )
@@ -792,14 +801,14 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                   {isEditingInfo ? (
                     <input type="tel" value={editForm.Phone || ''} onChange={e => setEditForm({ ...editForm, Phone: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
                   ) : (
-                    <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">
-                      <span className="font-bold text-slate-700">{contact.Phone || '-'}</span>
+                    <div className="flex items-center justify-between gap-3 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="font-bold text-slate-700 truncate">{contact.Phone || '-'}</span>
                       {contact.Phone && (
                         <a 
                           href={`https://wa.me/${contact.Phone.replace(/[^0-9]/g, '')}`} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border border-emerald-200/50 shadow-sm shadow-emerald-500/10 group"
+                          className="flex-shrink-0 flex items-center gap-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border border-emerald-200/50 shadow-sm shadow-emerald-500/10 group whitespace-nowrap"
                           title="Send WhatsApp Message"
                         >
                           <MessageCircle size={14} className="group-hover:scale-110 transition-transform" /> WhatsApp
