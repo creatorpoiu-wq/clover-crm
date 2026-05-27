@@ -30,55 +30,53 @@ export default function CalendarPicker({
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
-  const year = currentMonth.getFullYear();
-  const month = currentMonth.getMonth();
-  const daysInMonth = getDaysInMonth(year, month);
-  const firstDay = getFirstDayOfMonth(year, month);
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const renderCalendarDays = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const days = [];
-  for (let i = 0; i < firstDay; i++) {
-    days.push(<div key={`empty-${i}`} className="h-12 w-full"></div>);
-  }
+    const days = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-12 w-full"></div>);
+    }
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateObj = new Date(year, month, d);
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    
-    const isPast = dateObj < today;
-    const isBooked = bookedDates.includes(dateStr);
-    const isAvailable = !isPast && !isBooked && dateObj.getDay() !== 0 && dateObj.getDay() !== 6; // Weekdays only for demo
-    const isSelected = selectedDate === dateStr;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateObj = new Date(year, month, d);
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const isPast = dateObj < today;
+      const isBooked = bookedDates.includes(dateStr);
+      const isAvailable = !isPast && !isBooked && dateObj.getDay() !== 0 && dateObj.getDay() !== 6;
+      const isSelected = selectedDate === dateStr;
 
-    days.push(
-      <button
-        key={d}
-        disabled={!isAvailable}
-        onClick={() => {
-          onSelect(dateStr, ''); // Reset time when date changes
-        }}
-        className={isSelected ? 'btn btn-primary' : isAvailable ? 'btn btn-secondary' : ''}
-        style={{
-          height: '3rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s',
-          ...(isSelected ? { backgroundColor: themeColor, color: 'white', border: 'none' } : isAvailable ? { backgroundColor: 'white', color: '#334155', border: '1px solid #e2e8f0' } : { backgroundColor: '#f8fafc', color: '#cbd5e1', cursor: 'not-allowed', border: '1px solid transparent' })
-        }}
-      >
-        {d}
-      </button>
-    );
-  }
+      days.push(
+        <button
+          key={d}
+          disabled={!isAvailable}
+          onClick={() => onSelect(dateStr, '')}
+          className={isSelected ? 'btn btn-primary' : isAvailable ? 'btn btn-secondary' : ''}
+          style={{
+            height: '3rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s',
+            ...(isSelected ? { backgroundColor: themeColor, color: 'white', border: 'none' } : isAvailable ? { backgroundColor: 'white', color: '#334155', border: '1px solid #e2e8f0' } : { backgroundColor: '#f8fafc', color: '#cbd5e1', cursor: 'not-allowed', border: '1px solid transparent' })
+          }}
+        >
+          {d}
+        </button>
+      );
+    }
+    return days;
+  };
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   return (
-    <div className="glass-panel" style={{ padding: '2rem 2.5rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+    <div className="glass-panel funnel-pad">
       <h2 style={{ fontSize: '1.875rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.5rem' }}>Select a Date & Time</h2>
       <p style={{ color: '#64748b', marginBottom: '2.5rem' }}>Choose an available slot from our calendar.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
-        {/* Calendar Side */}
+      <div className="funnel-grid funnel-grid-2">
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1e293b' }}>
@@ -90,16 +88,15 @@ export default function CalendarPicker({
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginBottom: '0.5rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>
+          <div className="funnel-grid funnel-grid-7" style={{ marginBottom: '0.5rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>
             {weekDays.map(wd => <div key={wd}>{wd}</div>)}
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
-            {days}
+          <div className="funnel-grid funnel-grid-7">
+            {renderCalendarDays()}
           </div>
         </div>
 
-        {/* Time Slots Side */}
         <div>
           <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Clock size={18} color="#94a3b8" />

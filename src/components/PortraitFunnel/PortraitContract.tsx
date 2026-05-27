@@ -60,8 +60,8 @@ export default function PortraitContract({
   const formattedDate = selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD';
 
   return (
-    <div className="glass-panel" style={{ padding: '2rem 2.5rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+    <div className="glass-panel funnel-pad" style={{ borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
         <div>
           <h2 style={{ fontSize: '1.875rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.5rem' }}>Portrait Agreement</h2>
           <p style={{ color: '#64748b' }}>Please review the terms for your session on <strong style={{ color: '#1e293b' }}>{formattedDate}</strong> at <strong style={{ color: '#1e293b' }}>{selectedTime}</strong>.</p>

@@ -93,11 +93,11 @@ export default function PortraitFunnel() {
                 >
                   {isPast ? <Check size={14} /> : stepNum}
                 </div>
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.875rem', fontWeight: 700, color: '#1e293b' }}>
+                <span className={`funnel-step-text ${isActive ? 'active' : ''}`} style={{ marginLeft: '0.75rem', fontSize: '0.875rem', fontWeight: 700, color: '#1e293b' }}>
                   {step.label}
                 </span>
                 {idx < steps.length - 1 && (
-                  <div style={{ width: '2rem', height: '0.125rem', margin: '0 1rem', borderRadius: '9999px', backgroundColor: isPast ? themeColor : '#e2e8f0' }} />
+                  <div className="funnel-step-line" style={{ width: '2rem', height: '0.125rem', margin: '0 1rem', borderRadius: '9999px', backgroundColor: isPast ? themeColor : '#e2e8f0' }} />
                 )}
               </div>
             );

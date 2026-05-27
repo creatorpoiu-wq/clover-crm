@@ -186,6 +186,75 @@ select:focus {
   }
 }
 
+/* Funnel Responsive Helpers */
+.funnel-hero {
+  padding: 4rem 1rem 3rem;
+  text-align: center;
+  max-width: 768px;
+  margin: 0 auto;
+}
+.funnel-section {
+  padding: 3rem 1rem;
+}
+.funnel-pad {
+  padding: 1.5rem 1rem;
+}
+.funnel-title {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+@media (min-width: 768px) {
+  .funnel-hero {
+    padding: 8rem 1.5rem 5rem;
+  }
+  .funnel-section {
+    padding: 6rem 1.5rem;
+  }
+  .funnel-pad {
+    padding: 2rem 2.5rem;
+  }
+  .funnel-title {
+    font-size: 3rem;
+  }
+}
+
+.funnel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+@media (min-width: 768px) {
+  .funnel-grid-2 { grid-template-columns: repeat(2, 1fr); gap: 3rem; }
+  .funnel-grid-3 { grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+}
+
+.funnel-flex-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+@media (min-width: 768px) {
+  .funnel-flex-responsive {
+    flex-direction: row;
+    gap: 4rem;
+  }
+}
+
+.funnel-step-text {
+  display: none;
+}
+.funnel-step-text.active {
+  display: inline;
+}
+.funnel-step-line {
+  display: none;
+}
+@media (min-width: 768px) {
+  .funnel-step-text { display: inline; }
+  .funnel-step-line { display: block; }
+}
+
 .login-wrapper {
   display: flex;
   min-height: 100vh;

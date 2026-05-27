@@ -114,8 +114,8 @@ export default function RetainerCheckout({
   }
 
   return (
-    <div className="glass-panel" style={{ padding: '2rem 2.5rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+    <div className="glass-panel funnel-pad">
+      <div className="funnel-flex-responsive" style={{ alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
         <div>
           <h2 style={{ fontSize: '1.875rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.5rem' }}>Secure Your Date</h2>
           <p style={{ color: '#64748b' }}>Submit the non-refundable retainer to permanently lock your calendar slot.</p>
@@ -125,7 +125,7 @@ export default function RetainerCheckout({
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', marginBottom: '2.5rem' }}>
+      <div className="funnel-grid funnel-grid-2" style={{ marginBottom: '2.5rem' }}>
         
         {/* Invoice Summary */}
         <div style={{ backgroundColor: '#f8fafc', padding: '2rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>

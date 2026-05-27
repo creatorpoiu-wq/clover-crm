@@ -57,8 +57,8 @@ function WelcomeGuideContent() {
       </nav>
 
       {/* Hero Section */}
-      <header style={{ paddingTop: '8rem', paddingBottom: '5rem', paddingLeft: '1.5rem', paddingRight: '1.5rem', textAlign: 'center', maxWidth: '768px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.05em', color: '#0f172a', lineHeight: 1.1, marginBottom: '1.5rem' }}>
+      <header className="funnel-hero">
+        <h1 className="funnel-title" style={{ fontWeight: 900, letterSpacing: '-0.05em', color: '#0f172a', marginBottom: '1.5rem' }}>
           Welcome to the experience.
         </h1>
         <p style={{ fontSize: '1.25rem', color: '#64748b', fontWeight: 500, lineHeight: 1.6, marginBottom: '2.5rem' }}>
@@ -74,9 +74,9 @@ function WelcomeGuideContent() {
       </header>
 
       {/* Feature / Style Section */}
-      <section style={{ padding: '5rem 1.5rem', backgroundColor: 'white', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ maxWidth: '1024px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
-          <div style={{ flex: '1 1 400px', backgroundColor: '#f1f5f9', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', aspectRatio: '4/5' }}>
+      <section className="funnel-section" style={{ backgroundColor: 'white', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
+        <div className="funnel-flex-responsive" style={{ maxWidth: '1024px', margin: '0 auto', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 auto', width: '100%', maxWidth: '400px', backgroundColor: '#f1f5f9', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', aspectRatio: '4/5' }}>
             <img 
               src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop" 
               alt="Portrait Style" 
@@ -109,7 +109,7 @@ function WelcomeGuideContent() {
       </section>
 
       {/* Pricing Transparency */}
-      <section style={{ padding: '6rem 1.5rem', maxWidth: '896px', margin: '0 auto', textAlign: 'center' }}>
+      <section className="funnel-section" style={{ maxWidth: '896px', margin: '0 auto', textAlign: 'center' }}>
         <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>The Investment</div>
         <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
           Transparent, all-inclusive pricing.
@@ -118,7 +118,7 @@ function WelcomeGuideContent() {
           No hidden fees or post-shoot sales sessions. Every package includes your high-resolution digital files and printing rights.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', textAlign: 'left' }}>
+        <div className="funnel-grid funnel-grid-3" style={{ textAlign: 'left' }}>
           {/* Pricing Tier 1 */}
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '1.5rem' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem' }}>The Mini</h3>
@@ -161,14 +161,14 @@ function WelcomeGuideContent() {
       </section>
 
       {/* How It Works / The Triple Threat */}
-      <section style={{ padding: '6rem 1.5rem', backgroundColor: '#0f172a', color: 'white' }}>
+      <section className="funnel-section" style={{ backgroundColor: '#0f172a', color: 'white' }}>
         <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', marginBottom: '1rem' }}>What happens next?</h2>
             <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>Booking your session is a seamless, 3-step process.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+          <div className="funnel-grid funnel-grid-3">
             <div style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '2rem', borderRadius: '1.5rem', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: 0, right: 0, padding: '2rem', opacity: 0.1 }}>
                 <Calendar size={100} />
@@ -200,7 +200,7 @@ function WelcomeGuideContent() {
       </section>
 
       {/* Final CTA */}
-      <section style={{ padding: '8rem 1.5rem', textAlign: 'center', maxWidth: '768px', margin: '0 auto' }}>
+      <section className="funnel-hero">
         <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
           Ready to make it official?
         </h2>
