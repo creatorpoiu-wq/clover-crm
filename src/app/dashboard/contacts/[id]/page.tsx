@@ -404,12 +404,14 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           ))}
         </div>
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+      {/* Main Layout Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+        
+        {/* Left Column (Tab Contents) */}
+        <div className="lg:col-span-2 space-y-8">
           
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-8">
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
             
             {/* Projects Card */}
             <div className="bg-white/80 backdrop-blur-md p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300">
@@ -512,106 +514,9 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                   <p className="text-slate-500 font-bold">No collections linked to this contact yet. <a href="#" className="text-teal-600 hover:text-teal-700 underline decoration-2 underline-offset-4">Learn more</a></p>
               </div>
             </div>
-
           </div>
+        )}
 
-          {/* Right Column - Contact Info */}
-          <div className="lg:col-span-1">
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl shadow-slate-200/50 border border-slate-100 sticky top-8">
-              <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
-                <h2 className="text-lg font-extrabold text-slate-800 tracking-tight">Contact Info</h2>
-                {!isEditingInfo ? (
-                  <button onClick={() => setIsEditingInfo(true)} className="text-teal-600 bg-teal-50 hover:bg-teal-100 p-2.5 rounded-2xl transition-colors shadow-sm"><Edit2 size={18} /></button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button onClick={() => { setIsEditingInfo(false); setEditForm(contact || {}); }} className="px-4 py-2 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
-                    <button onClick={handleSaveInfo} disabled={isSaving} className="px-4 py-2 text-xs font-bold text-white bg-teal-500 hover:bg-teal-600 rounded-xl transition-colors shadow-lg shadow-teal-500/30">{isSaving ? 'Saving...' : 'Save'}</button>
-                  </div>
-                )}
-              </div>
-
-              {/* Avatar & Name */}
-              <div className="flex flex-col items-center gap-4 mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-teal-400 to-emerald-600 rounded-3xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-teal-500/30 transform -rotate-3 transition-transform hover:rotate-0">
-                  {getInitials(contact.Name)}
-                </div>
-                <div>
-                  <div className="font-extrabold text-slate-800 text-xl tracking-tight mb-1">{contact.Name}</div>
-                  <div className="text-slate-500 text-sm font-semibold bg-white px-3 py-1 rounded-lg border border-slate-100 inline-block">{contact.Email || 'No email'}</div>
-                </div>
-              </div>
-
-              {/* Details List */}
-              <div className="space-y-6">
-                <div>
-                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Email</div>
-                  {isEditingInfo ? (
-                    <input type="email" value={editForm.Email || ''} onChange={e => setEditForm({ ...editForm, Email: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
-                  ) : (
-                    <div className="font-bold text-slate-700 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">{contact.Email || '-'}</div>
-                  )}
-                </div>
-
-                <div>
-                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Phone</div>
-                  {isEditingInfo ? (
-                    <input type="tel" value={editForm.Phone || ''} onChange={e => setEditForm({ ...editForm, Phone: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
-                  ) : (
-                    <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">
-                      <span className="font-bold text-slate-700">{contact.Phone || '-'}</span>
-                      {contact.Phone && (
-                        <a 
-                          href={`https://wa.me/${contact.Phone.replace(/[^0-9]/g, '')}`} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border border-emerald-200/50 shadow-sm shadow-emerald-500/10 group"
-                          title="Send WhatsApp Message"
-                        >
-                          <MessageCircle size={14} className="group-hover:scale-110 transition-transform" /> WhatsApp
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Company</div>
-                  {isEditingInfo ? (
-                    <input type="text" value={editForm.Company || ''} onChange={e => setEditForm({ ...editForm, Company: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
-                  ) : (
-                    <div className="font-bold text-slate-700 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">{contact.Company || '-'}</div>
-                  )}
-                </div>
-
-                <div>
-                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Address</div>
-                  {isEditingInfo ? (
-                    <input type="text" value={editForm.Address || ''} onChange={e => setEditForm({ ...editForm, Address: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
-                  ) : (
-                    <div className="font-bold text-slate-700 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm leading-relaxed">{contact.Address || '-'}</div>
-                  )}
-                </div>
-
-                <div className="pt-6 border-t border-slate-100">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Notes</span>
-                    <button onClick={() => setIsNoteModalOpen(true)} className="text-teal-600 bg-teal-50 hover:bg-teal-100 px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm"><Plus size={14}/> Add Note</button>
-                  </div>
-                  {contact.Notes ? (
-                    <div className="bg-amber-50/80 border border-amber-200/50 p-5 rounded-2xl shadow-inner relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
-                      <div className="text-slate-700 whitespace-pre-wrap text-sm font-semibold leading-relaxed relative z-10">{contact.Notes}</div>
-                    </div>
-                  ) : (
-                    <div className="text-slate-400 text-sm font-semibold bg-slate-50 px-5 py-4 rounded-2xl border border-dashed border-slate-300 italic text-center">No notes added.</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      )}
            {activeTab === 'documents' && (
         <div className="bg-white/80 backdrop-blur-md p-6 md:p-10 rounded-3xl shadow-sm border border-slate-100">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -843,8 +748,106 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           )}
         </div>
       )}
-      </div>
+          </div>
 
+          {/* Right Column - Contact Info */}
+          <div className="lg:col-span-1">
+            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl shadow-slate-200/50 border border-slate-100 sticky top-8">
+              <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
+                <h2 className="text-lg font-extrabold text-slate-800 tracking-tight">Contact Info</h2>
+                {!isEditingInfo ? (
+                  <button onClick={() => setIsEditingInfo(true)} className="text-teal-600 bg-teal-50 hover:bg-teal-100 p-2.5 rounded-2xl transition-colors shadow-sm"><Edit2 size={18} /></button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button onClick={() => { setIsEditingInfo(false); setEditForm(contact || {}); }} className="px-4 py-2 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+                    <button onClick={handleSaveInfo} disabled={isSaving} className="px-4 py-2 text-xs font-bold text-white bg-teal-500 hover:bg-teal-600 rounded-xl transition-colors shadow-lg shadow-teal-500/30">{isSaving ? 'Saving...' : 'Save'}</button>
+                  </div>
+                )}
+              </div>
+
+              {/* Avatar & Name */}
+              <div className="flex flex-col items-center gap-4 mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-teal-400 to-emerald-600 rounded-3xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-teal-500/30 transform -rotate-3 transition-transform hover:rotate-0">
+                  {getInitials(contact.Name)}
+                </div>
+                <div>
+                  <div className="font-extrabold text-slate-800 text-xl tracking-tight mb-1">{contact.Name}</div>
+                  <div className="text-slate-500 text-sm font-semibold bg-white px-3 py-1 rounded-lg border border-slate-100 inline-block">{contact.Email || 'No email'}</div>
+                </div>
+              </div>
+
+              {/* Details List */}
+              <div className="space-y-6">
+                <div>
+                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Email</div>
+                  {isEditingInfo ? (
+                    <input type="email" value={editForm.Email || ''} onChange={e => setEditForm({ ...editForm, Email: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
+                  ) : (
+                    <div className="font-bold text-slate-700 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">{contact.Email || '-'}</div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Phone</div>
+                  {isEditingInfo ? (
+                    <input type="tel" value={editForm.Phone || ''} onChange={e => setEditForm({ ...editForm, Phone: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
+                  ) : (
+                    <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="font-bold text-slate-700">{contact.Phone || '-'}</span>
+                      {contact.Phone && (
+                        <a 
+                          href={`https://wa.me/${contact.Phone.replace(/[^0-9]/g, '')}`} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border border-emerald-200/50 shadow-sm shadow-emerald-500/10 group"
+                          title="Send WhatsApp Message"
+                        >
+                          <MessageCircle size={14} className="group-hover:scale-110 transition-transform" /> WhatsApp
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Company</div>
+                  {isEditingInfo ? (
+                    <input type="text" value={editForm.Company || ''} onChange={e => setEditForm({ ...editForm, Company: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
+                  ) : (
+                    <div className="font-bold text-slate-700 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">{contact.Company || '-'}</div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">Address</div>
+                  {isEditingInfo ? (
+                    <input type="text" value={editForm.Address || ''} onChange={e => setEditForm({ ...editForm, Address: e.target.value })} className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-teal-500 transition-all outline-none text-sm font-bold text-slate-700 shadow-sm" />
+                  ) : (
+                    <div className="font-bold text-slate-700 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm leading-relaxed">{contact.Address || '-'}</div>
+                  )}
+                </div>
+
+                <div className="pt-6 border-t border-slate-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Notes</span>
+                    <button onClick={() => setIsNoteModalOpen(true)} className="text-teal-600 bg-teal-50 hover:bg-teal-100 px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm"><Plus size={14}/> Add Note</button>
+                  </div>
+                  {contact.Notes ? (
+                    <div className="bg-amber-50/80 border border-amber-200/50 p-5 rounded-2xl shadow-inner relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
+                      <div className="text-slate-700 whitespace-pre-wrap text-sm font-semibold leading-relaxed relative z-10">{contact.Notes}</div>
+                    </div>
+                  ) : (
+                    <div className="text-slate-400 text-sm font-semibold bg-slate-50 px-5 py-4 rounded-2xl border border-dashed border-slate-300 italic text-center">No notes added.</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
       {/* Add Note Modal */}
       {isNoteModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>

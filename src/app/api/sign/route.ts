@@ -147,8 +147,22 @@ export async function POST(req: NextRequest) {
               const clientName = contactRow.Name.split(' ')[0];
               const companyName = config.Company_Name || 'Clover';
 
-              let parsedBody = tpl.Body.replace(/\[Name\]|\{Name\}/gi, clientName).replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name).replace(/\n/g, '<br/>');
-              let parsedSubject = tpl.Subject.replace(/\[Name\]|\{Name\}/gi, clientName).replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name);
+              const todayString = new Date().toLocaleDateString();
+              let parsedBody = tpl.Body
+                .replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name)
+                .replace(/\[Name\]|\{Name\}/gi, clientName)
+                .replace(/\[Company\]|\{Company\}/gi, companyName)
+                .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+                .replace(/\[Date\]|\{Date\}/gi, todayString)
+                .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString)
+                .replace(/\n/g, '<br/>');
+              let parsedSubject = tpl.Subject
+                .replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name)
+                .replace(/\[Name\]|\{Name\}/gi, clientName)
+                .replace(/\[Company\]|\{Company\}/gi, companyName)
+                .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+                .replace(/\[Date\]|\{Date\}/gi, todayString)
+                .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
 
               await transporter.sendMail({
                 from: `"${companyName}" <${config.Email_User}>`,

@@ -276,7 +276,7 @@ export default function ClientPortal() {
                   <div>
                     <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8 }}>Event Date</div>
                     <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>
-                      {event.eventDate ? (event.eventDate.includes('-') ? event.eventDate.split('T')[0].split('-').reverse().join('/') : event.eventDate) : 'TBD'}
+                      {event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-GB') : 'TBD'}
                     </div>
                   </div>
                   {daysUntil !== null && daysUntil >= 0 && (

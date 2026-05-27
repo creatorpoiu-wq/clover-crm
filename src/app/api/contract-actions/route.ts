@@ -133,29 +133,35 @@ export async function POST(req: NextRequest) {
         </div>`;
       }
 
-      const es = emailSettings.contract || {};
-      const firstClientName = clientSigners[0]?.name?.split(' ')[0] || 'there';
-      const bannerText    = (es.headerText || 'Your contract is ready for review and signature.');
-      const greeting      = (es.greeting   || 'Hello [Name],').replace('[Name]', firstClientName);
-      const bodyText      = (es.body       || 'Please review the agreement carefully. Click the button below to read the full contract and add your digital signature to finalise your booking.').replace('[Name]', firstClientName).replace('[Company]', companyName);
-      const ctaText       = es.ctaText     || 'Review & Sign Contract';
-      const accentColor   = es.accentColor || '#0d9488';
-      const emailSubject  = (es.subject    || 'Contract Ready for Your Signature').replace('[Company]', companyName);
-      const footerLine    = es.footerText  || 'Digital signatures are legally binding under ESIGN and UETA. Reply to this email with any questions.';
-
-      // legacy emailHeader / emailFooter from builder UI take precedence if explicitly provided
-      const headerText = emailHeader || bannerText;
-      const footerText = emailFooter || bodyText;
-
       const todayString = new Date().toLocaleDateString();
       const firstClientFullName = clientSigners[0]?.name || 'Client Name';
-      let finalContent = content || '';
-      finalContent = finalContent.replace(/\[Client Name\]/gi, firstClientFullName);
-      finalContent = finalContent.replace(/\[Name\]/gi, firstClientName);
-      finalContent = finalContent.replace(/\[Company\]/gi, companyName);
-      finalContent = finalContent.replace(/\[Company Name\]/gi, companyName);
-      finalContent = finalContent.replace(/\[Date\]/gi, todayString);
-      finalContent = finalContent.replace(/\[Today's Date\]/gi, todayString);
+      const firstClientName = firstClientFullName.split(' ')[0] || 'there';
+
+      const replaceVars = (text: string) => {
+        if (!text) return '';
+        return text
+          .replace(/\[Client Name\]|\{Client Name\}/gi, firstClientFullName)
+          .replace(/\[Name\]|\{Name\}/gi, firstClientName)
+          .replace(/\[Company\]|\{Company\}/gi, companyName)
+          .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+          .replace(/\[Date\]|\{Date\}/gi, todayString)
+          .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
+      };
+
+      const es = emailSettings.contract || {};
+      const bannerText    = replaceVars(es.headerText || 'Your contract is ready for review and signature.');
+      const greeting      = replaceVars(es.greeting   || 'Hello [Name],');
+      const bodyText      = replaceVars(es.body       || 'Please review the agreement carefully. Click the button below to read the full contract and add your digital signature to finalise your booking.');
+      const ctaText       = replaceVars(es.ctaText    || 'Review & Sign Contract');
+      const accentColor   = es.accentColor || '#0d9488';
+      const emailSubject  = replaceVars(es.subject    || 'Contract Ready for Your Signature');
+      const footerLine    = replaceVars(es.footerText || 'Digital signatures are legally binding under ESIGN and UETA. Reply to this email with any questions.');
+
+      // legacy emailHeader / emailFooter from builder UI take precedence if explicitly provided
+      const headerText = emailHeader ? replaceVars(emailHeader) : bannerText;
+      const footerText = emailFooter ? replaceVars(emailFooter) : bodyText;
+
+      let finalContent = replaceVars(content || '');
 
       const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
         <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">
@@ -359,28 +365,34 @@ export async function POST(req: NextRequest) {
         </div>`;
       }).join('');
 
+      const todayString = new Date().toLocaleDateString();
+      const firstClientFullName = clientSigners[0]?.name || 'Client Name';
+      const firstClientName = firstClientFullName.split(' ')[0] || 'there';
+
+      const replaceVars = (text: string) => {
+        if (!text) return '';
+        return text
+          .replace(/\[Client Name\]|\{Client Name\}/gi, firstClientFullName)
+          .replace(/\[Name\]|\{Name\}/gi, firstClientName)
+          .replace(/\[Company\]|\{Company\}/gi, companyName)
+          .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+          .replace(/\[Date\]|\{Date\}/gi, todayString)
+          .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
+      };
+
       const es = emailSettings.contract || {};
-      const firstClientName = clientSigners[0]?.name?.split(' ')[0] || 'there';
-      const bannerText    = (es.headerText || `Your ${docType.toLowerCase()} is ready for review and signature.`);
-      const greeting      = (es.greeting   || 'Hello [Name],').replace('[Name]', firstClientName);
-      const bodyText      = (es.body       || `Please review the agreement carefully. Click the button below to read the full ${docType.toLowerCase()} and add your digital signature to finalise your booking.`).replace('[Name]', firstClientName).replace('[Company]', companyName);
-      const ctaText       = es.ctaText     || `Review & Sign ${docType}`;
+      const bannerText    = replaceVars(es.headerText || `Your ${docType.toLowerCase()} is ready for review and signature.`);
+      const greeting      = replaceVars(es.greeting   || 'Hello [Name],');
+      const bodyText      = replaceVars(es.body       || `Please review the agreement carefully. Click the button below to read the full ${docType.toLowerCase()} and add your digital signature to finalise your booking.`);
+      const ctaText       = replaceVars(es.ctaText    || `Review & Sign ${docType}`);
       const accentColor   = es.accentColor || '#0d9488';
-      const emailSubject  = (es.subject    || `Reminder: ${docType} Ready for Your Signature`).replace('[Company]', companyName);
-      const footerLine    = es.footerText  || 'Digital signatures are legally binding under ESIGN and UETA. Reply to this email with any questions.';
+      const emailSubject  = replaceVars(es.subject    || `Reminder: ${docType} Ready for Your Signature`);
+      const footerLine    = replaceVars(es.footerText || 'Digital signatures are legally binding under ESIGN and UETA. Reply to this email with any questions.');
 
       const headerText = bannerText;
       const footerText = bodyText;
 
-      const todayString = new Date().toLocaleDateString();
-      const firstClientFullName = clientSigners[0]?.name || 'Client Name';
-      let finalContentStr = contentStr;
-      finalContentStr = finalContentStr.replace(/\[Client Name\]/gi, firstClientFullName);
-      finalContentStr = finalContentStr.replace(/\[Name\]/gi, firstClientName);
-      finalContentStr = finalContentStr.replace(/\[Company\]/gi, companyName);
-      finalContentStr = finalContentStr.replace(/\[Company Name\]/gi, companyName);
-      finalContentStr = finalContentStr.replace(/\[Date\]/gi, todayString);
-      finalContentStr = finalContentStr.replace(/\[Today's Date\]/gi, todayString);
+      let finalContentStr = replaceVars(contentStr || '');
 
       const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
         <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">

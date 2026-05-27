@@ -61,14 +61,22 @@ export async function POST(req: NextRequest) {
         
       if (template) {
         const clientNameForVars = contact?.Name || 'Client Name';
+        const clientFirstName = clientNameForVars.split(' ')[0] || 'there';
+        const companyName = config?.Company_Name || 'Your Photographer';
         const todayString = new Date().toLocaleDateString();
-        let finalContent = template.Content;
-        finalContent = finalContent.replace(/\[Client Name\]/gi, clientNameForVars);
-        finalContent = finalContent.replace(/\[Name\]/gi, clientNameForVars.split(' ')[0]);
-        finalContent = finalContent.replace(/\[Company\]/gi, config?.Company_Name || 'Your Photographer');
-        finalContent = finalContent.replace(/\[Company Name\]/gi, config?.Company_Name || 'Your Photographer');
-        finalContent = finalContent.replace(/\[Date\]/gi, todayString);
-        finalContent = finalContent.replace(/\[Today's Date\]/gi, todayString);
+
+        const replaceVars = (text: string) => {
+          if (!text) return '';
+          return text
+            .replace(/\[Client Name\]|\{Client Name\}/gi, clientNameForVars)
+            .replace(/\[Name\]|\{Name\}/gi, clientFirstName)
+            .replace(/\[Company\]|\{Company\}/gi, companyName)
+            .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+            .replace(/\[Date\]|\{Date\}/gi, todayString)
+            .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
+        };
+
+        let finalContent = replaceVars(template.Content || '');
 
         // Create Contract
         const { data: newContract, error: insertError } = await supabase
@@ -108,19 +116,32 @@ export async function POST(req: NextRequest) {
     });
 
     const companyName = config.Company_Name || 'Your Photographer';
-    const clientName = contact.Name.split(' ')[0];
+    const clientName = (contact.Name || 'there').split(' ')[0];
+    const clientFullName = contact.Name || 'Client Name';
+    const todayString = new Date().toLocaleDateString();
+
+    const replaceVarsEmail = (text: string) => {
+      if (!text) return '';
+      return text
+        .replace(/\[Client Name\]|\{Client Name\}/gi, clientFullName)
+        .replace(/\[Name\]|\{Name\}/gi, clientName)
+        .replace(/\[Company\]|\{Company\}/gi, companyName)
+        .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+        .replace(/\[Date\]|\{Date\}/gi, todayString)
+        .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
+    };
 
     // 5. Load email design settings
     let emailSettings: any = {};
     try { emailSettings = JSON.parse(config.Email_Settings || '{}'); } catch { emailSettings = {}; }
     const es = emailSettings.proposal || {};
 
-    const subject     = (es.subject    || 'Your Booking Proposal is Ready').replace('[Name]', clientName).replace('[Company]', companyName);
-    const headerText  = es.headerText  || 'Your booking proposal is ready for review.';
-    const greeting    = (es.greeting   || 'Hello [Name],').replace('[Name]', clientName);
-    const body        = (es.body       || 'We are excited to work with you! Your customised booking proposal is ready. Please click the button below to complete your questionnaire, sign your contract, and finalise your booking deposit.').replace('[Name]', clientName).replace('[Company]', companyName);
-    const ctaText     = es.ctaText     || 'View Booking Proposal';
-    const footerText  = es.footerText  || `Questions? Simply reply to this email and we'll be happy to help.`;
+    const subject     = replaceVarsEmail(es.subject    || 'Your Booking Proposal is Ready');
+    const headerText  = replaceVarsEmail(es.headerText || 'Your booking proposal is ready for review.');
+    const greeting    = replaceVarsEmail(es.greeting   || 'Hello [Name],');
+    const body        = replaceVarsEmail(es.body       || 'We are excited to work with you! Your customised booking proposal is ready. Please click the button below to complete your questionnaire, sign your contract, and finalise your booking deposit.');
+    const ctaText     = replaceVarsEmail(es.ctaText    || 'View Booking Proposal');
+    const footerText  = replaceVarsEmail(es.footerText || `Questions? Simply reply to this email and we'll be happy to help.`);
     const accentColor = es.accentColor || '#0d9488';
 
     // HTML-encode & as &amp; for email href attributes (required by strict email clients like Outlook)

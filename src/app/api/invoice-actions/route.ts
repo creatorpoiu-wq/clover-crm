@@ -132,29 +132,35 @@ export async function POST(req: NextRequest) {
       const invoiceTitle = title || 'Invoice';
 
       // Apply email design settings (builder-provided values override saved settings)
+      const todayString = new Date().toLocaleDateString();
+      const firstClientFullName = clientName || 'Client Name';
+      const clientFirstName = firstClientFullName.split(' ')[0] || 'there';
+
+      const replaceVars = (text: string) => {
+        if (!text) return '';
+        return text
+          .replace(/\[Client Name\]|\{Client Name\}/gi, firstClientFullName)
+          .replace(/\[Name\]|\{Name\}/gi, clientFirstName)
+          .replace(/\[Company\]|\{Company\}/gi, companyName)
+          .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
+          .replace(/\[Date\]|\{Date\}/gi, todayString)
+          .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
+      };
+
       const es = emailSettings.invoice || {};
-      const clientFirstName = (clientName || '').split(' ')[0] || 'there';
-      const esSubject    = (es.subject    || 'Invoice from [Company]').replace('[Company]', companyName).replace('[Name]', clientFirstName);
-      const esGreeting   = (es.greeting   || 'Hello [Name],').replace('[Name]', clientFirstName);
-      const esHeaderText = es.headerText  || `You have received a new invoice.`;
-      const esBody       = (es.body       || 'Please review the invoice and use the payment options provided to complete your payment.').replace('[Name]', clientFirstName).replace('[Company]', companyName);
-      const esFooterText = es.footerText  || 'Thank you for your business! Please contact us if you have any questions.';
+      const esSubject    = replaceVars(es.subject    || 'Invoice from [Company]');
+      const esGreeting   = replaceVars(es.greeting   || 'Hello [Name],');
+      const esHeaderText = replaceVars(es.headerText  || `You have received a new invoice.`);
+      const esBody       = replaceVars(es.body       || 'Please review the invoice and use the payment options provided to complete your payment.');
+      const esFooterText = replaceVars(es.footerText  || 'Thank you for your business! Please contact us if you have any questions.');
       const accentColor  = es.accentColor || themeColor || '#1e40af';
 
       // Builder UI fields override saved settings if explicitly set
-      const header = emailHeader || esBody;
-      const footer = emailFooter || esFooterText;
+      const header = emailHeader ? replaceVars(emailHeader) : esHeaderText;
+      const footer = emailFooter ? replaceVars(emailFooter) : esBody;
       const theme  = accentColor;
 
-      const todayString = new Date().toLocaleDateString();
-      const firstClientFullName = clientName || 'Client Name';
-      let finalContent = content || '';
-      finalContent = finalContent.replace(/\[Client Name\]/gi, firstClientFullName);
-      finalContent = finalContent.replace(/\[Name\]/gi, clientFirstName);
-      finalContent = finalContent.replace(/\[Company\]/gi, companyName);
-      finalContent = finalContent.replace(/\[Company Name\]/gi, companyName);
-      finalContent = finalContent.replace(/\[Date\]/gi, todayString);
-      finalContent = finalContent.replace(/\[Today's Date\]/gi, todayString);
+      let finalContent = replaceVars(content || '');
 
       // Build line items table HTML
       const items: { description: string; quantity: number; price: number }[] = lineItems || [];

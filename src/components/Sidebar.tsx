@@ -39,6 +39,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   };
 
   const [bookingExpanded, setBookingExpanded] = useState(false);
+  const [emailExpanded, setEmailExpanded] = useState(false);
 
   const navItems = [
     { name: "Dashboard",          href: "/dashboard",                   icon: LayoutDashboard },
@@ -48,8 +49,6 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { name: "Contacts",           href: "/dashboard/contacts",          icon: Database },
     { name: "Documents",          href: "/dashboard/finance",           icon: FileText },
     { name: "Packages & Sessions",href: "/dashboard/packages",          icon: Package },
-    { name: "Email Templates",    href: "/dashboard/templates",         icon: MailOpen },
-    { name: "Email Design",       href: "/dashboard/email-settings",    icon: MailOpen },
     { name: "Reports",            href: "/dashboard/reports",           icon: PieChart },
     { name: "Automations",        href: "/dashboard/automations",       icon: Zap },
   ];
@@ -104,6 +103,32 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             </Link>
           );
         })}
+
+        {/* Email Expandable */}
+        <div style={{ marginTop: '4px' }}>
+          <button 
+            onClick={() => setEmailExpanded(!emailExpanded)} 
+            className={`nav-item ${pathname.includes('templates') || pathname.includes('email-settings') ? "active" : ""}`}
+            style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <MailOpen size={18} strokeWidth={2} />
+              Email
+            </div>
+            <span style={{ fontSize: 12 }}>{emailExpanded ? '▼' : '▶'}</span>
+          </button>
+          
+          {emailExpanded && (
+            <div style={{ paddingLeft: 32, display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+              <Link href="/dashboard/templates" onClick={onClose} className={`nav-item ${pathname === '/dashboard/templates' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+                Email Templates
+              </Link>
+              <Link href="/dashboard/email-settings" onClick={onClose} className={`nav-item ${pathname === '/dashboard/email-settings' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
+                Email Design
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Booking Proposal Expandable */}
         <div style={{ marginTop: 'auto' }}>
