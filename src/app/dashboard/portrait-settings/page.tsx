@@ -331,8 +331,42 @@ export default function PortraitSettingsPage() {
               <textarea style={{ ...inputCls, resize: 'vertical' }} rows={4} value={settings.styleDescription} onChange={e => setSettings(s => ({ ...s, styleDescription: e.target.value }))} />
             </div>
             <div>
-              <label style={labelCls}>Photo URL</label>
-              <input style={inputCls} value={settings.stylePhotoUrl} onChange={e => setSettings(s => ({ ...s, stylePhotoUrl: e.target.value }))} placeholder="https://..." />
+              <label style={labelCls}>Style Photo</label>
+              {settings.stylePhotoUrl && (
+                <div style={{ marginBottom: 12, borderRadius: 10, overflow: 'hidden', position: 'relative', border: '1px solid var(--border)', aspectRatio: '4/5', maxWidth: 220 }}>
+                  <img
+                    src={settings.stylePhotoUrl}
+                    alt="Signature style preview"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                  <button
+                    onClick={() => setSettings(s => ({ ...s, stylePhotoUrl: '' }))}
+                    style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: 14 }}
+                    title="Remove photo"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              <label style={{ display: 'block', cursor: 'pointer' }}>
+                <div style={{ padding: '1rem', border: '1.5px dashed var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 13, color: 'var(--muted)', transition: 'all 0.2s' }}>
+                  <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
+                  {settings.stylePhotoUrl ? 'Click to replace photo' : 'Upload a photo (JPG, PNG, WebP)'}
+                  <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setSettings(s => ({ ...s, stylePhotoUrl: ev.target?.result as string }));
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </label>
             </div>
             <div>
               <label style={labelCls}>Style Bullets</label>
