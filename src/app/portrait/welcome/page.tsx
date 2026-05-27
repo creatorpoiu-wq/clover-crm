@@ -66,20 +66,84 @@ function WelcomeGuideContent() {
       </nav>
 
       {/* Hero Section */}
-      <header className="funnel-hero">
-        <h1 className="funnel-title" style={{ fontWeight: 900, letterSpacing: '-0.05em', color: '#0f172a', marginBottom: '1.5rem' }}>
-          Welcome to the experience.
-        </h1>
-        <p style={{ fontSize: '1.25rem', color: '#64748b', fontWeight: 500, lineHeight: 1.6, marginBottom: '2.5rem' }}>
-          Thank you for inquiring! This guide outlines our signature style, transparent pricing, and the simple three-step process to secure your session.
-        </p>
-        <Link 
-          href={`/portrait/book?userId=${userId}&inquiryId=${inquiryId}`}
-          className="btn btn-primary"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', padding: '1rem 2rem', borderRadius: '9999px', backgroundColor: themeColor, color: 'white', textDecoration: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
-        >
-          Secure Your Session <ArrowRight size={20} />
-        </Link>
+      <header style={{
+        position: 'relative',
+        width: '100%',
+        minHeight: '90vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        backgroundColor: '#0f172a',
+      }}>
+        {/* Background Image */}
+        {vendorInfo?.welcomeHeroPhotoUrl && (
+          <img
+            src={vendorInfo.welcomeHeroPhotoUrl}
+            alt="Hero"
+            style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center',
+            }}
+          />
+        )}
+        {/* Overlay */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: vendorInfo?.welcomeHeroPhotoUrl
+            ? 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.65) 100%)'
+            : 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)',
+        }} />
+        {/* Content */}
+        <div style={{
+          position: 'relative', zIndex: 10, textAlign: 'center',
+          padding: '8rem 1.5rem 5rem', maxWidth: '800px', margin: '0 auto',
+        }}>
+          <div style={{
+            display: 'inline-block', marginBottom: '1.5rem',
+            fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase',
+            letterSpacing: '0.25em', color: 'rgba(255,255,255,0.65)',
+          }}>
+            {companyName}
+          </div>
+          <h1 style={{
+            fontWeight: 900, letterSpacing: '-0.04em', color: 'white',
+            marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 6vw, 4rem)', lineHeight: 1.1,
+          }}>
+            {vendorInfo?.welcomeHeroHeadline || 'Welcome to the Experience.'}
+          </h1>
+          <p style={{
+            fontSize: '1.25rem', color: 'rgba(255,255,255,0.75)',
+            fontWeight: 400, lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem',
+          }}>
+            {vendorInfo?.welcomeHeroSubheadline || 'Thank you for inquiring! This guide outlines our signature style, transparent pricing, and the simple three-step process to secure your session.'}
+          </p>
+          <Link
+            href={`/portrait/book?userId=${userId}&inquiryId=${inquiryId}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              fontSize: '1rem', fontWeight: 700, padding: '1rem 2rem',
+              borderRadius: '9999px', backgroundColor: themeColor, color: 'white',
+              textDecoration: 'none', boxShadow: `0 10px 30px -5px ${themeColor}80`,
+              border: '2px solid rgba(255,255,255,0.2)',
+            }}
+          >
+            Book Your Session <ArrowRight size={18} />
+          </Link>
+        </div>
+        {/* Scroll indicator */}
+        <div style={{
+          position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+          color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600,
+          textTransform: 'uppercase', letterSpacing: '0.1em',
+        }}>
+          <span>Scroll to explore</span>
+          <div style={{
+            width: '1px', height: '2rem',
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)',
+          }} />
+        </div>
       </header>
 
       {/* Feature / Style Section */}

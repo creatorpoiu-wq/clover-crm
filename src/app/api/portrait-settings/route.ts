@@ -5,6 +5,10 @@ import { createClient } from '@/utils/supabase/server';
 const DEFAULTS = {
   heroHeadline: "Let's plan your perfect session.",
   heroSubheadline: "Fill out the details below to start the booking process.",
+  // Welcome guide hero
+  welcomeHeroHeadline: 'Welcome to the Experience.',
+  welcomeHeroSubheadline: 'Thank you for inquiring! This guide outlines our signature style, transparent pricing, and the simple three-step process to secure your session.',
+  welcomeHeroPhotoUrl: '',
   aboutText: '',
   sessionTypes: ['Family Portrait', 'Maternity', 'Newborn', 'Couples/Engagement', 'Senior Portraits', 'Headshots/Branding'],
   retainerAmount: 100,
@@ -70,9 +74,12 @@ export async function GET() {
 
     const settings = {
       userId:            userAuth.user.id,
-      heroHeadline:      row?.Hero_Headline      || DEFAULTS.heroHeadline,
-      heroSubheadline:   row?.Hero_Subheadline   || DEFAULTS.heroSubheadline,
-      aboutText:         row?.About_Text         || DEFAULTS.aboutText,
+      heroHeadline:            row?.Hero_Headline            || DEFAULTS.heroHeadline,
+      heroSubheadline:         row?.Hero_Subheadline         || DEFAULTS.heroSubheadline,
+      welcomeHeroHeadline:     row?.Welcome_Hero_Headline    || DEFAULTS.welcomeHeroHeadline,
+      welcomeHeroSubheadline:  row?.Welcome_Hero_Subheadline || DEFAULTS.welcomeHeroSubheadline,
+      welcomeHeroPhotoUrl:     row?.Welcome_Hero_Photo_URL   || DEFAULTS.welcomeHeroPhotoUrl,
+      aboutText:               row?.About_Text               || DEFAULTS.aboutText,
       sessionTypes:      parseJSON(row?.Session_Types,      DEFAULTS.sessionTypes),
       retainerAmount:    row?.Retainer_Amount    || DEFAULTS.retainerAmount,
       customQuestions:   parseJSON(row?.Custom_Questions,   DEFAULTS.customQuestions),
@@ -115,7 +122,7 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const {
-      heroHeadline, heroSubheadline, aboutText, sessionTypes, retainerAmount,
+      heroHeadline, heroSubheadline, welcomeHeroHeadline, welcomeHeroSubheadline, welcomeHeroPhotoUrl, aboutText, sessionTypes, retainerAmount,
       customQuestions, budgetRanges, steps, contractTemplateId, confirmationTitle, confirmationMessage,
       styleHeading, styleDescription, styleBullets, stylePhotoUrl,
       packages, whatsNextHeading, whatsNextSub, whatsNextSteps,
@@ -126,9 +133,12 @@ export async function PUT(req: NextRequest) {
 
     const { error } = await supabase.from('Portrait_Settings').upsert({
       user_id: userAuth.user.id,
-      Hero_Headline:      heroHeadline      || DEFAULTS.heroHeadline,
-      Hero_Subheadline:   heroSubheadline   || DEFAULTS.heroSubheadline,
-      About_Text:         aboutText         ?? DEFAULTS.aboutText,
+      Hero_Headline:            heroHeadline           || DEFAULTS.heroHeadline,
+      Hero_Subheadline:         heroSubheadline        || DEFAULTS.heroSubheadline,
+      Welcome_Hero_Headline:    welcomeHeroHeadline    || DEFAULTS.welcomeHeroHeadline,
+      Welcome_Hero_Subheadline: welcomeHeroSubheadline || DEFAULTS.welcomeHeroSubheadline,
+      Welcome_Hero_Photo_URL:   welcomeHeroPhotoUrl    ?? DEFAULTS.welcomeHeroPhotoUrl,
+      About_Text:               aboutText              ?? DEFAULTS.aboutText,
       Session_Types:      JSON.stringify(sessionTypes      ?? DEFAULTS.sessionTypes),
       Retainer_Amount:    retainerAmount    ?? DEFAULTS.retainerAmount,
       Custom_Questions:   JSON.stringify(customQuestions   ?? DEFAULTS.customQuestions),

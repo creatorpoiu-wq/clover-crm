@@ -18,6 +18,9 @@ const TABS = [
 const DEFAULT_SETTINGS = {
   heroHeadline: "Let's plan your perfect session.",
   heroSubheadline: "Fill out the details below to start the booking process.",
+  welcomeHeroHeadline: 'Welcome to the Experience.',
+  welcomeHeroSubheadline: 'Thank you for inquiring! This guide outlines our signature style, transparent pricing, and the simple three-step process to secure your session.',
+  welcomeHeroPhotoUrl: '',
   aboutText: "",
   sessionTypes: ["Family Portrait", "Maternity", "Newborn", "Couples/Engagement", "Senior Portraits", "Headshots/Branding"],
   retainerAmount: 100,
@@ -184,13 +187,62 @@ export default function PortraitSettingsPage() {
         {/* GENERAL TAB */}
         {tab === "general" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>General Intro Text</h3>
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 4px" }}>Welcome Page Hero</h3>
+              <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 0 }}>The full-screen section at the top of your client's Welcome Guide page.</p>
+            </div>
+
+            {/* Hero Image Upload */}
+            <div>
+              <label style={labelCls}>Hero Background Photo</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {settings.welcomeHeroPhotoUrl && (
+                  <div style={{ position: 'relative', width: '100%', height: 200, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src={settings.welcomeHeroPhotoUrl} alt="Hero preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button
+                      onClick={() => setSettings(s => ({ ...s, welcomeHeroPhotoUrl: '' }))}
+                      style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.65)', color: 'white', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700, fontSize: 12 }}
+                    >Remove</button>
+                  </div>
+                )}
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', border: '2px dashed var(--border)', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onloadend = () => setSettings(s => ({ ...s, welcomeHeroPhotoUrl: reader.result as string }));
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                  📷 {settings.welcomeHeroPhotoUrl ? 'Replace Photo' : 'Upload Hero Photo'}
+                </label>
+                <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>If no photo is uploaded, a dark gradient will be displayed instead.</p>
+              </div>
+            </div>
+
             <div>
               <label style={labelCls}>Hero Headline</label>
-              <input style={inputCls} value={settings.heroHeadline} onChange={e => setSettings(s => ({ ...s, heroHeadline: e.target.value }))} placeholder="e.g. Let's plan your perfect session." />
+              <input style={inputCls} value={settings.welcomeHeroHeadline} onChange={e => setSettings(s => ({ ...s, welcomeHeroHeadline: e.target.value }))} placeholder="e.g. Welcome to the Experience." />
             </div>
             <div>
               <label style={labelCls}>Hero Subheadline</label>
+              <textarea style={{ ...inputCls, resize: 'vertical' }} rows={3} value={settings.welcomeHeroSubheadline} onChange={e => setSettings(s => ({ ...s, welcomeHeroSubheadline: e.target.value }))} />
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 4px" }}>Inquiry Form Text</h3>
+              <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>Text shown above the initial inquiry form clients fill out.</p>
+            </div>
+            <div>
+              <label style={labelCls}>Inquiry Headline</label>
+              <input style={inputCls} value={settings.heroHeadline} onChange={e => setSettings(s => ({ ...s, heroHeadline: e.target.value }))} placeholder="e.g. Let's plan your perfect session." />
+            </div>
+            <div>
+              <label style={labelCls}>Inquiry Subheadline</label>
               <input style={inputCls} value={settings.heroSubheadline} onChange={e => setSettings(s => ({ ...s, heroSubheadline: e.target.value }))} />
             </div>
             <div>
