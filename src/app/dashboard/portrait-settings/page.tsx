@@ -22,6 +22,7 @@ const DEFAULT_SETTINGS = {
   sessionTypes: ["Family Portrait", "Maternity", "Newborn", "Couples/Engagement", "Senior Portraits", "Headshots/Branding"],
   retainerAmount: 100,
   customQuestions: [] as any[],
+  budgetRanges: ['Under $500', '$500 - $1,000', '$1,000 - $2,000', '$2,000+'] as string[],
   styleHeading: 'Candid. Timeless. Authentic.',
   styleDescription: 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your portraits look beautiful decades from now.',
   styleBullets: ['Natural light prioritization', 'Guided, movement-based posing', 'True-to-color editing aesthetic', 'Focus on genuine emotion'],
@@ -299,6 +300,51 @@ export default function PortraitSettingsPage() {
                     setNewSessionType("");
                   }
                 }} placeholder="Type a new session and press Enter" />
+              </div>
+            </div>
+
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "2rem" }}>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>Budget Ranges</h3>
+              <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>The dropdown options shown in the "Budget Range" question on the inquiry form.</p>
+              
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+                {settings.budgetRanges.map((range, idx) => (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--background)", border: "1px solid var(--border)", padding: "6px 12px", borderRadius: "9999px", fontSize: 13, fontWeight: 600 }}>
+                    {range}
+                    <button onClick={() => setSettings(s => ({ ...s, budgetRanges: s.budgetRanges.filter(r => r !== range) }))} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", display: "flex", alignItems: "center", padding: 0, marginLeft: 2 }}>&times;</button>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input
+                  style={inputCls}
+                  placeholder="e.g. $3,000 - $5,000 (press Enter to add)"
+                  id="newBudgetRangeInput"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      if (val && !settings.budgetRanges.includes(val)) {
+                        setSettings(s => ({ ...s, budgetRanges: [...s.budgetRanges, val] }));
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    const input = document.getElementById('newBudgetRangeInput') as HTMLInputElement;
+                    const val = input?.value.trim();
+                    if (val && !settings.budgetRanges.includes(val)) {
+                      setSettings(s => ({ ...s, budgetRanges: [...s.budgetRanges, val] }));
+                      if (input) input.value = '';
+                    }
+                  }}
+                  style={{ background: "var(--primary)", color: "white", border: "none", borderRadius: 8, padding: "0 1.5rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}
+                >
+                  Add
+                </button>
               </div>
             </div>
 

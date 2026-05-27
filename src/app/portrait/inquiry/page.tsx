@@ -25,7 +25,7 @@ function InquiryFormContent() {
   useEffect(() => {
     if (userId) {
       // Fetch basic vendor info to personalize the form
-      fetch(`/api/public-booking?type=settings&userId=${userId}`)
+      fetch(`/api/public-booking?type=portrait_settings&userId=${userId}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.settings) {

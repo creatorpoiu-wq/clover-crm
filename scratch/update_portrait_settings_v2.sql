@@ -14,3 +14,4 @@ ADD COLUMN IF NOT EXISTS "Payment_Instructions" TEXT,
 ADD COLUMN IF NOT EXISTS "Venmo_Handle"         TEXT,
 ADD COLUMN IF NOT EXISTS "Paypal_Link"          TEXT,
 ADD COLUMN IF NOT EXISTS "Zelle_Contact"        TEXT;
+ALTER TABLE "Portrait_Settings" ADD COLUMN IF NOT EXISTS "Budget_Ranges" TEXT DEFAULT '[]';

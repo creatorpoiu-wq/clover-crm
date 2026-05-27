@@ -13,7 +13,7 @@ function WelcomeGuideContent() {
 
   useEffect(() => {
     if (userId) {
-      fetch(`/api/public-booking?type=settings&userId=${userId}`)
+      fetch(`/api/public-booking?type=portrait_settings&userId=${userId}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.settings) {
@@ -35,8 +35,8 @@ function WelcomeGuideContent() {
     );
   }
 
-  const themeColor = vendorInfo?.Brand_Color || '#0f172a';
-  const companyName = vendorInfo?.Company_Name || 'Portrait Sessions';
+  const themeColor = vendorInfo?.brandColor || '#0f172a';
+  const companyName = vendorInfo?.companyName || 'Portrait Sessions';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#fafafa', color: '#1e293b', fontFamily: 'inherit' }}>

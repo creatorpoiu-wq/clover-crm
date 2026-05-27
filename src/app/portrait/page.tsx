@@ -317,10 +317,9 @@ function PortraitBookingContent() {
                     style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', height: 'auto' }}
                   >
                     <option value="" disabled>Select a range...</option>
-                    <option value="Under $500">Under $500</option>
-                    <option value="$500 - $1,000">$500 - $1,000</option>
-                    <option value="$1,000 - $2,000">$1,000 - $2,000</option>
-                    <option value="$2,000+">$2,000+</option>
+                    {(vendorInfo?.budgetRanges || ['Under $500', '$500 - $1,000', '$1,000 - $2,000', '$2,000+']).map((range: string) => (
+                      <option key={range} value={range}>{range}</option>
+                    ))}
                   </select>
                 </div>
                 
