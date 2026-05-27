@@ -60,72 +60,72 @@ export default function PortraitContract({
   const formattedDate = selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD';
 
   return (
-    <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50">
-      <div className="flex items-center justify-between mb-8">
+    <div className="glass-panel" style={{ padding: '2rem 2.5rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
         <div>
-          <h2 className="text-3xl font-black text-slate-800 mb-2">Portrait Agreement</h2>
-          <p className="text-slate-500">Please review the terms for your session on <strong>{formattedDate}</strong> at <strong>{selectedTime}</strong>.</p>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.5rem' }}>Portrait Agreement</h2>
+          <p style={{ color: '#64748b' }}>Please review the terms for your session on <strong style={{ color: '#1e293b' }}>{formattedDate}</strong> at <strong style={{ color: '#1e293b' }}>{selectedTime}</strong>.</p>
         </div>
-        <div className="p-4 bg-slate-50 rounded-2xl hidden md:block">
-          <FileText size={32} className="text-slate-400" />
+        <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <FileText size={32} color="#94a3b8" />
         </div>
       </div>
 
-      <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl h-96 overflow-y-auto text-sm text-slate-600 leading-relaxed mb-8 custom-scrollbar">
-        <h3 className="font-bold text-slate-800 text-base mb-4">1. Scope of Work</h3>
-        <p className="mb-4">
+      <div className="custom-scrollbar" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '1.5rem', borderRadius: '1rem', height: '24rem', overflowY: 'auto', fontSize: '0.875rem', color: '#475569', lineHeight: 1.6, marginBottom: '2rem' }}>
+        <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', marginBottom: '1rem' }}>1. Scope of Work</h3>
+        <p style={{ marginBottom: '1rem' }}>
           Photographer agrees to provide portrait photography services on {formattedDate} at {selectedTime}. Photographer will perform these services in a professional manner and according to the signature style discussed.
         </p>
-        <h3 className="font-bold text-slate-800 text-base mb-4">2. Retainer and Payment</h3>
-        <p className="mb-4">
+        <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', marginBottom: '1rem' }}>2. Retainer and Payment</h3>
+        <p style={{ marginBottom: '1rem' }}>
           A non-refundable retainer is required to secure the session date. The remaining balance (if applicable) is due prior to the delivery of the final images. If the session is canceled by the Client, the retainer serves as a cancellation fee.
         </p>
-        <h3 className="font-bold text-slate-800 text-base mb-4">3. Rescheduling</h3>
-        <p className="mb-4">
+        <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', marginBottom: '1rem' }}>3. Rescheduling</h3>
+        <p style={{ marginBottom: '1rem' }}>
           In the event of inclement weather or emergency, the session may be rescheduled to a mutually agreed-upon date without penalty. Requests to reschedule for non-emergencies must be made at least 48 hours in advance.
         </p>
-        <h3 className="font-bold text-slate-800 text-base mb-4">4. Copyright and Model Release</h3>
-        <p className="mb-4">
+        <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', marginBottom: '1rem' }}>4. Copyright and Model Release</h3>
+        <p style={{ marginBottom: '1rem' }}>
           Photographer retains the copyright to all images. Client receives a print release for personal use. Photographer may use the images for portfolio, marketing, and promotional purposes unless explicitly opted out in writing by the Client.
         </p>
-        <h3 className="font-bold text-slate-800 text-base mb-4">5. Image Delivery</h3>
+        <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', marginBottom: '1rem' }}>5. Image Delivery</h3>
         <p>
           High-resolution digital files will be delivered via an online gallery within 2-3 weeks of the session date. Unedited RAW files are not provided.
         </p>
       </div>
 
-      <div className="mb-8">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-          Digital Signature <span className="text-red-500">*</span>
+      <div style={{ marginBottom: '2rem' }}>
+        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          Digital Signature <span style={{ color: '#ef4444' }}>*</span>
         </h3>
         
         {error && (
-          <div className="flex items-center gap-2 text-red-600 text-sm font-bold bg-red-50 p-3 rounded-lg mb-4">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#dc2626', fontSize: '0.875rem', fontWeight: 700, backgroundColor: '#fef2f2', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
             <AlertCircle size={16} /> {error}
           </div>
         )}
 
-        <div className="border-2 border-slate-200 rounded-2xl bg-white relative overflow-hidden group">
+        <div style={{ border: '2px solid #e2e8f0', borderRadius: '1rem', backgroundColor: 'white', position: 'relative', overflow: 'hidden' }}>
           {signature && !showSigPad ? (
-             <div className="p-4 relative">
-               <img src={signature} alt="Signature" className="h-40 mx-auto" />
+             <div style={{ padding: '1rem', position: 'relative' }}>
+               <img src={signature} alt="Signature" style={{ height: '10rem', margin: '0 auto', display: 'block' }} />
                <button 
                  onClick={() => {
                    setSignature('');
                    setShowSigPad(true);
                  }} 
-                 className="absolute top-4 right-4 text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg">
+                 style={{ position: 'absolute', top: '1rem', right: '1rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', backgroundColor: '#f1f5f9', padding: '0.375rem 0.75rem', borderRadius: '0.5rem', cursor: 'pointer', border: 'none' }}>
                  Re-sign
                </button>
              </div>
           ) : (
-            <div className="p-4">
+            <div style={{ padding: '1rem' }}>
               <div style={{ border: '2px dashed #d1d5db', borderRadius: 8, height: 160, position: 'relative', background: '#fff', cursor: 'crosshair' }}>
                 <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 14, color: '#9ca3af', pointerEvents: 'none' }}>Draw your signature here</span>
                 <canvas ref={sigCanvasRef} style={{ width: '100%', height: '100%', borderRadius: 8, display: 'block' }} />
               </div>
-              <div className="flex gap-2 mt-4">
-                <button type="button" onClick={clearSignature} className="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-bold uppercase rounded-lg hover:bg-slate-200 transition-colors">
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                <button type="button" onClick={clearSignature} style={{ padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', borderRadius: '0.5rem', cursor: 'pointer', border: 'none' }}>
                   Clear
                 </button>
               </div>
@@ -134,17 +134,18 @@ export default function PortraitContract({
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-8 border-t border-slate-100">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '2rem', borderTop: '1px solid #f1f5f9' }}>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-6 py-4 rounded-xl text-slate-600 font-bold tracking-wide uppercase transition-all hover:bg-slate-100"
+          className="btn btn-secondary"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 1.5rem', borderRadius: '0.75rem', color: '#475569', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }}
         >
           <ArrowLeft size={18} /> Back
         </button>
         <button
           onClick={saveSignature}
-          className="flex items-center gap-2 px-8 py-4 rounded-xl text-white font-bold tracking-wide uppercase transition-all shadow-lg hover:-translate-y-0.5"
-          style={{ backgroundColor: themeColor }}
+          className="btn btn-primary"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', cursor: 'pointer', backgroundColor: themeColor, border: 'none' }}
         >
           Agree & Proceed <ArrowRight size={18} />
         </button>

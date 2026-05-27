@@ -94,18 +94,18 @@ export default function RetainerCheckout({
 
   if (success) {
     return (
-      <div className="bg-white p-12 md:p-16 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 text-center">
-        <div className="w-24 h-24 rounded-full mx-auto mb-8 flex items-center justify-center bg-emerald-50 text-emerald-500">
+      <div className="glass-panel" style={{ padding: '3rem 4rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white', textAlign: 'center' }}>
+        <div style={{ width: '6rem', height: '6rem', borderRadius: '9999px', margin: '0 auto 2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ecfdf5', color: '#10b981' }}>
           <CheckCircle2 size={48} />
         </div>
-        <h2 className="text-4xl font-black text-slate-800 mb-4 tracking-tight">You're officially booked!</h2>
-        <p className="text-slate-500 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
-          Your session on <strong>{new Date(selectedDate + 'T00:00:00').toLocaleDateString()}</strong> at <strong>{selectedTime}</strong> is securely locked in. A copy of your contract and the receipt have been sent to your email.
+        <h2 style={{ fontSize: '2.25rem', fontWeight: 900, color: '#1e293b', marginBottom: '1rem', letterSpacing: '-0.025em' }}>You're officially booked!</h2>
+        <p style={{ color: '#64748b', fontSize: '1.125rem', maxWidth: '32rem', margin: '0 auto 2.5rem', lineHeight: 1.6 }}>
+          Your session on <strong style={{ color: '#1e293b' }}>{new Date(selectedDate + 'T00:00:00').toLocaleDateString()}</strong> at <strong style={{ color: '#1e293b' }}>{selectedTime}</strong> is securely locked in. A copy of your contract and the receipt have been sent to your email.
         </p>
         <button
           onClick={() => window.location.href = vendorInfo?.Website || 'https://google.com'}
-          className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-white font-bold tracking-wide uppercase transition-all shadow-lg hover:-translate-y-0.5"
-          style={{ backgroundColor: themeColor }}
+          className="btn btn-primary"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backgroundColor: themeColor, border: 'none', cursor: 'pointer' }}
         >
           Return to Website
         </button>
@@ -114,34 +114,34 @@ export default function RetainerCheckout({
   }
 
   return (
-    <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50">
-      <div className="flex items-center justify-between mb-8">
+    <div className="glass-panel" style={{ padding: '2rem 2.5rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
         <div>
-          <h2 className="text-3xl font-black text-slate-800 mb-2">Secure Your Date</h2>
-          <p className="text-slate-500">Submit the non-refundable retainer to permanently lock your calendar slot.</p>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.5rem' }}>Secure Your Date</h2>
+          <p style={{ color: '#64748b' }}>Submit the non-refundable retainer to permanently lock your calendar slot.</p>
         </div>
-        <div className="p-4 bg-slate-50 rounded-2xl hidden md:block">
-          <FileText size={32} className="text-slate-400" />
+        <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <FileText size={32} color="#94a3b8" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-10">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', marginBottom: '2.5rem' }}>
         
         {/* Invoice Summary */}
-        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 border-b border-slate-200 pb-4">Retainer Invoice</h3>
+        <div style={{ backgroundColor: '#f8fafc', padding: '2rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>Retainer Invoice</h3>
           
-          <div className="flex justify-between items-center mb-4 text-slate-600 font-medium">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: '#475569', fontWeight: 500 }}>
             <span>Portrait Session Retainer</span>
             <span>${retainerAmount.toFixed(2)}</span>
           </div>
           
-          <div className="flex justify-between items-center mb-6 text-slate-500 text-sm">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', color: '#64748b', fontSize: '0.875rem' }}>
             <span>Date Lock ({new Date(selectedDate + 'T00:00:00').toLocaleDateString()})</span>
             <span>Included</span>
           </div>
           
-          <div className="flex justify-between items-center pt-6 border-t border-slate-200 font-black text-xl text-slate-800">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0', fontWeight: 900, fontSize: '1.25rem', color: '#1e293b' }}>
             <span>Total Due Today</span>
             <span>${retainerAmount.toFixed(2)}</span>
           </div>
@@ -149,30 +149,28 @@ export default function RetainerCheckout({
 
         {/* Payment Methods */}
         <div>
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 border-b border-slate-200 pb-4 flex items-center gap-2">
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             Select Payment Method
           </h3>
           
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {paymentMethods.map(method => (
               <div 
                 key={method.id}
                 onClick={() => setSelectedMethod(method.id)}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col ${
-                  selectedMethod === method.id 
-                    ? 'bg-slate-50 shadow-sm' 
-                    : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
-                }`}
-                style={selectedMethod === method.id ? { borderColor: themeColor } : {}}
+                style={{
+                  padding: '1rem', borderRadius: '0.75rem', border: '2px solid', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column',
+                  ...(selectedMethod === method.id ? { backgroundColor: '#f8fafc', borderColor: themeColor, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' } : { borderColor: '#f1f5f9', backgroundColor: 'transparent' })
+                }}
               >
-                <div className="flex items-center gap-3 font-bold text-slate-800 mb-2">
-                  <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm" style={{ color: themeColor }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 700, color: '#1e293b', marginBottom: selectedMethod === method.id ? '0.5rem' : 0 }}>
+                  <div style={{ padding: '0.5rem', backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #f1f5f9', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', color: themeColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {method.icon}
                   </div>
                   {method.name}
                 </div>
                 {selectedMethod === method.id && (
-                  <div className="mt-2 text-sm text-slate-600 whitespace-pre-wrap pl-12 bg-white p-4 rounded-lg border border-slate-100">
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#475569', whiteSpace: 'pre-wrap', paddingLeft: '3rem', backgroundColor: 'white', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #f1f5f9' }}>
                     {method.details}
                   </div>
                 )}
@@ -184,24 +182,25 @@ export default function RetainerCheckout({
       </div>
 
       {error && (
-        <div className="flex items-center justify-center gap-2 text-red-600 text-sm font-bold bg-red-50 p-4 rounded-xl mb-8">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#dc2626', fontSize: '0.875rem', fontWeight: 700, backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '0.75rem', marginBottom: '2rem' }}>
           <AlertCircle size={18} /> {error}
         </div>
       )}
 
-      <div className="flex justify-between items-center pt-8 border-t border-slate-100">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '2rem', borderTop: '1px solid #f1f5f9' }}>
         <button
           onClick={onBack}
           disabled={isSubmitting}
-          className="flex items-center gap-2 px-6 py-4 rounded-xl text-slate-600 font-bold tracking-wide uppercase transition-all hover:bg-slate-100 disabled:opacity-50"
+          className="btn btn-secondary"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 1.5rem', borderRadius: '0.75rem', color: '#475569', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', backgroundColor: 'transparent', border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.5 : 1 }}
         >
           <ArrowLeft size={18} /> Back
         </button>
         <button
           onClick={handleComplete}
           disabled={isSubmitting}
-          className="flex items-center gap-2 px-8 py-4 rounded-xl text-white font-bold tracking-wide uppercase transition-all shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-wait"
-          style={{ backgroundColor: themeColor }}
+          className="btn btn-primary"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', cursor: isSubmitting ? 'wait' : 'pointer', backgroundColor: themeColor, border: 'none', opacity: isSubmitting ? 0.7 : 1 }}
         >
           {isSubmitting ? 'Processing...' : 'Confirm Payment & Book'} <CheckCircle2 size={18} />
         </button>

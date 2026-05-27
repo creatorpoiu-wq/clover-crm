@@ -44,11 +44,23 @@ export default function PortraitFunnel() {
   }, [userId, inquiryId]);
 
   if (!userId || !inquiryId) {
-    return <div className="min-h-screen flex items-center justify-center">Invalid Link</div>;
+    return (
+      <div className="login-wrapper">
+        <div className="login-card glass-panel">
+          <h2 className="page-title">Invalid Link</h2>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="login-wrapper">
+        <div className="login-card glass-panel">
+          <h2 className="page-title">Loading...</h2>
+        </div>
+      </div>
+    );
   }
 
   const steps = [
@@ -60,32 +72,32 @@ export default function PortraitFunnel() {
   const themeColor = vendorInfo?.Brand_Color || '#0f172a';
 
   return (
-    <div className="min-h-screen bg-slate-50 font-inter pb-20">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', fontFamily: 'inherit', paddingBottom: '5rem' }}>
       {/* Top Progress Bar */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between px-6 py-4">
+      <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: '896px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem' }}>
           {steps.map((step, idx) => {
             const stepNum = idx + 1;
             const isActive = currentStep === stepNum;
             const isPast = currentStep > stepNum;
-            const Icon = step.icon;
             
             return (
-              <div key={step.label} className={`flex items-center ${isActive || isPast ? 'opacity-100' : 'opacity-40'}`}>
+              <div key={step.label} style={{ display: 'flex', alignItems: 'center', opacity: isActive || isPast ? 1 : 0.4 }}>
                 <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm transition-colors"
                   style={{
+                    width: '2rem', height: '2rem', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 900,
                     backgroundColor: isPast ? themeColor : isActive ? '#1e293b' : '#e2e8f0',
-                    color: isPast || isActive ? '#fff' : '#64748b'
+                    color: isPast || isActive ? '#fff' : '#64748b',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                   }}
                 >
                   {isPast ? <Check size={14} /> : stepNum}
                 </div>
-                <span className="ml-3 text-sm font-bold text-slate-800 hidden md:block">
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.875rem', fontWeight: 700, color: '#1e293b' }}>
                   {step.label}
                 </span>
                 {idx < steps.length - 1 && (
-                  <div className="w-8 md:w-16 h-0.5 mx-4 md:mx-6 rounded-full" style={{ backgroundColor: isPast ? themeColor : '#e2e8f0' }} />
+                  <div style={{ width: '2rem', height: '0.125rem', margin: '0 1rem', borderRadius: '9999px', backgroundColor: isPast ? themeColor : '#e2e8f0' }} />
                 )}
               </div>
             );
@@ -93,7 +105,7 @@ export default function PortraitFunnel() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 mt-8">
+      <div style={{ maxWidth: '896px', margin: '2rem auto 0', padding: '0 1rem' }}>
         {currentStep === 1 && (
           <CalendarPicker 
             bookedDates={bookedDates}

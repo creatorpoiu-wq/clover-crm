@@ -59,14 +59,11 @@ export default function CalendarPicker({
         onClick={() => {
           onSelect(dateStr, ''); // Reset time when date changes
         }}
-        className={`h-12 w-full flex items-center justify-center rounded-xl text-sm font-semibold transition-all ${
-          isSelected 
-            ? 'text-white shadow-md transform scale-105' 
-            : isAvailable 
-              ? 'bg-white hover:bg-slate-100 text-slate-700 shadow-sm border border-slate-200 hover:border-slate-300' 
-              : 'bg-slate-50 text-slate-300 cursor-not-allowed opacity-50'
-        }`}
-        style={isSelected ? { backgroundColor: themeColor } : {}}
+        className={isSelected ? 'btn btn-primary' : isAvailable ? 'btn btn-secondary' : ''}
+        style={{
+          height: '3rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s',
+          ...(isSelected ? { backgroundColor: themeColor, color: 'white', border: 'none' } : isAvailable ? { backgroundColor: 'white', color: '#334155', border: '1px solid #e2e8f0' } : { backgroundColor: '#f8fafc', color: '#cbd5e1', cursor: 'not-allowed', border: '1px solid transparent' })
+        }}
       >
         {d}
       </button>
@@ -76,70 +73,68 @@ export default function CalendarPicker({
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50">
-      <h2 className="text-3xl font-black text-slate-800 mb-2">Select a Date & Time</h2>
-      <p className="text-slate-500 mb-10">Choose an available slot from our calendar.</p>
+    <div className="glass-panel" style={{ padding: '2rem 2.5rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+      <h2 style={{ fontSize: '1.875rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.5rem' }}>Select a Date & Time</h2>
+      <p style={{ color: '#64748b', marginBottom: '2.5rem' }}>Choose an available slot from our calendar.</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
         {/* Calendar Side */}
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-slate-800">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1e293b' }}>
               {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
             </h3>
-            <div className="flex gap-2">
-              <button onClick={handlePrevMonth} className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-slate-600"><ChevronLeft size={18} /></button>
-              <button onClick={handleNextMonth} className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-slate-600"><ChevronRight size={18} /></button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={handlePrevMonth} style={{ padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', backgroundColor: 'transparent', cursor: 'pointer', color: '#475569' }}><ChevronLeft size={18} /></button>
+              <button onClick={handleNextMonth} style={{ padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', backgroundColor: 'transparent', cursor: 'pointer', color: '#475569' }}><ChevronRight size={18} /></button>
             </div>
           </div>
           
-          <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginBottom: '0.5rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>
             {weekDays.map(wd => <div key={wd}>{wd}</div>)}
           </div>
           
-          <div className="grid grid-cols-7 gap-2">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
             {days}
           </div>
         </div>
 
         {/* Time Slots Side */}
         <div>
-          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <Clock size={18} className="text-slate-400" />
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Clock size={18} color="#94a3b8" />
             {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) : 'Select a date first'}
           </h3>
           
           {selectedDate ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               {timeSlots.map(time => (
                 <button
                   key={time}
                   onClick={() => onSelect(selectedDate, time)}
-                  className={`py-3 px-4 rounded-xl text-sm font-bold transition-all border ${
-                    selectedTime === time
-                      ? 'text-white border-transparent shadow-md'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
-                  style={selectedTime === time ? { backgroundColor: themeColor } : {}}
+                  style={{
+                    padding: '0.75rem 1rem', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 700, transition: 'all 0.2s', cursor: 'pointer',
+                    ...(selectedTime === time ? { backgroundColor: themeColor, color: 'white', border: '1px solid transparent' } : { backgroundColor: 'white', color: '#334155', border: '1px solid #e2e8f0' })
+                  }}
                 >
                   {time}
                 </button>
               ))}
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-slate-400 text-sm font-medium">
+            <div style={{ height: '100%', minHeight: '12rem', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed #e2e8f0', borderRadius: '1rem', backgroundColor: '#f8fafc', color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500 }}>
               Awaiting date selection
             </div>
           )}
         </div>
       </div>
 
-      <div className="mt-12 pt-8 border-t border-slate-100 flex justify-end">
+      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
         <button
           onClick={onNext}
           disabled={!selectedDate || !selectedTime}
-          className="flex items-center gap-2 px-8 py-4 rounded-xl text-white font-bold tracking-wide uppercase transition-all shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: themeColor }}
+          className="btn btn-primary"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', opacity: (!selectedDate || !selectedTime) ? 0.5 : 1, cursor: (!selectedDate || !selectedTime) ? 'not-allowed' : 'pointer', backgroundColor: themeColor, border: 'none' }}
         >
           Confirm Date <ArrowRight size={18} />
         </button>
