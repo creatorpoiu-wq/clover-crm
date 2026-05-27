@@ -116,7 +116,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const {
       heroHeadline, heroSubheadline, aboutText, sessionTypes, retainerAmount,
-      customQuestions, steps, contractTemplateId, confirmationTitle, confirmationMessage,
+      customQuestions, budgetRanges, steps, contractTemplateId, confirmationTitle, confirmationMessage,
       styleHeading, styleDescription, styleBullets, stylePhotoUrl,
       packages, whatsNextHeading, whatsNextSub, whatsNextSteps,
       paymentMethods, paymentInstructions, venmoHandle, paypalLink, zelleContact,
