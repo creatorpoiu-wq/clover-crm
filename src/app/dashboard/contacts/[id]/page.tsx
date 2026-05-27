@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ContractBuilder from "@/components/ContractBuilder";
 import InvoiceBuilder from "@/components/InvoiceBuilder";
+import DeliverablesManager from "@/components/DeliverablesManager";
 import { supabase } from "@/lib/supabase";
 
 interface Contact {
@@ -23,6 +24,9 @@ interface Inquiry {
   Inquiry_ID: number;
   Service_Type: string;
   Pipeline_Stage: string;
+  Event_Date?: string | null;
+  Estimated_Value?: number | null;
+  Package_ID?: number | null;
 }
 
 interface Communication {
@@ -181,7 +185,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const tabs = ["Overview", "Communications", "Documents", "Payments", "Sessions"];
+  const tabs = ["Overview", "Communications", "Documents", "Payments", "Sessions", "Deliverables"];
 
   const handleDeleteCommunication = async (commId: number) => {
     if (!confirm("Are you sure you want to delete this communication?")) return;
@@ -809,6 +813,30 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
+      {activeTab === 'deliverables' && (
+        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {inquiries.length === 0 ? (
+            <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#fafafa', borderRadius: '1rem', border: '1px dashed #e2e8f0', color: '#64748b' }}>
+              No projects found. Create a project/inquiry first to manage deliverables.
+            </div>
+          ) : (
+            inquiries.map(inq => (
+              <div key={inq.Inquiry_ID} className="glass-panel" style={{ padding: '2rem', border: '1px solid #f0efe9', borderRadius: '1rem', backgroundColor: '#fff' }}>
+                <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #f8fafc' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>{inq.Service_Type || "Project"}</h3>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem', display: 'flex', gap: '1rem' }}>
+                    <span>Stage: {inq.Pipeline_Stage}</span>
+                    <span>•</span>
+                    <span>Date: {inq.Event_Date ? new Date(inq.Event_Date).toLocaleDateString() : 'TBD'}</span>
+                  </div>
+                </div>
+                <DeliverablesManager inquiryId={inq.Inquiry_ID} />
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
       {/* New Session Modal */}
       {showSessionModal && (
         <div className="mobile-overlay open" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 100 }}>
@@ -950,10 +978,14 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", borderTop: "1px solid #f0efe9", paddingTop: "1.5rem" }}>
                   <button className="btn btn-primary" style={{ flex: 1, padding: "0.875rem", borderRadius: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "0 4px 6px -1px rgba(15, 118, 110, 0.2)" }} onClick={() => setIsEditingInquiry(true)}><Edit2 size={18} /> Edit Details</button>
                   <button className="btn btn-outline" style={{ flex: 1, padding: "0.875rem", borderRadius: "0.75rem", fontWeight: 700, color: "#ef4444", borderColor: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }} onClick={handleDeleteInquiry}><Trash2 size={18} /> Delete Project</button>
                 </div>
+
+                {/* Deliverables Manager */}
+                <DeliverablesManager inquiryId={selectedInquiry.Inquiry_ID} />
+
               </div>
             )}
           </div>
