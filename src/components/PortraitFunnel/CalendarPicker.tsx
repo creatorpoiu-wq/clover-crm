@@ -88,11 +88,11 @@ export default function CalendarPicker({
             </div>
           </div>
           
-          <div className="funnel-grid funnel-grid-7" style={{ marginBottom: '0.5rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.25rem', marginBottom: '0.5rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>
             {weekDays.map(wd => <div key={wd}>{wd}</div>)}
           </div>
           
-          <div className="funnel-grid funnel-grid-7">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.25rem' }}>
             {renderCalendarDays()}
           </div>
         </div>
