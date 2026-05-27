@@ -106,11 +106,10 @@ export async function GET(req: NextRequest) {
 
     // ── Portrait Settings ────────────────────────────────────────────────────
     if (type === 'portrait_settings') {
-      const { data: row } = await supabase
-        .from('Portrait_Settings')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      const [{ data: row }, { data: appConfig }] = await Promise.all([
+        supabase.from('Portrait_Settings').select('*').eq('user_id', userId).single(),
+        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User').eq('user_id', userId).single(),
+      ]);
 
       const DEFAULTS = {
         Step1_Title: 'Choose Your Experience',
@@ -132,6 +131,17 @@ export async function GET(req: NextRequest) {
           contractTemplateId: row?.Contract_Template_ID || null,
           confirmationTitle: row?.Confirmation_Title || 'Booking Confirmed!',
           confirmationMessage: row?.Confirmation_Message || 'Your deposit has been received and your session is securely booked. We look forward to working with you!',
+          // Brand info from AppConfig
+          companyName: appConfig?.Company_Name || 'Portrait Studio',
+          brandColor: appConfig?.Brand_Color || '#1e293b',
+          businessLogo: appConfig?.Business_Logo || null,
+          contactEmail: appConfig?.Email_User || null,
+          // Customizable public funnel content from Portrait_Settings
+          heroHeadline: row?.Hero_Headline || null,
+          heroSubheadline: row?.Hero_Subheadline || null,
+          aboutText: row?.About_Text || null,
+          sessionTypes: row?.Session_Types ? JSON.parse(row.Session_Types) : null,
+          retainerAmount: row?.Retainer_Amount || null,
         }
       });
     }
