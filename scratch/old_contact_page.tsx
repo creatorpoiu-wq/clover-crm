@@ -455,30 +455,19 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
               {communications.length > 0 ? (
                 <div className="space-y-4">
                   {communications.slice(0, 3).map(comm => {
-                    const formatSafeDate = (dStr: string) => {
-                      if (!dStr) return 'Unknown Date';
-                      const hasTz = dStr.endsWith('Z') || dStr.match(/[+-]\d{2}:?\d{2}$/);
-                      const d = new Date(hasTz ? dStr : dStr + "Z");
-                      if (isNaN(d.getTime())) return 'Invalid Date';
-                      return `${d.toLocaleDateString()} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                    };
-                    const displayDate = formatSafeDate(comm.Last_Contact_Date);
-
+                    const d = new Date(comm.Last_Contact_Date + "Z");
                     return (
                       <div key={comm.Communication_ID} style={{ padding: '1rem', backgroundColor: '#fafafa', borderRadius: '0.5rem', border: '1px solid #f0efe9' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                           <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{comm.Last_Contact_By === "Me" ? "You" : contact.Name}</span>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ color: '#a0a0a0', fontSize: '0.75rem' }}>{displayDate}</span>
+                            <span style={{ color: '#a0a0a0', fontSize: '0.75rem' }}>{d.toLocaleDateString()} at {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             <button onClick={() => handleDeleteCommunication(comm.Communication_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Delete">
                               <Trash2 size={14} />
                             </button>
                           </div>
                         </div>
-                        <p 
-                          style={{ fontSize: '0.875rem', color: '#5c5c5c', margin: 0, wordBreak: 'break-word' }}
-                          dangerouslySetInnerHTML={{ __html: comm.Message || "No notes." }}
-                        />
+                        <p style={{ fontSize: '0.875rem', color: '#5c5c5c', margin: 0 }}>{comm.Message || "No notes."}</p>
                       </div>
                     )
                   })}
@@ -753,30 +742,19 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           {communications.length > 0 ? (
             <div className="space-y-4">
               {communications.map(comm => {
-                const formatSafeDate = (dStr: string) => {
-                  if (!dStr) return 'Unknown Date';
-                  const hasTz = dStr.endsWith('Z') || dStr.match(/[+-]\d{2}:?\d{2}$/);
-                  const d = new Date(hasTz ? dStr : dStr + "Z");
-                  if (isNaN(d.getTime())) return 'Invalid Date';
-                  return `${d.toLocaleDateString()} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                };
-                const displayDate = formatSafeDate(comm.Last_Contact_Date);
-
+                const d = new Date(comm.Last_Contact_Date + "Z");
                 return (
                   <div key={comm.Communication_ID} style={{ padding: '1.5rem', border: '1px solid #f0efe9', borderRadius: '0.5rem', backgroundColor: comm.Last_Contact_By === "Me" ? '#f8fdfb' : '#fafafa' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                       <span style={{ fontWeight: 600, fontSize: '0.875rem', color: '#0f172a' }}>{comm.Last_Contact_By === "Me" ? "You" : contact.Name}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <span style={{ color: '#a0a0a0', fontSize: '0.75rem' }}>{displayDate}</span>
+                        <span style={{ color: '#a0a0a0', fontSize: '0.75rem' }}>{d.toLocaleDateString()} at {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         <button onClick={() => handleDeleteCommunication(comm.Communication_ID)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Delete">
                           <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
-                    <p 
-                      style={{ fontSize: '0.875rem', color: '#5c5c5c', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                      dangerouslySetInnerHTML={{ __html: comm.Message || "No notes." }}
-                    />
+                    <p style={{ fontSize: '0.875rem', color: '#5c5c5c', margin: 0, whiteSpace: 'pre-wrap' }}>{comm.Message || "No notes."}</p>
                   </div>
                 )
               })}
