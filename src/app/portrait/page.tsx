@@ -25,7 +25,8 @@ function PortraitBookingContent() {
     budget: '',
     timeline: '',
     message: '',
-    referral: ''
+    referral: '',
+    customAnswers: {} as Record<string, any>
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,6 +37,14 @@ function PortraitBookingContent() {
         .then(data => {
           if (data.success && data.settings) {
             setVendorInfo(data.settings);
+            // Initialize custom questions in form data
+            if (data.settings.customQuestions && Array.isArray(data.settings.customQuestions)) {
+              const initialCustomAnswers: Record<string, any> = {};
+              data.settings.customQuestions.forEach((q: any) => {
+                initialCustomAnswers[q.label] = '';
+              });
+              setFormData(prev => ({ ...prev, customAnswers: initialCustomAnswers }));
+            }
           } else {
             setError('Could not load booking settings.');
           }
@@ -52,10 +61,29 @@ function PortraitBookingContent() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleCustomChange = (label: string, value: string) => {
+    setFormData({
+      ...formData,
+      customAnswers: {
+        ...formData.customAnswers,
+        [label]: value
+      }
+    });
+  };
+
   const handleNext = () => {
     if (step === 1 && !formData.sessionType) {
       alert("Please select a session type to continue.");
       return;
+    }
+    // Simple validation for required custom questions in step 2 (assuming they are in step 2)
+    if (step === 2 && vendorInfo?.customQuestions) {
+        const requiredQuestions = vendorInfo.customQuestions.filter((q: any) => q.required);
+        const missing = requiredQuestions.find((q: any) => !formData.customAnswers[q.label]);
+        if (missing) {
+            alert(`Please answer the required question: "${missing.label}"`);
+            return;
+        }
     }
     setStep(prev => prev + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -131,6 +159,7 @@ function PortraitBookingContent() {
   const availableSessionTypes = vendorInfo?.sessionTypes || [
     'Family Portrait', 'Maternity', 'Newborn', 'Couples/Engagement', 'Senior Portraits', 'Headshots/Branding'
   ];
+  const customQuestions = vendorInfo?.customQuestions || [];
 
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
@@ -294,6 +323,43 @@ function PortraitBookingContent() {
                     <option value="$2,000+">$2,000+</option>
                   </select>
                 </div>
+                
+                {/* Dynamic Custom Questions */}
+                {customQuestions.map((q: any, i: number) => (
+                    <div key={i}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                           {q.label} {q.required && '*'}
+                        </label>
+                        {q.type === 'textarea' ? (
+                             <textarea 
+                             value={formData.customAnswers[q.label] || ''} 
+                             onChange={(e) => handleCustomChange(q.label, e.target.value)} 
+                             className="input-field" 
+                             style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', minHeight: '120px', resize: 'vertical' }}
+                           />
+                        ) : q.type === 'select' ? (
+                             <select 
+                             value={formData.customAnswers[q.label] || ''} 
+                             onChange={(e) => handleCustomChange(q.label, e.target.value)} 
+                             className="input-field"
+                             style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', height: 'auto' }}
+                           >
+                             <option value="" disabled>Select an option...</option>
+                             {q.options?.map((opt: string) => (
+                                 <option key={opt} value={opt}>{opt}</option>
+                             ))}
+                           </select>
+                        ) : (
+                             <input 
+                             type="text"
+                             value={formData.customAnswers[q.label] || ''} 
+                             onChange={(e) => handleCustomChange(q.label, e.target.value)} 
+                             className="input-field" 
+                             style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }}
+                           />
+                        )}
+                    </div>
+                ))}
               </div>
             )}
 

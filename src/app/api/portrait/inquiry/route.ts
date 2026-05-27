@@ -25,6 +25,8 @@ export async function POST(req: NextRequest) {
       message,
       // Source
       referral,
+      // Custom Answers
+      customAnswers,
     } = payload;
 
     if (!userId || !name || !email || !sessionType) {
@@ -71,6 +73,7 @@ export async function POST(req: NextRequest) {
       timeline: timeline || '',
       message: message || '',
       referral: referral || '',
+      customAnswers: customAnswers || {},
     };
 
     const { data: inquiry, error: inquiryError } = await supabase
