@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, fields, theme_color, submit_text, success_message } = body;
+    const { title, description, fields, theme_color, submit_text, success_message, auto_reply_message, questionnaire_link, questionnaire_button_text } = body;
 
     if (!title) {
       return NextResponse.json({ success: false, error: 'Title is required' }, { status: 400 });
@@ -50,6 +50,9 @@ export async function POST(req: NextRequest) {
         theme_color: theme_color || '#0f172a',
         submit_text: submit_text || 'Submit',
         success_message: success_message || 'Thank you! Your submission has been received.',
+        auto_reply_message: auto_reply_message || null,
+        questionnaire_link: questionnaire_link || null,
+        questionnaire_button_text: questionnaire_button_text || 'Complete Intake Questionnaire',
       })
       .select()
       .single();

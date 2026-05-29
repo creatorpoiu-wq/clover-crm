@@ -60,7 +60,7 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     }
 
     const body = await req.json();
-    const { title, description, fields, theme_color, submit_text, success_message } = body;
+    const { title, description, fields, theme_color, submit_text, success_message, auto_reply_message, questionnaire_link, questionnaire_button_text } = body;
 
     const { data, error } = await supabase
       .from('Forms')
@@ -71,6 +71,9 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
         theme_color,
         submit_text,
         success_message,
+        auto_reply_message,
+        questionnaire_link,
+        questionnaire_button_text,
       })
       .eq('id', params.id)
       .eq('user_id', userAuth.user.id)

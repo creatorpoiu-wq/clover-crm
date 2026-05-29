@@ -21,6 +21,9 @@ interface Form {
   theme_color: string;
   submit_text: string;
   success_message: string;
+  auto_reply_message?: string;
+  questionnaire_link?: string;
+  questionnaire_button_text?: string;
   created_at: string;
 }
 
@@ -656,6 +659,43 @@ export default function FormsDashboard() {
                         rows={3}
                         style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', resize: 'vertical' }}
                       />
+                    </div>
+
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Auto-Reply Email Message</label>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.75rem' }}>Sent instantly to the client after they submit the form. If left blank, a generic thank you message is sent.</p>
+                      <textarea
+                        value={editingForm.auto_reply_message || ''}
+                        onChange={e => setEditingForm({ ...editingForm, auto_reply_message: e.target.value })}
+                        rows={4}
+                        placeholder="e.g., Thanks for reaching out! We typically respond within 24 hours..."
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', resize: 'vertical' }}
+                      />
+                    </div>
+
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Intake Questionnaire Link (Optional)</label>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.75rem' }}>Include a button in the auto-reply email linking to another form or questionnaire.</p>
+                      <input
+                        type="url"
+                        value={editingForm.questionnaire_link || ''}
+                        onChange={e => setEditingForm({ ...editingForm, questionnaire_link: e.target.value })}
+                        placeholder="https://..."
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', marginBottom: '1rem' }}
+                      />
+                      
+                      {editingForm.questionnaire_link && (
+                        <>
+                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Questionnaire Button Text</label>
+                          <input
+                            type="text"
+                            value={editingForm.questionnaire_button_text || ''}
+                            onChange={e => setEditingForm({ ...editingForm, questionnaire_button_text: e.target.value })}
+                            placeholder="Complete Intake Questionnaire"
+                            style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
                 )}

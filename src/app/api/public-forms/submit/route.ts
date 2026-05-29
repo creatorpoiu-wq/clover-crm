@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     // 1. Fetch form to get user_id, title, and fields array
     const { data: form, error: formError } = await supabase
       .from('Forms')
-      .select('user_id, title, fields')
+      .select('user_id, title, fields, auto_reply_message, questionnaire_link, questionnaire_button_text')
       .eq('id', formId)
       .single();
 
@@ -197,12 +197,15 @@ export async function POST(req: NextRequest) {
               <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <div style="padding: 40px 30px;">
                   <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Hi ${name},</h2>
-                  <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #475569;">
-                    Thank you for reaching out to <strong>${companyName}</strong>! We have successfully received your submission for <em>${form.title}</em>.
-                  </p>
-                  <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #475569;">
-                    Our team will review your information and get back to you shortly.
-                  </p>
+                  <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #475569; white-space: pre-wrap;">${form.auto_reply_message || `Thank you for reaching out to <strong>${companyName}</strong>! We have successfully received your submission for <em>${form.title}</em>.\n\nOur team will review your information and get back to you shortly.`}</p>
+                  
+                  ${form.questionnaire_link ? `
+                  <div style="margin: 32px 0; text-align: center;">
+                    <a href="${form.questionnaire_link}" style="background-color: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
+                      ${form.questionnaire_button_text || 'Complete Intake Questionnaire'}
+                    </a>
+                  </div>
+                  ` : ''}
                   
                   <div style="border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 32px;">
                     <p style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 12px;">Your Submission details:</p>
