@@ -189,6 +189,50 @@ export async function POST(req: NextRequest) {
           subject: `New Inquiry: ${form.title} - ${name}`,
           html: htmlBody
         });
+
+        // 6. Send Auto-Reply to Client
+        if (email) {
+          const autoReplyBody = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #334155;">
+              <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="padding: 40px 30px;">
+                  <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Hi ${name},</h2>
+                  <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #475569;">
+                    Thank you for reaching out to <strong>${companyName}</strong>! We have successfully received your submission for <em>${form.title}</em>.
+                  </p>
+                  <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #475569;">
+                    Our team will review your information and get back to you shortly.
+                  </p>
+                  
+                  <div style="border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 32px;">
+                    <p style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 12px;">Your Submission details:</p>
+                    <table style="width: 100%; border-collapse: collapse;">
+                      <tbody>
+                        ${Object.entries(formData).map(([key, value]) => {
+                          const displayValue = Array.isArray(value) ? value.join(', ') : value;
+                          const label = fieldMap[key] || key;
+                          return `<tr>
+                            <td style="padding: 8px 0; color: #64748b; font-size: 14px; width: 40%; vertical-align: top;">${label}</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-size: 14px; font-weight: 500; vertical-align: top;">${displayValue}</td>
+                          </tr>`;
+                        }).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div style="background-color: #f1f5f9; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                  <p style="font-size: 13px; color: #64748b; margin: 0;">${companyName}</p>
+                </div>
+              </div>
+            </div>`;
+
+          await transporter.sendMail({
+            from: `"${companyName}" <${config.Email_User}>`,
+            to: actualEmail,
+            subject: `We've received your submission: ${form.title}`,
+            html: autoReplyBody
+          });
+        }
       }
     } catch (emailErr) {
       console.error('Failed to send notification email:', emailErr);
