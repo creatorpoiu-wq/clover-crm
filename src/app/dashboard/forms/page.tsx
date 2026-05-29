@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Code, Copy, Check, X, GripVertical, Settings } from 'lucide-react';
+import { Plus, Edit2, Trash2, Code, Copy, Check, X, GripVertical, Settings, Type, AlignLeft, ChevronDown, Hash, CheckSquare, CircleDot, User, Mail, Phone, Calendar, Clock, MapPin, Link2 } from 'lucide-react';
 
 interface FormField {
   id: string;
@@ -23,6 +23,22 @@ interface Form {
   created_at: string;
 }
 
+const FIELD_TYPES = [
+  { type: 'text', label: 'Single Line Text', icon: Type },
+  { type: 'textarea', label: 'Paragraph Text', icon: AlignLeft },
+  { type: 'select', label: 'Drop Down', icon: ChevronDown },
+  { type: 'number', label: 'Number', icon: Hash },
+  { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare },
+  { type: 'radio', label: 'Radio Buttons', icon: CircleDot },
+  { type: 'name', label: 'Name', icon: User },
+  { type: 'email', label: 'Email', icon: Mail },
+  { type: 'phone', label: 'Phone', icon: Phone },
+  { type: 'date', label: 'Date', icon: Calendar },
+  { type: 'time', label: 'Time', icon: Clock },
+  { type: 'address', label: 'Address', icon: MapPin },
+  { type: 'website', label: 'Website', icon: Link2 },
+];
+
 export default function FormsDashboard() {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +46,11 @@ export default function FormsDashboard() {
   const [editingForm, setEditingForm] = useState<Partial<Form> | null>(null);
   const [saving, setSaving] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [embedModalOpen, setEmbedModalOpen] = useState<string | null>(null); // form id
+  const [embedModalOpen, setEmbedModalOpen] = useState<string | null>(null);
+  
+  // UI Overhaul State
+  const [activeTab, setActiveTab] = useState<'add' | 'settings' | 'form'>('add');
+  const [selectedFieldIdx, setSelectedFieldIdx] = useState<number | null>(null);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   const hostUrl = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
@@ -62,6 +82,8 @@ export default function FormsDashboard() {
       if (data.success) {
         setEditingForm(data.form);
         setView('edit');
+        setActiveTab('add');
+        setSelectedFieldIdx(null);
       }
     } catch (e) {
       console.error(e);
@@ -114,21 +136,33 @@ export default function FormsDashboard() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const addField = () => {
-    if (!editingForm) return;
-    const newField: FormField = {
-      id: `field_${Date.now()}`,
-      type: 'text',
-      label: 'New Field',
+  // ----------------------------------------------------
+  // Form Builder Logic
+  // ----------------------------------------------------
+
+  const createField = (type: string): FormField => {
+    const defaultLabel = FIELD_TYPES.find(f => f.type === type)?.label || 'New Field';
+    return {
+      id: `field_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+      type,
+      label: defaultLabel,
       required: false,
+      options: ['select', 'radio', 'checkbox'].includes(type) ? ['Option 1', 'Option 2'] : undefined
     };
-    setEditingForm({ ...editingForm, fields: [...(editingForm.fields || []), newField] });
   };
 
-  const updateField = (index: number, updates: Partial<FormField>) => {
-    if (!editingForm || !editingForm.fields) return;
+  const handleSidebarClickAdd = (type: string) => {
+    if (!editingForm) return;
+    const newField = createField(type);
+    setEditingForm({ ...editingForm, fields: [...(editingForm.fields || []), newField] });
+    setSelectedFieldIdx((editingForm.fields || []).length);
+    setActiveTab('settings');
+  };
+
+  const updateSelectedField = (updates: Partial<FormField>) => {
+    if (!editingForm || !editingForm.fields || selectedFieldIdx === null) return;
     const newFields = [...editingForm.fields];
-    newFields[index] = { ...newFields[index], ...updates };
+    newFields[selectedFieldIdx] = { ...newFields[selectedFieldIdx], ...updates };
     setEditingForm({ ...editingForm, fields: newFields });
   };
 
@@ -137,13 +171,24 @@ export default function FormsDashboard() {
     const newFields = [...editingForm.fields];
     newFields.splice(index, 1);
     setEditingForm({ ...editingForm, fields: newFields });
+    if (selectedFieldIdx === index) {
+      setSelectedFieldIdx(null);
+      setActiveTab('add');
+    } else if (selectedFieldIdx !== null && selectedFieldIdx > index) {
+      setSelectedFieldIdx(selectedFieldIdx - 1);
+    }
   };
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  // Drag and Drop implementation
+  const handleDragStartSidebar = (e: React.DragEvent, type: string) => {
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('application/json', JSON.stringify({ action: 'add', type }));
+  };
+
+  const handleDragStartCanvas = (e: React.DragEvent, index: number) => {
     setDraggedIdx(index);
-    // To make the drag effect look nice
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', index.toString());
+    e.dataTransfer.setData('application/json', JSON.stringify({ action: 'move', index }));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -151,26 +196,47 @@ export default function FormsDashboard() {
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+  const handleDropCanvas = (e: React.DragEvent, dropIndex?: number) => {
     e.preventDefault();
-    if (draggedIdx === null || draggedIdx === dropIndex || !editingForm || !editingForm.fields) return;
+    if (!editingForm) return;
+    
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      const newFields = [...(editingForm.fields || [])];
 
-    const newFields = [...editingForm.fields];
-    const draggedItem = newFields[draggedIdx];
-    
-    // Remove from old position
-    newFields.splice(draggedIdx, 1);
-    // Insert at new position
-    newFields.splice(dropIndex, 0, draggedItem);
-    
-    setEditingForm({ ...editingForm, fields: newFields });
+      if (data.action === 'add') {
+        const newField = createField(data.type);
+        if (dropIndex !== undefined) {
+          newFields.splice(dropIndex, 0, newField);
+          setSelectedFieldIdx(dropIndex);
+        } else {
+          newFields.push(newField);
+          setSelectedFieldIdx(newFields.length - 1);
+        }
+        setEditingForm({ ...editingForm, fields: newFields });
+        setActiveTab('settings');
+      } else if (data.action === 'move') {
+        if (data.index === dropIndex || dropIndex === undefined) return;
+        const draggedItem = newFields[data.index];
+        newFields.splice(data.index, 1);
+        newFields.splice(dropIndex, 0, draggedItem);
+        setEditingForm({ ...editingForm, fields: newFields });
+        
+        // Update selection index if moving the selected item
+        if (selectedFieldIdx === data.index) {
+          setSelectedFieldIdx(dropIndex);
+        }
+      }
+    } catch (err) {
+      console.error("Drop error", err);
+    }
     setDraggedIdx(null);
   };
 
   if (loading && view === 'list') return <div style={{ padding: '2rem' }}>Loading forms...</div>;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '2rem', maxWidth: view === 'edit' ? '1400px' : '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       
       {view === 'list' && (
         <>
@@ -194,6 +260,8 @@ export default function FormsDashboard() {
                   ]
                 });
                 setView('edit');
+                setActiveTab('add');
+                setSelectedFieldIdx(null);
               }}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
             >
@@ -234,12 +302,17 @@ export default function FormsDashboard() {
         </>
       )}
 
+      {/* EDIT VIEW */}
       {view === 'edit' && editingForm && (
-        <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
-              {editingForm.id ? 'Edit Form' : 'Build New Form'}
-            </h2>
+        <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)' }}>
+          
+          {/* Header */}
+          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', zIndex: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+                {editingForm.id ? 'Edit Form' : 'Build New Form'}
+              </h2>
+            </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button onClick={() => setView('list')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', fontWeight: 600, color: 'var(--text)' }}>Cancel</button>
               <button onClick={saveForm} disabled={saving} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
@@ -248,171 +321,321 @@ export default function FormsDashboard() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.5rem' }}>
+          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
             
-            {/* Form Settings Left Col */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Form Title (Internal & Public)</label>
-                <input
-                  type="text"
-                  value={editingForm.title || ''}
-                  onChange={e => setEditingForm({ ...editingForm, title: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Description (Public Subtext)</label>
-                <textarea
-                  value={editingForm.description || ''}
-                  onChange={e => setEditingForm({ ...editingForm, description: e.target.value })}
-                  rows={2}
-                  style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', resize: 'vertical' }}
-                />
-              </div>
-              
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Submit Button Text</label>
-                  <input
-                    type="text"
-                    value={editingForm.submit_text || ''}
-                    onChange={e => setEditingForm({ ...editingForm, submit_text: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
-                  />
+            {/* LEFT COLUMN: LIVE CANVAS */}
+            <div 
+              style={{ flex: 1, backgroundColor: 'var(--muted-bg)', padding: '2rem', overflowY: 'auto' }}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDropCanvas(e)}
+            >
+              <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: 'white', borderRadius: 12, border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', padding: '2.5rem' }}>
+                
+                {/* Form Header (Click to edit Form Settings) */}
+                <div 
+                  onClick={() => setActiveTab('form')}
+                  style={{ 
+                    cursor: 'pointer', 
+                    padding: '1rem', 
+                    margin: '-1rem -1rem 1.5rem -1rem', 
+                    borderRadius: 8,
+                    border: activeTab === 'form' ? '2px solid var(--primary)' : '2px solid transparent',
+                    transition: 'border 0.2s'
+                  }}
+                >
+                  <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.5rem', marginTop: 0 }}>
+                    {editingForm.title || 'Untitled Form'}
+                  </h2>
+                  {editingForm.description && (
+                    <p style={{ color: '#64748b', margin: 0, lineHeight: 1.5 }}>{editingForm.description}</p>
+                  )}
                 </div>
-                <div style={{ width: '120px' }}>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Button Color</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="color"
-                      value={editingForm.theme_color || '#0f172a'}
-                      onChange={e => setEditingForm({ ...editingForm, theme_color: e.target.value })}
-                      style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 6, cursor: 'pointer' }}
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Success Message</label>
-                <textarea
-                  value={editingForm.success_message || ''}
-                  onChange={e => setEditingForm({ ...editingForm, success_message: e.target.value })}
-                  rows={2}
-                  style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', resize: 'vertical' }}
-                />
+                {/* Fields Canvas */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '100px' }}>
+                  {(editingForm.fields || []).map((field, idx) => {
+                    const isSelected = selectedFieldIdx === idx;
+                    return (
+                      <div 
+                        key={field.id}
+                        draggable
+                        onDragStart={(e) => handleDragStartCanvas(e, idx)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => { e.stopPropagation(); handleDropCanvas(e, idx); }}
+                        onDragEnd={() => setDraggedIdx(null)}
+                        onClick={(e) => { e.stopPropagation(); setSelectedFieldIdx(idx); setActiveTab('settings'); }}
+                        style={{
+                          position: 'relative',
+                          padding: '1rem',
+                          borderRadius: 8,
+                          border: isSelected ? '2px solid var(--primary)' : '1px solid transparent',
+                          backgroundColor: isSelected ? '#f8fafc' : 'transparent',
+                          cursor: 'pointer',
+                          opacity: draggedIdx === idx ? 0.5 : 1,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {/* Drag Handle Indicator */}
+                        <div style={{ position: 'absolute', top: '50%', left: '-10px', transform: 'translateY(-50%)', color: '#cbd5e1', cursor: 'grab', opacity: isSelected ? 1 : 0, transition: 'opacity 0.2s' }}>
+                          <GripVertical size={20} />
+                        </div>
+                        
+                        {/* Delete Button */}
+                        {isSelected && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); removeField(idx); }}
+                            style={{ position: 'absolute', top: -10, right: -10, background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+
+                        {/* Field Render Preview */}
+                        <div style={{ pointerEvents: 'none' }}> {/* Prevent interaction with preview inputs */}
+                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.25rem' }}>
+                            {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
+                          </label>
+                          {field.description && (
+                            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.5rem 0' }}>{field.description}</p>
+                          )}
+
+                          {/* Dummy UI for preview */}
+                          {field.type === 'textarea' ? (
+                            <div style={{ width: '100%', height: '80px', borderRadius: '0.5rem', border: '1px solid #cbd5e1', backgroundColor: 'white' }} />
+                          ) : field.type === 'select' ? (
+                            <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', backgroundColor: 'white', color: '#94a3b8', fontSize: '0.875rem' }}>Select an option...</div>
+                          ) : field.type === 'radio' ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              {(field.options || []).map((opt, i) => (
+                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#334155' }}>
+                                  <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid #cbd5e1' }} />
+                                  {opt}
+                                </div>
+                              ))}
+                            </div>
+                          ) : field.type === 'checkbox' ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              {(field.options || []).map((opt, i) => (
+                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#334155' }}>
+                                  <div style={{ width: 14, height: 14, borderRadius: 4, border: '1px solid #cbd5e1' }} />
+                                  {opt}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div style={{ width: '100%', height: '42px', borderRadius: '0.5rem', border: '1px solid #cbd5e1', backgroundColor: 'white' }} />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Empty State */}
+                  {(editingForm.fields || []).length === 0 && (
+                    <div style={{ padding: '3rem', textAlign: 'center', border: '2px dashed var(--border)', borderRadius: 8, color: 'var(--muted)' }}>
+                      Drag and drop fields here
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: '2rem' }}>
+                  <button
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      backgroundColor: editingForm.theme_color || '#0f172a',
+                      color: 'white',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      border: 'none',
+                      opacity: 0.9
+                    }}
+                  >
+                    {editingForm.submit_text || 'Submit'}
+                  </button>
+                </div>
+
               </div>
             </div>
 
-            {/* Field Builder Right Col */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Form Fields</h3>
-                <button onClick={addField} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', background: 'var(--muted-bg)', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600 }}>
-                  <Plus size={14} /> Add Field
+            {/* RIGHT COLUMN: SIDEBAR */}
+            <div style={{ width: '360px', borderLeft: '1px solid var(--border)', backgroundColor: 'var(--card-bg)', display: 'flex', flexDirection: 'column' }}>
+              
+              {/* Sidebar Tabs */}
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
+                <button 
+                  onClick={() => setActiveTab('add')}
+                  style={{ flex: 1, padding: '1rem', background: 'transparent', border: 'none', borderBottom: activeTab === 'add' ? '2px solid var(--primary)' : '2px solid transparent', fontWeight: 600, color: activeTab === 'add' ? 'var(--primary)' : 'var(--muted)', cursor: 'pointer' }}
+                >
+                  Add Fields
+                </button>
+                <button 
+                  onClick={() => setActiveTab('settings')}
+                  style={{ flex: 1, padding: '1rem', background: 'transparent', border: 'none', borderBottom: activeTab === 'settings' ? '2px solid var(--primary)' : '2px solid transparent', fontWeight: 600, color: activeTab === 'settings' ? 'var(--primary)' : 'var(--muted)', cursor: 'pointer' }}
+                >
+                  Field Settings
+                </button>
+                <button 
+                  onClick={() => setActiveTab('form')}
+                  style={{ padding: '1rem', background: 'transparent', border: 'none', borderBottom: activeTab === 'form' ? '2px solid var(--primary)' : '2px solid transparent', color: activeTab === 'form' ? 'var(--primary)' : 'var(--muted)', cursor: 'pointer' }}
+                  title="Form Settings"
+                >
+                  <Settings size={20} />
                 </button>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {(editingForm.fields || []).map((field, idx) => (
-                  <div 
-                    key={field.id} 
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, idx)}
-                    onDragEnd={() => setDraggedIdx(null)}
-                    style={{ 
-                      display: 'flex', 
-                      gap: '0.75rem', 
-                      padding: '1rem', 
-                      border: '1px solid var(--border)', 
-                      borderRadius: 8, 
-                      backgroundColor: draggedIdx === idx ? 'var(--card-bg)' : 'var(--muted-bg)',
-                      opacity: draggedIdx === idx ? 0.5 : 1,
-                      cursor: 'grab',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--muted)', cursor: 'grab', paddingRight: '0.5rem' }}>
-                      <GripVertical size={20} />
+              {/* Sidebar Content Area */}
+              <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
+                
+                {/* TAB: ADD FIELDS */}
+                {activeTab === 'add' && (
+                  <div>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>Drag a field to the left to add it, or click to append.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      {FIELD_TYPES.map((field) => (
+                        <div
+                          key={field.type}
+                          draggable
+                          onDragStart={(e) => handleDragStartSidebar(e, field.type)}
+                          onClick={() => handleSidebarClickAdd(field.type)}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            padding: '1.25rem 0.5rem',
+                            backgroundColor: 'var(--muted-bg)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 8,
+                            cursor: 'grab',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                        >
+                          <field.icon size={24} color="#475569" strokeWidth={1.5} />
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#334155', textAlign: 'center' }}>{field.label}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
-                      <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <div style={{ flex: 1 }}>
+                  </div>
+                )}
+
+                {/* TAB: FIELD SETTINGS */}
+                {activeTab === 'settings' && (
+                  <div>
+                    {selectedFieldIdx === null || !editingForm.fields || !editingForm.fields[selectedFieldIdx] ? (
+                      <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>
+                        <p>Select a field on the left to edit its settings.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Field Label</label>
                           <input
                             type="text"
-                            value={field.label}
-                            onChange={e => updateField(idx, { label: e.target.value })}
-                            placeholder="Field Label"
-                            style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid var(--border)' }}
+                            value={editingForm.fields[selectedFieldIdx].label}
+                            onChange={e => updateSelectedField({ label: e.target.value })}
+                            style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
                           />
                         </div>
-                        <div style={{ width: '160px' }}>
-                          <select
-                            value={field.type}
-                            onChange={e => updateField(idx, { type: e.target.value })}
-                            style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid var(--border)' }}
-                          >
-                            <optgroup label="Basic Fields">
-                              <option value="text">Single text line</option>
-                              <option value="textarea">Paragraph text</option>
-                              <option value="name">Name</option>
-                              <option value="email">Email</option>
-                              <option value="phone">Phone</option>
-                            </optgroup>
-                            <optgroup label="Advanced Fields">
-                              <option value="number">Number</option>
-                              <option value="date">Date</option>
-                              <option value="time">Time</option>
-                              <option value="address">Address</option>
-                              <option value="website">Website</option>
-                            </optgroup>
-                            <optgroup label="Choices">
-                              <option value="select">Drop down</option>
-                              <option value="radio">Radio Buttons</option>
-                              <option value="checkbox">Checkboxes</option>
-                            </optgroup>
-                          </select>
+                        
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Field Description</label>
+                          <input
+                            type="text"
+                            placeholder="Optional subtext..."
+                            value={editingForm.fields[selectedFieldIdx].description || ''}
+                            onChange={e => updateSelectedField({ description: e.target.value })}
+                            style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
+                          />
                         </div>
-                      </div>
 
-                      <input
-                        type="text"
-                        value={field.description || ''}
-                        onChange={e => updateField(idx, { description: e.target.value })}
-                        placeholder="Field description (optional subtext)"
-                        style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid var(--border)', fontSize: '0.875rem' }}
-                      />
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.875rem', cursor: 'pointer' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>
                           <input
                             type="checkbox"
-                            checked={field.required}
-                            onChange={e => updateField(idx, { required: e.target.checked })}
+                            checked={editingForm.fields[selectedFieldIdx].required}
+                            onChange={e => updateSelectedField({ required: e.target.checked })}
+                            style={{ width: 16, height: 16 }}
                           />
                           Required Field
                         </label>
-                        
-                        {['select', 'radio', 'checkbox'].includes(field.type) && (
-                          <input
-                            type="text"
-                            placeholder="Options (comma separated)"
-                            value={(field.options || []).join(', ')}
-                            onChange={e => updateField(idx, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                            style={{ padding: '6px', fontSize: '0.875rem', borderRadius: 4, border: '1px solid var(--border)', flex: 1, marginLeft: '1rem' }}
-                          />
+
+                        {['select', 'radio', 'checkbox'].includes(editingForm.fields[selectedFieldIdx].type) && (
+                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Options (Choices)</label>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.75rem' }}>Enter options separated by commas.</p>
+                            <textarea
+                              rows={4}
+                              value={(editingForm.fields[selectedFieldIdx].options || []).join(', ')}
+                              onChange={e => updateSelectedField({ options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                              style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', resize: 'vertical' }}
+                            />
+                          </div>
                         )}
                       </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB: FORM SETTINGS */}
+                {activeTab === 'form' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Form Title</label>
+                      <input
+                        type="text"
+                        value={editingForm.title || ''}
+                        onChange={e => setEditingForm({ ...editingForm, title: e.target.value })}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Form Description</label>
+                      <textarea
+                        value={editingForm.description || ''}
+                        onChange={e => setEditingForm({ ...editingForm, description: e.target.value })}
+                        rows={3}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', resize: 'vertical' }}
+                      />
                     </div>
                     
-                    <button onClick={() => removeField(idx)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}>
-                      <Trash2 size={18} />
-                    </button>
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Submit Button Text</label>
+                      <input
+                        type="text"
+                        value={editingForm.submit_text || ''}
+                        onChange={e => setEditingForm({ ...editingForm, submit_text: e.target.value })}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', marginBottom: '1rem' }}
+                      />
+
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Theme Color</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          type="color"
+                          value={editingForm.theme_color || '#0f172a'}
+                          onChange={e => setEditingForm({ ...editingForm, theme_color: e.target.value })}
+                          style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{editingForm.theme_color || '#0f172a'}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Success Message</label>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.75rem' }}>Shown after submission.</p>
+                      <textarea
+                        value={editingForm.success_message || ''}
+                        onChange={e => setEditingForm({ ...editingForm, success_message: e.target.value })}
+                        rows={3}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', resize: 'vertical' }}
+                      />
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
