@@ -50,6 +50,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { name: "Calendar & Reminders", href: "/dashboard/calendar",        icon: Calendar },
     { name: "Contacts",           href: "/dashboard/contacts",          icon: Database },
     { name: "Documents",          href: "/dashboard/finance",           icon: FileText },
+    { name: "Forms",              href: "/dashboard/forms",             icon: FileText },
     { name: "Packages & Sessions",href: "/dashboard/packages",          icon: Package },
     { name: "Reports",            href: "/dashboard/reports",           icon: PieChart },
     { name: "Automations",        href: "/dashboard/automations",       icon: Zap },
