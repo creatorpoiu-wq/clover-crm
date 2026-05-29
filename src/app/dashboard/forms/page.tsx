@@ -9,6 +9,7 @@ interface FormField {
   label: string;
   description?: string;
   required: boolean;
+  width?: 'full' | 'half';
   options?: string[]; // for select/radio/checkbox
 }
 
@@ -147,6 +148,7 @@ export default function FormsDashboard() {
       type,
       label: defaultLabel,
       required: false,
+      width: 'full',
       options: ['select', 'radio', 'checkbox'].includes(type) ? ['Option 1', 'Option 2'] : undefined
     };
   };
@@ -352,9 +354,10 @@ export default function FormsDashboard() {
                 </div>
 
                 {/* Fields Canvas */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '100px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', minHeight: '100px', alignItems: 'flex-start' }}>
                   {(editingForm.fields || []).map((field, idx) => {
                     const isSelected = selectedFieldIdx === idx;
+                    const isHalf = field.width === 'half';
                     return (
                       <div 
                         key={field.id}
@@ -372,7 +375,9 @@ export default function FormsDashboard() {
                           backgroundColor: isSelected ? '#f8fafc' : 'transparent',
                           cursor: 'pointer',
                           opacity: draggedIdx === idx ? 0.5 : 1,
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          flex: isHalf ? '1 1 calc(50% - 0.5rem)' : '1 1 100%',
+                          minWidth: isHalf ? '200px' : '100%'
                         }}
                       >
                         {/* Drag Handle Indicator */}
@@ -563,6 +568,24 @@ export default function FormsDashboard() {
                           />
                           Required Field
                         </label>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Field Width</label>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button 
+                              onClick={() => updateSelectedField({ width: 'full' })}
+                              style={{ flex: 1, padding: '8px', border: editingForm.fields[selectedFieldIdx].width !== 'half' ? '2px solid var(--primary)' : '1px solid var(--border)', backgroundColor: 'transparent', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Full Width
+                            </button>
+                            <button 
+                              onClick={() => updateSelectedField({ width: 'half' })}
+                              style={{ flex: 1, padding: '8px', border: editingForm.fields[selectedFieldIdx].width === 'half' ? '2px solid var(--primary)' : '1px solid var(--border)', backgroundColor: 'transparent', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Half Width
+                            </button>
+                          </div>
+                        </div>
 
                         {['select', 'radio', 'checkbox'].includes(editingForm.fields[selectedFieldIdx].type) && (
                           <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>

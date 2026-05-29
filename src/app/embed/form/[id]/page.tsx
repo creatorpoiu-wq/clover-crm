@@ -93,80 +93,83 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
       
       {error && <div style={{ padding: '1rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {(formConfig.fields || []).map((field: any) => (
-          <div key={field.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>
-              {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
-            </label>
-            {field.description && (
-              <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>{field.description}</p>
-            )}
-            
-            {field.type === 'textarea' ? (
-              <textarea
-                required={field.required}
-                value={formData[field.id] || ''}
-                onChange={e => handleFieldChange(field.id, e.target.value)}
-                rows={4}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', resize: 'vertical' }}
-              />
-            ) : field.type === 'select' ? (
-              <select
-                required={field.required}
-                value={formData[field.id] || ''}
-                onChange={e => handleFieldChange(field.id, e.target.value)}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: 'white' }}
-              >
-                <option value="" disabled>Select an option...</option>
-                {(field.options || []).map((opt: string) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            ) : field.type === 'radio' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {(field.options || []).map((opt: string) => (
-                  <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name={field.id}
-                      value={opt}
-                      checked={formData[field.id] === opt}
-                      onChange={e => handleFieldChange(field.id, e.target.value)}
-                      required={field.required && !formData[field.id]}
-                    />
-                    {opt}
-                  </label>
-                ))}
-              </div>
-            ) : field.type === 'checkbox' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {(field.options || []).map((opt: string) => (
-                  <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      name={field.id}
-                      value={opt}
-                      checked={(formData[field.id] || []).includes(opt)}
-                      onChange={e => handleCheckboxChange(field.id, opt, e.target.checked)}
-                    />
-                    {opt}
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <input
-                type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : field.type === 'date' ? 'date' : field.type === 'time' ? 'time' : field.type === 'number' ? 'number' : field.type === 'website' ? 'url' : 'text'}
-                required={field.required}
-                value={formData[field.id] || ''}
-                onChange={e => handleFieldChange(field.id, e.target.value)}
-                pattern={field.type === 'phone' ? '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$' : undefined}
-                title={field.type === 'phone' ? 'Please enter a valid phone number' : undefined}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit' }}
-              />
-            )}
-          </div>
-        ))}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+        {(formConfig.fields || []).map((field: any) => {
+          const isHalf = field.width === 'half';
+          return (
+            <div key={field.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: isHalf ? '1 1 calc(50% - 0.75rem)' : '1 1 100%', minWidth: isHalf ? '200px' : '100%' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>
+                {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
+              </label>
+              {field.description && (
+                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>{field.description}</p>
+              )}
+              
+              {field.type === 'textarea' ? (
+                <textarea
+                  required={field.required}
+                  value={formData[field.id] || ''}
+                  onChange={e => handleFieldChange(field.id, e.target.value)}
+                  rows={4}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', resize: 'vertical' }}
+                />
+              ) : field.type === 'select' ? (
+                <select
+                  required={field.required}
+                  value={formData[field.id] || ''}
+                  onChange={e => handleFieldChange(field.id, e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: 'white' }}
+                >
+                  <option value="" disabled>Select an option...</option>
+                  {(field.options || []).map((opt: string) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              ) : field.type === 'radio' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {(field.options || []).map((opt: string) => (
+                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name={field.id}
+                        value={opt}
+                        checked={formData[field.id] === opt}
+                        onChange={e => handleFieldChange(field.id, e.target.value)}
+                        required={field.required && !formData[field.id]}
+                      />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+              ) : field.type === 'checkbox' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {(field.options || []).map((opt: string) => (
+                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        name={field.id}
+                        value={opt}
+                        checked={(formData[field.id] || []).includes(opt)}
+                        onChange={e => handleCheckboxChange(field.id, opt, e.target.checked)}
+                      />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : field.type === 'date' ? 'date' : field.type === 'time' ? 'time' : field.type === 'number' ? 'number' : field.type === 'website' ? 'url' : 'text'}
+                  required={field.required}
+                  value={formData[field.id] || ''}
+                  onChange={e => handleFieldChange(field.id, e.target.value)}
+                  pattern={field.type === 'phone' ? '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$' : undefined}
+                  title={field.type === 'phone' ? 'Please enter a valid phone number' : undefined}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit' }}
+                />
+              )}
+            </div>
+          );
+        })}
 
         <button
           type="submit"
