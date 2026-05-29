@@ -1,7 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 
-export default function FormEmbedPage({ params }: { params: { id: string } }) {
+export default function FormEmbedPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = React.use(params);
+  
   const [formConfig, setFormConfig] = useState<any>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -10,7 +12,7 @@ export default function FormEmbedPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`/api/forms/${params.id}?public=true`)
+    fetch(`/api/forms/${resolvedParams.id}?public=true`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -26,7 +28,7 @@ export default function FormEmbedPage({ params }: { params: { id: string } }) {
       })
       .catch(() => setError('Error loading form.'))
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +39,7 @@ export default function FormEmbedPage({ params }: { params: { id: string } }) {
       const res = await fetch('/api/public-forms/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formId: params.id, formData })
+        body: JSON.stringify({ formId: resolvedParams.id, formData })
       });
       const data = await res.json();
       if (data.success) {

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient();
+    const params = await context.params;
     
     // Check if the route includes ?public=true for the embed page
     const url = new URL(req.url);
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     const { data, error } = await supabase
       .from('Forms')
       .select('*')
-      .eq('id', context.params.id)
+      .eq('id', params.id)
       .single();
 
     if (error) throw error;
@@ -48,9 +49,10 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
   }
 }
 
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient();
+    const params = await context.params;
     const { data: userAuth } = await supabase.auth.getUser();
     
     if (!userAuth.user) {
@@ -70,7 +72,7 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
         submit_text,
         success_message,
       })
-      .eq('id', context.params.id)
+      .eq('id', params.id)
       .eq('user_id', userAuth.user.id)
       .select()
       .single();
@@ -83,9 +85,10 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
   }
 }
 
-export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient();
+    const params = await context.params;
     const { data: userAuth } = await supabase.auth.getUser();
     
     if (!userAuth.user) {
@@ -95,7 +98,7 @@ export async function DELETE(req: NextRequest, context: { params: { id: string }
     const { error } = await supabase
       .from('Forms')
       .delete()
-      .eq('id', context.params.id)
+      .eq('id', params.id)
       .eq('user_id', userAuth.user.id);
 
     if (error) throw error;
