@@ -102,6 +102,57 @@ export async function POST(req: NextRequest) {
       Notes: `Submitted form: ${form.title}`
     });
 
+    // 5. Send Email Notification to CRM Owner
+    try {
+      const { data: config } = await supabase
+        .from('AppConfig')
+        .select('Email_User, Email_Pass, Company_Name')
+        .eq('user_id', userId)
+        .single();
+
+      if (config && config.Email_User && config.Email_Pass) {
+        const nodemailer = require('nodemailer');
+        const transporter = nodemailer.createTransport({ 
+          service: 'gmail', 
+          auth: { user: config.Email_User, pass: config.Email_Pass } 
+        });
+        
+        const companyName = config.Company_Name || 'Your CRM';
+        
+        let htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+          <h2 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">New Form Submission: ${form.title}</h2>
+          <p style="font-size: 16px;">You have received a new inquiry from <strong>${name}</strong> (${actualEmail}).</p>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <tbody>`;
+        
+        for (const [key, value] of Object.entries(formData)) {
+          htmlBody += `
+            <tr>
+              <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold; width: 30%; color: #64748b;">${key}</td>
+              <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${value}</td>
+            </tr>`;
+        }
+        
+        htmlBody += `
+            </tbody>
+          </table>
+          <div style="margin-top: 30px;">
+            <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://clover-crm.vercel.app'}/dashboard/pipeline" style="background-color: #4da685; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View in Pipeline</a>
+          </div>
+        </div>`;
+
+        await transporter.sendMail({
+          from: `"${companyName} Notifications" <${config.Email_User}>`,
+          to: config.Email_User, // send to self
+          subject: `New Inquiry: ${form.title} - ${name}`,
+          html: htmlBody
+        });
+      }
+    } catch (emailErr) {
+      console.error('Failed to send notification email:', emailErr);
+      // Don't throw error to client if email fails, just log it.
+    }
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Public Form Submit Error:', error);
