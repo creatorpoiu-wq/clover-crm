@@ -160,6 +160,8 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                 required={field.required}
                 value={formData[field.id] || ''}
                 onChange={e => handleFieldChange(field.id, e.target.value)}
+                pattern={field.type === 'phone' ? '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$' : undefined}
+                title={field.type === 'phone' ? 'Please enter a valid phone number' : undefined}
                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit' }}
               />
             )}

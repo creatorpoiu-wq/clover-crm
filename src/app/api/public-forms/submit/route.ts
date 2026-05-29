@@ -18,10 +18,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing formId or formData' }, { status: 400 });
     }
 
-    // 1. Fetch form to get user_id and verify it exists
+    // 1. Fetch form to get user_id, title, and fields array
     const { data: form, error: formError } = await supabase
       .from('Forms')
-      .select('user_id, title')
+      .select('user_id, title, fields')
       .eq('id', formId)
       .single();
 
@@ -119,26 +119,67 @@ export async function POST(req: NextRequest) {
         
         const companyName = config.Company_Name || 'Your CRM';
         
-        let htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-          <h2 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">New Form Submission: ${form.title}</h2>
-          <p style="font-size: 16px;">You have received a new inquiry from <strong>${name}</strong> (${actualEmail}).</p>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <tbody>`;
+        let htmlBody = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #334155;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+            
+            <!-- Header -->
+            <div style="background-color: #0f172a; padding: 30px; text-align: center;">
+              <h2 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">New Form Submission</h2>
+              <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 15px;">${form.title}</p>
+            </div>
+
+            <!-- Body -->
+            <div style="padding: 40px 30px;">
+              <p style="font-size: 16px; margin-top: 0; margin-bottom: 24px; line-height: 1.5;">
+                You have received a new inquiry from <strong>${name}</strong> (<a href="mailto:${actualEmail}" style="color: #3b82f6; text-decoration: none;">${actualEmail}</a>).
+              </p>
+              
+              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tbody>`;
         
+        // Map field IDs to their actual labels
+        const fieldMap: Record<string, string> = {};
+        if (form.fields) {
+          form.fields.forEach((f: any) => {
+            fieldMap[f.id] = f.label;
+          });
+        }
+        
+        let isEven = false;
         for (const [key, value] of Object.entries(formData)) {
           const displayValue = Array.isArray(value) ? value.join(', ') : value;
+          const label = fieldMap[key] || key;
+          const bg = isEven ? '#f8fafc' : '#ffffff';
+          
           htmlBody += `
-            <tr>
-              <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold; width: 30%; color: #64748b;">${key}</td>
-              <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${displayValue}</td>
-            </tr>`;
+                    <tr style="background-color: ${bg};">
+                      <td style="padding: 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; width: 35%; color: #475569; vertical-align: top; font-size: 14px;">${label}</td>
+                      <td style="padding: 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; vertical-align: top; font-size: 15px;">${displayValue}</td>
+                    </tr>`;
+          isEven = !isEven;
         }
         
         htmlBody += `
-            </tbody>
-          </table>
-          <div style="margin-top: 30px;">
-            <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://clover-crm.vercel.app'}/dashboard/pipeline" style="background-color: #4da685; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View in Pipeline</a>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Action -->
+              <div style="margin-top: 36px; text-align: center;">
+                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://clover-crm.vercel.app'}/dashboard/pipeline" 
+                   style="background-color: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
+                  View in Pipeline
+                </a>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #f1f5f9; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="font-size: 13px; color: #64748b; margin: 0;">Sent securely via ${companyName} CRM</p>
+            </div>
+
           </div>
         </div>`;
 
