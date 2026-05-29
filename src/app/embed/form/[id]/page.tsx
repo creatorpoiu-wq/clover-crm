@@ -5,7 +5,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
   const resolvedParams = React.use(params);
   
   const [formConfig, setFormConfig] = useState<any>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -17,9 +17,9 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
       .then(data => {
         if (data.success) {
           setFormConfig(data.form);
-          const initialData: Record<string, string> = {};
+          const initialData: Record<string, any> = {};
           (data.form.fields || []).forEach((f: any) => {
-            initialData[f.id] = '';
+            initialData[f.id] = f.type === 'checkbox' ? [] : '';
           });
           setFormData(initialData);
         } else {
@@ -54,8 +54,19 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  const handleFieldChange = (id: string, value: string) => {
+  const handleFieldChange = (id: string, value: any) => {
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleCheckboxChange = (id: string, value: string, checked: boolean) => {
+    setFormData(prev => {
+      const current = Array.isArray(prev[id]) ? prev[id] : [];
+      if (checked) {
+        return { ...prev, [id]: [...current, value] };
+      } else {
+        return { ...prev, [id]: current.filter((v: string) => v !== value) };
+      }
+    });
   };
 
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif', color: '#64748b' }}>Loading form...</div>;
@@ -88,6 +99,9 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
             <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>
               {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
             </label>
+            {field.description && (
+              <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>{field.description}</p>
+            )}
             
             {field.type === 'textarea' ? (
               <textarea
@@ -109,9 +123,40 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
+            ) : field.type === 'radio' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {(field.options || []).map((opt: string) => (
+                  <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name={field.id}
+                      value={opt}
+                      checked={formData[field.id] === opt}
+                      onChange={e => handleFieldChange(field.id, e.target.value)}
+                      required={field.required && !formData[field.id]}
+                    />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+            ) : field.type === 'checkbox' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {(field.options || []).map((opt: string) => (
+                  <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      name={field.id}
+                      value={opt}
+                      checked={(formData[field.id] || []).includes(opt)}
+                      onChange={e => handleCheckboxChange(field.id, opt, e.target.checked)}
+                    />
+                    {opt}
+                  </label>
+                ))}
+              </div>
             ) : (
               <input
-                type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : field.type === 'date' ? 'date' : 'text'}
+                type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : field.type === 'date' ? 'date' : field.type === 'time' ? 'time' : field.type === 'number' ? 'number' : field.type === 'website' ? 'url' : 'text'}
                 required={field.required}
                 value={formData[field.id] || ''}
                 onChange={e => handleFieldChange(field.id, e.target.value)}

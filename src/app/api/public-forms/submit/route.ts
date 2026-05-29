@@ -126,10 +126,11 @@ export async function POST(req: NextRequest) {
             <tbody>`;
         
         for (const [key, value] of Object.entries(formData)) {
+          const displayValue = Array.isArray(value) ? value.join(', ') : value;
           htmlBody += `
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold; width: 30%; color: #64748b;">${key}</td>
-              <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${value}</td>
+              <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${displayValue}</td>
             </tr>`;
         }
         

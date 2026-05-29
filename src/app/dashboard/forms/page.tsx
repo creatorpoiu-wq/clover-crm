@@ -7,8 +7,9 @@ interface FormField {
   id: string;
   type: string;
   label: string;
+  description?: string;
   required: boolean;
-  options?: string[]; // for select type
+  options?: string[]; // for select/radio/checkbox
 }
 
 interface Form {
@@ -348,21 +349,42 @@ export default function FormsDashboard() {
                             style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid var(--border)' }}
                           />
                         </div>
-                        <div style={{ width: '120px' }}>
+                        <div style={{ width: '160px' }}>
                           <select
                             value={field.type}
                             onChange={e => updateField(idx, { type: e.target.value })}
                             style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid var(--border)' }}
                           >
-                            <option value="text">Short Text</option>
-                            <option value="email">Email</option>
-                            <option value="phone">Phone</option>
-                            <option value="textarea">Long Text</option>
-                            <option value="date">Date</option>
-                            <option value="select">Dropdown</option>
+                            <optgroup label="Basic Fields">
+                              <option value="text">Single text line</option>
+                              <option value="textarea">Paragraph text</option>
+                              <option value="name">Name</option>
+                              <option value="email">Email</option>
+                              <option value="phone">Phone</option>
+                            </optgroup>
+                            <optgroup label="Advanced Fields">
+                              <option value="number">Number</option>
+                              <option value="date">Date</option>
+                              <option value="time">Time</option>
+                              <option value="address">Address</option>
+                              <option value="website">Website</option>
+                            </optgroup>
+                            <optgroup label="Choices">
+                              <option value="select">Drop down</option>
+                              <option value="radio">Radio Buttons</option>
+                              <option value="checkbox">Checkboxes</option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
+
+                      <input
+                        type="text"
+                        value={field.description || ''}
+                        onChange={e => updateField(idx, { description: e.target.value })}
+                        placeholder="Field description (optional subtext)"
+                        style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid var(--border)', fontSize: '0.875rem' }}
+                      />
                       
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.875rem', cursor: 'pointer' }}>
@@ -374,13 +396,13 @@ export default function FormsDashboard() {
                           Required Field
                         </label>
                         
-                        {field.type === 'select' && (
+                        {['select', 'radio', 'checkbox'].includes(field.type) && (
                           <input
                             type="text"
                             placeholder="Options (comma separated)"
                             value={(field.options || []).join(', ')}
                             onChange={e => updateField(idx, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                            style={{ padding: '6px', fontSize: '0.875rem', borderRadius: 4, border: '1px solid var(--border)', width: '200px' }}
+                            style={{ padding: '6px', fontSize: '0.875rem', borderRadius: 4, border: '1px solid var(--border)', flex: 1, marginLeft: '1rem' }}
                           />
                         )}
                       </div>
