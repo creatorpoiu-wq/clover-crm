@@ -30,6 +30,7 @@ export default function FormsDashboard() {
   const [saving, setSaving] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [embedModalOpen, setEmbedModalOpen] = useState<string | null>(null); // form id
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   const hostUrl = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
 
@@ -135,6 +136,34 @@ export default function FormsDashboard() {
     const newFields = [...editingForm.fields];
     newFields.splice(index, 1);
     setEditingForm({ ...editingForm, fields: newFields });
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index);
+    // To make the drag effect look nice
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === dropIndex || !editingForm || !editingForm.fields) return;
+
+    const newFields = [...editingForm.fields];
+    const draggedItem = newFields[draggedIdx];
+    
+    // Remove from old position
+    newFields.splice(draggedIdx, 1);
+    // Insert at new position
+    newFields.splice(dropIndex, 0, draggedItem);
+    
+    setEditingForm({ ...editingForm, fields: newFields });
+    setDraggedIdx(null);
   };
 
   if (loading && view === 'list') return <div style={{ padding: '2rem' }}>Loading forms...</div>;
@@ -286,7 +315,28 @@ export default function FormsDashboard() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {(editingForm.fields || []).map((field, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: '0.75rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: 8, backgroundColor: 'var(--muted-bg)' }}>
+                  <div 
+                    key={field.id} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, idx)}
+                    onDragEnd={() => setDraggedIdx(null)}
+                    style={{ 
+                      display: 'flex', 
+                      gap: '0.75rem', 
+                      padding: '1rem', 
+                      border: '1px solid var(--border)', 
+                      borderRadius: 8, 
+                      backgroundColor: draggedIdx === idx ? 'var(--card-bg)' : 'var(--muted-bg)',
+                      opacity: draggedIdx === idx ? 0.5 : 1,
+                      cursor: 'grab',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--muted)', cursor: 'grab', paddingRight: '0.5rem' }}>
+                      <GripVertical size={20} />
+                    </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
                       <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <div style={{ flex: 1 }}>
