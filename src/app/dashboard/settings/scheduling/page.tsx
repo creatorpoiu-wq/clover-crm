@@ -32,6 +32,50 @@ const DEFAULT_SETTINGS: SchedulingSettings = {
 
 const DAYS_OF_WEEK = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
+const TimePicker = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
+  const [h, m] = value.split(':');
+  const hour24 = parseInt(h) || 9;
+  const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+  const ampm = hour24 >= 12 ? 'PM' : 'AM';
+  
+  const handleHour = (newHour12: number, newAmPm: string) => {
+    let newHour24 = newHour12;
+    if (newAmPm === 'PM' && newHour12 !== 12) newHour24 += 12;
+    if (newAmPm === 'AM' && newHour12 === 12) newHour24 = 0;
+    onChange(`${newHour24.toString().padStart(2, '0')}:${m}`);
+  };
+
+  const handleMin = (newMin: string) => onChange(`${h.padStart(2, '0')}:${newMin}`);
+  
+  return (
+    <div style={{ display: 'flex', gap: '2px', alignItems: 'center', backgroundColor: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.375rem', padding: '0.125rem' }}>
+      <select 
+        value={hour12} 
+        onChange={e => handleHour(parseInt(e.target.value), ampm)} 
+        style={{ padding: '0.25rem', border: 'none', background: 'transparent', outline: 'none', appearance: 'none', textAlign: 'center', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}
+      >
+        {[1,2,3,4,5,6,7,8,9,10,11,12].map(num => <option key={num} value={num}>{num}</option>)}
+      </select>
+      <span style={{ color: 'var(--muted)', fontWeight: 700 }}>:</span>
+      <select 
+        value={m} 
+        onChange={e => handleMin(e.target.value)} 
+        style={{ padding: '0.25rem', border: 'none', background: 'transparent', outline: 'none', appearance: 'none', textAlign: 'center', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}
+      >
+        {['00','15','30','45'].map(num => <option key={num} value={num}>{num}</option>)}
+      </select>
+      <select 
+        value={ampm} 
+        onChange={e => handleHour(hour12, e.target.value)} 
+        style={{ padding: '0.25rem 0.5rem', border: 'none', background: 'var(--muted-bg)', borderRadius: '0.25rem', outline: 'none', appearance: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', color: 'var(--primary)' }}
+      >
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
+    </div>
+  );
+};
+
 export default function SchedulingSettingsPage() {
   const [settings, setSettings] = useState<SchedulingSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -153,18 +197,14 @@ export default function SchedulingSettingsPage() {
 
                     {dayData.enabled ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <input 
-                          type="time" 
+                        <TimePicker 
                           value={slot.start} 
-                          onChange={(e) => updateTime(day, "start", e.target.value)}
-                          style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--border)', background: 'transparent' }}
+                          onChange={(val) => updateTime(day, "start", val)} 
                         />
-                        <span style={{ color: 'var(--muted)' }}>-</span>
-                        <input 
-                          type="time" 
+                        <span style={{ color: 'var(--muted)' }}>to</span>
+                        <TimePicker 
                           value={slot.end} 
-                          onChange={(e) => updateTime(day, "end", e.target.value)}
-                          style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--border)', background: 'transparent' }}
+                          onChange={(val) => updateTime(day, "end", val)} 
                         />
                       </div>
                     ) : (
