@@ -385,6 +385,30 @@ select:focus {
   color: #4da685;
 }
 
+.sub-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem 0.6rem 3rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 13px;
+  color: #71717a;
+  text-decoration: none;
+}
+
+.sub-nav-item:hover {
+  background-color: #f9fafb;
+  color: #244d3e;
+}
+
+.sub-nav-item.active {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 600;
+}
+
 .sidebar-footer {
   padding: 1rem;
   border-top: 1px solid #f0efe9;

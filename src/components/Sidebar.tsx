@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle, PieChart, Clock } from "lucide-react";
+import { 
+  LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, 
+  MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle, PieChart, 
+  Clock, ChevronDown, ChevronUp, Users, PenTool, LayoutTemplate, HelpCircle, User
+} from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface SidebarProps {
@@ -11,12 +15,22 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+type NavItem = {
+  name: string;
+  href?: string;
+  icon?: any;
+  subItems?: { name: string; href: string; external?: boolean }[];
+};
+
 export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [companyName, setCompanyName] = useState("Clover");
   const [businessLogo, setBusinessLogo] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+
+  // Expanded states for accordions
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const supabase = createClient();
@@ -26,7 +40,6 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         return;
       }
       setUserId(user.id);
-      // Load company name from API
       fetch('/api/settings').then(r => r.json()).then(data => {
         if (data.config?.companyName) setCompanyName(data.config.companyName);
         if (data.config?.businessLogo) setBusinessLogo(data.config.businessLogo);
@@ -40,150 +53,181 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     router.push("/login");
   };
 
-  const [bookingExpanded, setBookingExpanded] = useState(false);
-  const [emailExpanded, setEmailExpanded] = useState(false);
+  const toggleExpand = (name: string) => {
+    setExpanded(prev => ({ ...prev, [name]: !prev[name] }));
+  };
 
-  const navItems = [
-    { name: "Dashboard",          href: "/dashboard",                   icon: LayoutDashboard },
-    { name: "Inbox & Hub",        href: "/dashboard/hub",               icon: MessageCircle },
-    { name: "Projects",           href: "/dashboard/pipeline",          icon: Kanban },
-    { name: "Calendar & Reminders", href: "/dashboard/calendar",        icon: Calendar },
-    { name: "Availability",       href: "/dashboard/settings/scheduling", icon: Clock },
-    { name: "Contacts",           href: "/dashboard/contacts",          icon: Database },
-    { name: "Documents",          href: "/dashboard/finance",           icon: FileText },
-    { name: "Forms",              href: "/dashboard/forms",             icon: FileText },
-    { name: "Packages & Sessions",href: "/dashboard/packages",          icon: Package },
-    { name: "Reports",            href: "/dashboard/reports",           icon: PieChart },
-    { name: "Automations",        href: "/dashboard/automations",       icon: Zap },
-    { name: "AI Agents",          href: "/dashboard/agents",            icon: Zap },
+  const topGroup: NavItem[] = [
+    { name: "Home", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Projects", href: "/dashboard/pipeline", icon: Kanban },
+    { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   ];
+
+  const middleGroup: NavItem[] = [
+    { name: "Contacts", href: "/dashboard/contacts", icon: Users },
+    { 
+      name: "Lead capture", icon: Zap,
+      subItems: [
+        { name: "Inbox & Hub", href: "/dashboard/hub" },
+        { name: "Forms", href: "/dashboard/forms" },
+        { name: "Wedding Funnel", href: userId ? `/booking?userId=${userId}` : '/booking', external: true },
+        { name: "Portrait Funnel", href: userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry', external: true }
+      ]
+    },
+    { 
+      name: "Files", icon: FileText,
+      subItems: [
+        { name: "Documents", href: "/dashboard/finance" },
+      ]
+    },
+    { 
+      name: "Services", icon: Package,
+      subItems: [
+        { name: "Packages & Sessions", href: "/dashboard/packages" }
+      ]
+    },
+    { 
+      name: "Templates", icon: LayoutTemplate,
+      subItems: [
+        { name: "Email Templates", href: "/dashboard/templates" },
+        { name: "Email Design", href: "/dashboard/email-settings" },
+        { name: "Questionnaires", href: "/dashboard/questionnaire" }
+      ]
+    },
+    { 
+      name: "Finance", icon: DollarSign,
+      subItems: [
+        { name: "Overview & Invoices", href: "/dashboard/finance" }
+      ]
+    },
+    { 
+      name: "Tools", icon: PenTool,
+      subItems: [
+        { name: "AI Agents", href: "/dashboard/agents" },
+        { name: "Availability", href: "/dashboard/settings/scheduling" }
+      ]
+    },
+    { 
+      name: "Automations", icon: Zap,
+      subItems: [
+        { name: "All", href: "/dashboard/automations" },
+        { name: "Activity", href: "/dashboard/automations#activity" }
+      ]
+    },
+    { name: "Reports", href: "/dashboard/reports", icon: PieChart },
+  ];
+
+  const renderNavGroup = (items: NavItem[]) => {
+    return items.map((item) => {
+      const Icon = item.icon;
+      
+      if (item.subItems) {
+        // Accordion Item
+        const isExpanded = expanded[item.name];
+        const isChildActive = item.subItems.some(sub => pathname.startsWith(sub.href.split('?')[0]) && sub.href !== '/dashboard');
+        
+        // Auto-expand if a child is active and we haven't manually toggled it
+        // (Just a UX nicety, but let's keep it simple with state)
+        
+        return (
+          <div key={item.name} style={{ display: 'flex', flexDirection: 'column' }}>
+            <button 
+              onClick={() => toggleExpand(item.name)} 
+              className={`nav-item ${isChildActive && !isExpanded ? "active" : ""}`}
+              style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', padding: '10px 16px' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {Icon && <Icon size={18} strokeWidth={2} />}
+                {item.name}
+              </div>
+              <span style={{ display: 'flex', alignItems: 'center', opacity: 0.5 }}>
+                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </span>
+            </button>
+            
+            {isExpanded && (
+              <div style={{ display: 'flex', flexDirection: 'column', marginTop: '2px', marginBottom: '4px' }}>
+                {item.subItems.map(sub => {
+                  const isActive = pathname === sub.href.split('?')[0];
+                  return (
+                    <Link 
+                      key={sub.name} 
+                      href={sub.href} 
+                      onClick={onClose}
+                      target={sub.external ? "_blank" : undefined}
+                      className={`sub-nav-item ${isActive ? 'active' : ''}`}
+                    >
+                      <span>{sub.name}</span>
+                      {sub.external && <ExternalLink size={12} style={{ opacity: 0.4 }} />}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // Standard Item
+      const isActive = item.href ? pathname === item.href.split('?')[0] : false;
+      return (
+        <Link
+          key={item.name}
+          href={item.href || '#'}
+          onClick={onClose}
+          className={`nav-item ${isActive ? "active" : ""}`}
+          style={{ padding: '10px 16px' }}
+        >
+          {Icon && <Icon size={18} strokeWidth={2} />}
+          {item.name}
+        </Link>
+      );
+    });
+  };
 
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
-      <div className="sidebar-header">
+      <div className="sidebar-header" style={{ padding: '24px 20px' }}>
         {businessLogo ? (
           <div style={{ display: 'flex', alignItems: 'center', height: '32px' }}>
             <img src={businessLogo} alt={companyName} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
           </div>
         ) : (
-          <h1 className="sidebar-title">
+          <h1 className="sidebar-title" style={{ fontSize: '1.5rem', margin: 0 }}>
             {companyName.toLowerCase()}<span style={{ color: '#4da685' }}>.</span>
           </h1>
         )}
       </div>
 
-      <nav className="sidebar-nav">
-        {navItems.slice(0, 5).map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              onClick={onClose}
-              className={`nav-item ${isActive ? "active" : ""}`}
-            >
-              <Icon size={18} strokeWidth={2} />
-              {item.name}
-            </Link>
-          );
-        })}
-
-        <div style={{ marginTop: '1rem', marginBottom: '0.25rem', paddingLeft: '1rem', fontSize: '11px', fontWeight: 700, color: '#a0a0a0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          Tools
-        </div>
-
-        {navItems.slice(5).map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              onClick={onClose}
-              className={`nav-item ${isActive ? "active" : ""}`}
-            >
-              <Icon size={18} strokeWidth={2} />
-              {item.name}
-            </Link>
-          );
-        })}
-
-        {/* Email Expandable */}
-        <div style={{ marginTop: '4px' }}>
-          <button 
-            onClick={() => setEmailExpanded(!emailExpanded)} 
-            className={`nav-item ${pathname.includes('templates') || pathname.includes('email-settings') ? "active" : ""}`}
-            style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <MailOpen size={18} strokeWidth={2} />
-              Email
-            </div>
-            <span style={{ fontSize: 12 }}>{emailExpanded ? '▼' : '▶'}</span>
-          </button>
-          
-          {emailExpanded && (
-            <div style={{ paddingLeft: 32, display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-              <Link href="/dashboard/templates" onClick={onClose} className={`nav-item ${pathname === '/dashboard/templates' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Email Templates
-              </Link>
-              <Link href="/dashboard/email-settings" onClick={onClose} className={`nav-item ${pathname === '/dashboard/email-settings' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Email Design
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Booking Funnels Expandable */}
-        <div style={{ marginTop: 'auto' }}>
-          <button 
-            onClick={() => setBookingExpanded(!bookingExpanded)} 
-            className={`nav-item ${pathname.includes('booking') || pathname.includes('questionnaire') || pathname.includes('portrait') ? "active" : ""}`}
-            style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <ExternalLink size={18} strokeWidth={2} />
-              Booking Funnels
-            </div>
-            <span style={{ fontSize: 12 }}>{bookingExpanded ? '▼' : '▶'}</span>
-          </button>
-          
-          {bookingExpanded && (
-            <div style={{ paddingLeft: 32, display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-              <Link href="/dashboard/questionnaire" onClick={onClose} className={`nav-item ${pathname === '/dashboard/questionnaire' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Questionnaire Builder
-              </Link>
-              <Link href="/dashboard/portrait-settings" onClick={onClose} className={`nav-item ${pathname === '/dashboard/portrait-settings' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Portrait Funnel Settings
-              </Link>
-              <Link href="/dashboard/booking" onClick={onClose} className={`nav-item ${pathname === '/dashboard/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Wedding Funnel Settings
-              </Link>
-              <Link href={userId ? `/booking?userId=${userId}` : '/booking'} onClick={onClose} target="_blank" className={`nav-item ${pathname === '/booking' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Live Wedding Funnel</span>
-                <ExternalLink size={14} style={{ opacity: 0.5 }} />
-              </Link>
-              <Link href={userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry'} onClick={onClose} className={`nav-item ${pathname === '/portrait/inquiry' ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: 13, minHeight: 'auto' }}>
-                Live Portrait Funnel
-              </Link>
-            </div>
-          )}
-        </div>
+      <nav className="sidebar-nav" style={{ padding: '0 12px 24px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
+        {renderNavGroup(topGroup)}
+        
+        <hr style={{ margin: '12px 16px', border: 'none', borderTop: '1px solid var(--border)', opacity: 0.6 }} />
+        
+        {renderNavGroup(middleGroup)}
       </nav>
 
-      <div className="sidebar-footer">
-        <Link href="/dashboard/settings" onClick={onClose} className="sidebar-btn" style={{ textDecoration: "none" }}>
+      <div className="sidebar-footer" style={{ padding: '12px', marginTop: 'auto', borderTop: 'none' }}>
+        <Link href="#" onClick={onClose} className="sidebar-btn" style={{ textDecoration: "none", padding: '10px 16px' }}>
+          <HelpCircle size={18} />
+          Resources
+        </Link>
+        <Link href="/dashboard/settings" onClick={onClose} className="sidebar-btn" style={{ textDecoration: "none", padding: '10px 16px' }}>
           <Settings size={18} />
           Settings
         </Link>
-        <button 
-          onClick={handleLogout}
-          className="sidebar-btn btn-danger"
-        >
-          <LogOut size={18} />
-          Logout
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', marginTop: '8px', borderTop: '1px solid var(--border)' }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: '12px' }}>
+            <User size={16} />
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--foreground)' }}>Admin</span>
+            <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Logout</span>
+          </div>
+          <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px' }}>
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
     </div>
   );
