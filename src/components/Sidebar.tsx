@@ -103,7 +103,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { 
       name: "Tools", icon: PenTool,
       subItems: [
-        { name: "AI Agents", href: "/dashboard/agents" },
+        { name: "Team", href: "/dashboard/agents" },
         { name: "Availability", href: "/dashboard/settings/scheduling" }
       ]
     },

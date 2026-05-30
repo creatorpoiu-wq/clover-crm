@@ -79,7 +79,7 @@ export default function AgentsPage() {
     <div className="animate-fade-in" style={{ paddingBottom: '4rem', maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2.5rem" }}>
         <div>
-          <h1 className="page-title">AI Team Agents</h1>
+          <h1 className="page-title">Team</h1>
           <p className="page-subtitle" style={{ margin: 0 }}>Configure the autonomous personas that interact with your clients.</p>
         </div>
         <button 
