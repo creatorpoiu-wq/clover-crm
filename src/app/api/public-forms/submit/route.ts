@@ -98,6 +98,13 @@ export async function POST(req: NextRequest) {
     // Trigger automations for form submission
     runAutomations('form_submitted', { inquiryId: newInquiry.Inquiry_ID }).catch(console.error);
 
+    // Auto-trigger AI draft so Kasey drafts a warm welcome reply (fire and forget)
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inquiryId: newInquiry.Inquiry_ID }),
+    }).catch((e) => console.error('AI draft auto-trigger (form) failed:', e));
+
     // 4. Log Communication
     await supabase.from('Communications').insert({
       user_id: userId,

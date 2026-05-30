@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, Mail, Send, RefreshCw, X, User, CheckCircle2, Trash2 } from "lucide-react";
+import { MessageCircle, Mail, Send, RefreshCw, X, User, CheckCircle2, Trash2, Bot, Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 
 export default function HubPage() {
@@ -18,6 +18,7 @@ export default function HubPage() {
   const [selectedDraft, setSelectedDraft] = useState<any | null>(null);
   const [isApproving, setIsApproving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDraftingAI, setIsDraftingAI] = useState(false);
 
   // Sync
   const [isSyncing, setIsSyncing] = useState(false);
@@ -186,6 +187,32 @@ export default function HubPage() {
       alert("An error occurred while deleting.");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDraftReply = async () => {
+    if (!selectedInquiry) return;
+    setIsDraftingAI(true);
+    try {
+      const res = await fetch('/api/ai-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inquiryId: selectedInquiry.Inquiry_ID }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchDrafts();
+        setViewTab('drafts');
+        setSelectedDraft(data.draft);
+        setSelectedInquiry(null);
+      } else {
+        alert(data.error || 'Failed to generate draft.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('An error occurred while generating the draft.');
+    } finally {
+      setIsDraftingAI(false);
     }
   };
 
@@ -386,12 +413,15 @@ export default function HubPage() {
                       <div style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{selectedInquiry.Email}</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <button className="btn" style={{ width: 'auto', padding: '0.75rem', background: 'var(--status-red)', color: 'var(--status-red-fg)' }} onClick={handleDeleteThread} disabled={isDeleting} title="Delete Thread">
                       <Trash2 size={16} />
                     </button>
-                    <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setIsEmailModalOpen(true)}>
-                      <Mail size={16} /> Compose Email
+                    <button className="btn" style={{ width: 'auto', background: 'var(--muted-bg)', color: 'var(--foreground)', border: '1px solid var(--border)' }} onClick={() => setIsEmailModalOpen(true)}>
+                      <Mail size={16} /> Compose
+                    </button>
+                    <button className="btn btn-primary" style={{ width: 'auto' }} onClick={handleDraftReply} disabled={isDraftingAI}>
+                      {isDraftingAI ? <><Loader2 size={16} className="animate-spin" /> Drafting...</> : <><Bot size={16} /> Draft Reply</>}
                     </button>
                   </div>
                 </div>

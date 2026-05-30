@@ -89,6 +89,13 @@ export async function POST() {
               Proposal_Link: ''
             });
           syncedCount++;
+
+          // Auto-trigger AI draft for this new client message (fire and forget)
+          fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai-draft`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inquiryId: inq.Inquiry_ID }),
+          }).catch((e) => console.error('AI draft auto-trigger failed:', e));
         }
       }
     }
