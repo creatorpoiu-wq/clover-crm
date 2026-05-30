@@ -70,11 +70,6 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       subItems: [
         { name: "Inbox & Hub", href: "/dashboard/hub" },
         { name: "Forms", href: "/dashboard/forms" },
-        { name: "Portrait Funnel Settings", href: "/dashboard/portrait-settings" },
-        { name: "Wedding Funnel Settings", href: "/dashboard/booking" },
-        { name: "Questionnaire Builder", href: "/dashboard/questionnaire" },
-        { name: "Live Wedding Funnel", href: userId ? `/booking?userId=${userId}` : '/booking', external: true },
-        { name: "Live Portrait Funnel", href: userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry', external: true }
       ]
     },
     { 
@@ -84,9 +79,14 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       ]
     },
     { 
-      name: "Services", icon: Package,
+      name: "Booking", icon: Package,
       subItems: [
-        { name: "Packages & Sessions", href: "/dashboard/packages" }
+        { name: "Packages & Sessions", href: "/dashboard/packages" },
+        { name: "Portrait Funnel Settings", href: "/dashboard/portrait-settings" },
+        { name: "Wedding Funnel Settings", href: "/dashboard/booking" },
+        { name: "Questionnaire Builder", href: "/dashboard/questionnaire" },
+        { name: "Live Wedding Funnel", href: userId ? `/booking?userId=${userId}` : '/booking', external: true },
+        { name: "Live Portrait Funnel", href: userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry', external: true }
       ]
     },
     { 
