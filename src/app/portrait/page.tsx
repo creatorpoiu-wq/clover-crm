@@ -278,10 +278,9 @@ function PortraitBookingContent() {
                     name="preferredDates" 
                     value={formData.preferredDates} 
                     onChange={handleChange} 
-                    type="text" 
+                    type="date" 
                     className="input-field" 
-                    placeholder="e.g. Weekends in October, or Oct 15th" 
-                    style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }}
+                    style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', fontFamily: 'inherit', WebkitAppearance: 'none' }}
                   />
                 </div>
                 
