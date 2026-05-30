@@ -70,8 +70,11 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       subItems: [
         { name: "Inbox & Hub", href: "/dashboard/hub" },
         { name: "Forms", href: "/dashboard/forms" },
-        { name: "Wedding Funnel", href: userId ? `/booking?userId=${userId}` : '/booking', external: true },
-        { name: "Portrait Funnel", href: userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry', external: true }
+        { name: "Portrait Funnel Settings", href: "/dashboard/portrait-settings" },
+        { name: "Wedding Funnel Settings", href: "/dashboard/booking" },
+        { name: "Questionnaire Builder", href: "/dashboard/questionnaire" },
+        { name: "Live Wedding Funnel", href: userId ? `/booking?userId=${userId}` : '/booking', external: true },
+        { name: "Live Portrait Funnel", href: userId ? `/portrait/inquiry?userId=${userId}` : '/portrait/inquiry', external: true }
       ]
     },
     { 
@@ -91,7 +94,6 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       subItems: [
         { name: "Email Templates", href: "/dashboard/templates" },
         { name: "Email Design", href: "/dashboard/email-settings" },
-        { name: "Questionnaires", href: "/dashboard/questionnaire" }
       ]
     },
     { 
