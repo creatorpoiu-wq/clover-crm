@@ -271,73 +271,78 @@ export default function HubPage() {
           
           <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
             {viewTab === 'threads' ? (
-              inquiries.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.875rem" }}>No active projects.</div>
-            ) : (
-              inquiries.map((inq) => {
-                const isSelected = selectedInquiry?.Inquiry_ID === inq.Inquiry_ID;
-                const snippet = inq.Message || "No messages yet.";
-                return (
-                  <div
-                    key={inq.Inquiry_ID}
-                    onClick={() => setSelectedInquiry(inq)}
-                    style={{
-                      padding: "16px",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      marginBottom: "4px",
-                      backgroundColor: isSelected ? "var(--muted-bg)" : "transparent",
-                      transition: "background-color 0.2s"
-                    }}
-                    onMouseOver={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.02)" }}
-                    onMouseOut={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "transparent" }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
-                      <div style={{ fontWeight: 800, fontSize: "0.9375rem" }}>{inq.Contact_Name}</div>
-                      {inq.Last_Contact_Date && (
-                        <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{new Date(inq.Last_Contact_Date).toLocaleDateString()}</div>
-                      )}
-                    </div>
-                    <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)", marginBottom: "4px" }}>{inq.Service_Type}</div>
-                    <div style={{ fontSize: "0.875rem", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {inq.Last_Contact_By ? `${inq.Last_Contact_By}: ` : ''}{snippet}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              drafts.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.875rem" }}>No pending drafts.</div>
-              ) : (
-                drafts.map(draft => {
-                  const isSelected = selectedDraft?.Draft_ID === draft.Draft_ID;
-                  return (
-                    <div
-                      key={draft.Draft_ID}
-                      onClick={() => setSelectedDraft(draft)}
-                      style={{
-                        padding: "16px",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        marginBottom: "4px",
-                        backgroundColor: isSelected ? "var(--muted-bg)" : "transparent",
-                        transition: "background-color 0.2s"
-                      }}
-                      onMouseOver={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.02)" }}
-                      onMouseOut={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "transparent" }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
-                        <div style={{ fontWeight: 800, fontSize: "0.9375rem" }}>{draft.Inquiries?.Contact_Name || 'Unknown'}</div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{new Date(draft.Created_At).toLocaleDateString()}</div>
+              <>
+                {inquiries.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.875rem" }}>No active projects.</div>
+                ) : (
+                  inquiries.map((inq) => {
+                    const isSelected = selectedInquiry?.Inquiry_ID === inq.Inquiry_ID;
+                    const snippet = inq.Message || "No messages yet.";
+                    return (
+                      <div
+                        key={inq.Inquiry_ID}
+                        onClick={() => setSelectedInquiry(inq)}
+                        style={{
+                          padding: "16px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          marginBottom: "4px",
+                          backgroundColor: isSelected ? "var(--muted-bg)" : "transparent",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseOver={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.02)" }}
+                        onMouseOut={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "transparent" }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
+                          <div style={{ fontWeight: 800, fontSize: "0.9375rem" }}>{inq.Contact_Name}</div>
+                          {inq.Last_Contact_Date && (
+                            <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{new Date(inq.Last_Contact_Date).toLocaleDateString()}</div>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)", marginBottom: "4px" }}>{inq.Service_Type}</div>
+                        <div style={{ fontSize: "0.875rem", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {inq.Last_Contact_By ? `${inq.Last_Contact_By}: ` : ''}{snippet}
+                        </div>
                       </div>
-                      <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)", marginBottom: "4px" }}>By {draft.Agents?.Name} (AI)</div>
-                      <div style={{ fontSize: "0.875rem", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        Subj: {draft.Subject}
+                    );
+                  })
+                )}
+              </>
+            ) : (
+              <>
+                {drafts.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.875rem" }}>No pending drafts.</div>
+                ) : (
+                  drafts.map(draft => {
+                    const isSelected = selectedDraft?.Draft_ID === draft.Draft_ID;
+                    return (
+                      <div
+                        key={draft.Draft_ID}
+                        onClick={() => setSelectedDraft(draft)}
+                        style={{
+                          padding: "16px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          marginBottom: "4px",
+                          backgroundColor: isSelected ? "var(--muted-bg)" : "transparent",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseOver={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.02)" }}
+                        onMouseOut={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "transparent" }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
+                          <div style={{ fontWeight: 800, fontSize: "0.9375rem" }}>{draft.Inquiries?.Contact_Name || 'Unknown'}</div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{new Date(draft.Created_At).toLocaleDateString()}</div>
+                        </div>
+                        <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)", marginBottom: "4px" }}>By {draft.Agents?.Name} (AI)</div>
+                        <div style={{ fontSize: "0.875rem", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          Subj: {draft.Subject}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
-              )
+                    );
+                  })
+                )}
+              </>
             )}
           </div>
         </div>
