@@ -287,7 +287,7 @@ export default function HubPage() {
               onClick={() => { setViewTab('drafts'); setSelectedInquiry(null); setSelectedDraft(null); fetchDrafts(); }}
               style={{ flex: 1, padding: "16px", fontWeight: 800, background: viewTab === 'drafts' ? 'var(--background)' : 'var(--muted-bg)', color: viewTab === 'drafts' ? 'var(--primary)' : 'var(--muted)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
-              AI Drafts
+              Drafts
               {drafts.length > 0 && <span style={{ background: 'var(--status-red)', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '10px' }}>{drafts.length}</span>}
             </button>
           </div>
