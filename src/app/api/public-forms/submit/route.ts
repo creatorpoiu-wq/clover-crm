@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { runAutomations } from '@/lib/automationEngine';
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Create Inquiry
-    const { error: inquiryError } = await supabase
+    const { data: newInquiry, error: inquiryError } = await supabase
       .from('Inquiries')
       .insert({
         user_id: userId,
@@ -88,9 +89,14 @@ export async function POST(req: NextRequest) {
         Service_Type: `Form Submission: ${form.title}`,
         Pipeline_Stage: 'New Inquiry',
         Questionnaire_Data: formData, // Store all form data here
-      });
+      })
+      .select()
+      .single();
 
     if (inquiryError) throw inquiryError;
+
+    // Trigger automations for form submission
+    runAutomations('form_submitted', { inquiryId: newInquiry.Inquiry_ID }).catch(console.error);
 
     // 4. Log Communication
     await supabase.from('Communications').insert({

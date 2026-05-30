@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
@@ -10,6 +12,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="dashboard-layout">
@@ -33,7 +36,18 @@ export default function DashboardLayout({
       
       <main className="main-content">
         <div className="dashboard-container">
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              style={{ minHeight: "100%" }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>

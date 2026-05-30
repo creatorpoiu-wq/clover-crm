@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle, PieChart } from "lucide-react";
+import { LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle, PieChart, Clock } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface SidebarProps {
@@ -48,6 +48,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { name: "Inbox & Hub",        href: "/dashboard/hub",               icon: MessageCircle },
     { name: "Projects",           href: "/dashboard/pipeline",          icon: Kanban },
     { name: "Calendar & Reminders", href: "/dashboard/calendar",        icon: Calendar },
+    { name: "Availability",       href: "/dashboard/settings/scheduling", icon: Clock },
     { name: "Contacts",           href: "/dashboard/contacts",          icon: Database },
     { name: "Documents",          href: "/dashboard/finance",           icon: FileText },
     { name: "Forms",              href: "/dashboard/forms",             icon: FileText },
@@ -71,7 +72,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.slice(0, 4).map((item) => {
+        {navItems.slice(0, 5).map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           return (
@@ -91,7 +92,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           Tools
         </div>
 
-        {navItems.slice(4).map((item) => {
+        {navItems.slice(5).map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           return (

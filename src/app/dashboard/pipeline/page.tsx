@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon, Plus, Briefcase, MapPin, Package } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import DeliverablesManager from "@/components/DeliverablesManager";
@@ -155,17 +156,16 @@ export default function PipelinePage() {
               <div style={{ padding: "1rem", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {stageInquiries.length > 0 ? (
                   stageInquiries.map((inq) => (
-                    <div 
+                    <motion.div 
                       key={inq.Inquiry_ID} 
                       onClick={() => { setSelectedInquiry(inq); setEditForm(inq); setIsEditing(false); }}
+                      whileHover={{ y: -2, scale: 1.01, boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                      whileTap={{ scale: 0.98 }}
                       style={{ 
                         padding: "1rem", borderRadius: "0.5rem", backgroundColor: "var(--background)", 
                         border: "1px solid var(--border)", cursor: "pointer", 
-                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
                         position: "relative", zIndex: openDropdownId === inq.Inquiry_ID ? 50 : 1 
                       }}
-                      onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)"; }}
-                      onMouseOut={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
                     >
                       <div style={{ marginBottom: "0.5rem" }}>
                         <span className="badge" style={{ backgroundColor: "var(--muted-bg)", color: "var(--foreground)" }}>
@@ -216,7 +216,7 @@ export default function PipelinePage() {
                         <span style={{ fontWeight: 700, color: "var(--primary)" }}>{formatCurrency(inq.Estimated_Value)}</span>
                         <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>#{inq.Inquiry_ID}</span>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
                   <div className="empty-state" style={{ textAlign: "center", padding: "2rem 0" }}>No deals</div>

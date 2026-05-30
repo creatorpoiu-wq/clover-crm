@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { runAutomations } from '@/lib/automationEngine';
 
 // Inline status flag calculation (replaces deleted statusFlags module)
 function calculateStatusFlag(inquiry: any): string {
@@ -99,6 +100,13 @@ export async function PUT(req: NextRequest) {
       updatePayload.Deliverable_Milestones = Deliverable_Milestones;
     }
 
+    // Fetch existing inquiry to check if stage changed
+    const { data: existingInquiry } = await supabase
+      .from('Inquiries')
+      .select('Pipeline_Stage')
+      .eq('Inquiry_ID', id)
+      .single();
+
     const { error } = await supabase
       .from('Inquiries')
       .update(updatePayload)
@@ -114,6 +122,16 @@ export async function PUT(req: NextRequest) {
         .eq('Contact_ID', Contact_ID);
         
       if (contactError) throw contactError;
+    }
+
+    // Trigger automations if the pipeline stage changed
+    if (existingInquiry && Pipeline_Stage && existingInquiry.Pipeline_Stage !== Pipeline_Stage) {
+      let stageKey = Pipeline_Stage.toLowerCase().replace(/[\s\/]+/g, '_');
+      if (stageKey === 'discovery_consultation') stageKey = 'discovery_consultation';
+      const triggerEvent = `stage_${stageKey}`;
+      
+      // Fire and forget so we don't block the API response
+      runAutomations(triggerEvent, { inquiryId: id }).catch(console.error);
     }
 
     return NextResponse.json({ success: true });

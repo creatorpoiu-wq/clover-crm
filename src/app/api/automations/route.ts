@@ -28,15 +28,24 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { Trigger_Event, Action, Template_ID } = await req.json();
+    const { Trigger_Event, Action, Template_ID, Action_Payload } = await req.json();
 
-    if (!Trigger_Event || !Action || !Template_ID) {
+    if (!Trigger_Event || !Action) {
       return NextResponse.json({ success: false, error: "Missing fields" }, { status: 400 });
+    }
+
+    if (Action === 'send_email' && !Template_ID) {
+      return NextResponse.json({ success: false, error: "Missing Template ID for email action" }, { status: 400 });
     }
 
     const { data, error } = await supabase
       .from('Automations')
-      .insert({ Trigger_Event, Action, Template_ID })
+      .insert({ 
+        Trigger_Event, 
+        Action, 
+        Template_ID: Template_ID || null,
+        Action_Payload: Action_Payload || {} 
+      })
       .select()
       .single();
 

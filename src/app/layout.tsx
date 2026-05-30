@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
 
 export const metadata: Metadata = {
   title: "Clover | Professional CRM & Booking",
@@ -27,8 +41,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className={`${plusJakartaSans.variable} ${playfairDisplay.variable}`}>
+      <body className="font-sans antialiased text-foreground bg-background">
         {children}
       </body>
     </html>
