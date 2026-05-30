@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, Mail, Send, RefreshCw, X, User, CheckCircle2 } from "lucide-react";
+import { MessageCircle, Mail, Send, RefreshCw, X, User, CheckCircle2, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 
 export default function HubPage() {
@@ -17,6 +17,7 @@ export default function HubPage() {
   const [drafts, setDrafts] = useState<any[]>([]);
   const [selectedDraft, setSelectedDraft] = useState<any | null>(null);
   const [isApproving, setIsApproving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync
   const [isSyncing, setIsSyncing] = useState(false);
@@ -163,6 +164,28 @@ export default function HubPage() {
       } else if (syncStatus) {
         setTimeout(() => setSyncStatus(''), 5000);
       }
+    }
+  };
+
+  const handleDeleteThread = async () => {
+    if (!selectedInquiry) return;
+    if (!confirm("Are you sure you want to delete this thread? This action cannot be undone.")) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/inquiries?id=${selectedInquiry.Inquiry_ID}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSelectedInquiry(null);
+        fetchInquiries();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete thread.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while deleting.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -363,9 +386,14 @@ export default function HubPage() {
                       <div style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{selectedInquiry.Email}</div>
                     </div>
                   </div>
-                  <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setIsEmailModalOpen(true)}>
-                    <Mail size={16} /> Compose Email
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn" style={{ width: 'auto', padding: '0.75rem', background: 'var(--status-red)', color: 'var(--status-red-fg)' }} onClick={handleDeleteThread} disabled={isDeleting} title="Delete Thread">
+                      <Trash2 size={16} />
+                    </button>
+                    <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setIsEmailModalOpen(true)}>
+                      <Mail size={16} /> Compose Email
+                    </button>
+                  </div>
                 </div>
 
                 {/* Message Thread */}
