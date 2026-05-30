@@ -55,6 +55,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { name: "Packages & Sessions",href: "/dashboard/packages",          icon: Package },
     { name: "Reports",            href: "/dashboard/reports",           icon: PieChart },
     { name: "Automations",        href: "/dashboard/automations",       icon: Zap },
+    { name: "AI Agents",          href: "/dashboard/agents",            icon: Zap },
   ];
 
   return (

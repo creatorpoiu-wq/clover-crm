@@ -1,0 +1,4 @@
+google-antigravity
+fastapi
+pydantic
+supabase

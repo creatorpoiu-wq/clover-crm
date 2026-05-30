@@ -10,6 +10,14 @@ export default function HubPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Tabs
+  const [viewTab, setViewTab] = useState<'threads' | 'drafts'>('threads');
+  
+  // Drafts
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [selectedDraft, setSelectedDraft] = useState<any | null>(null);
+  const [isApproving, setIsApproving] = useState(false);
+
   // Sync
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState('');
@@ -56,8 +64,21 @@ export default function HubPage() {
     }
   };
 
+  const fetchDrafts = async () => {
+    try {
+      const res = await fetch("/api/email-drafts");
+      const data = await res.json();
+      if (data.success) {
+        setDrafts(data.drafts || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchInquiries();
+    fetchDrafts();
     handleSync(true); // Auto-sync silently on load
   }, []);
 
@@ -66,6 +87,55 @@ export default function HubPage() {
       fetchMessages(selectedInquiry.Inquiry_ID);
     }
   }, [selectedInquiry]);
+
+  const handleApproveDraft = async () => {
+    if (!selectedDraft) return;
+    setIsApproving(true);
+    try {
+      // Send email via API
+      const sendRes = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId: selectedDraft.Inquiries.Contact_ID || 0, // In reality, we need Contact_ID, let's assume it's linked
+          email: selectedDraft.Inquiries.Email,
+          subject: selectedDraft.Subject,
+          body: selectedDraft.Body
+        })
+      });
+      
+      if (sendRes.ok) {
+        // Mark draft as sent
+        await fetch('/api/email-drafts', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ Draft_ID: selectedDraft.Draft_ID, Status: 'sent' })
+        });
+        
+        // Log in communications
+        await fetch('/api/communications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            inquiryId: selectedDraft.Inquiry_ID,
+            contactDate: new Date().toISOString(),
+            contactBy: selectedDraft.Agents.Name + " (AI)",
+            message: `[Email Sent by AI]\nSubject: ${selectedDraft.Subject}\n\n${selectedDraft.Body}`
+          })
+        });
+        
+        setSelectedDraft(null);
+        fetchDrafts();
+      } else {
+        alert("Failed to send email");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error sending draft");
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
   const handleSync = async (silent = false) => {
     if (!silent) {
@@ -183,9 +253,25 @@ export default function HubPage() {
       <div className="glass-panel" style={{ display: "flex", flex: 1, overflow: "hidden", borderRadius: "12px", border: "1px solid var(--border)" }}>
         {/* Left Pane - Inquiries List */}
         <div style={{ width: "350px", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", backgroundColor: "var(--background)" }}>
-          <div style={{ padding: "16px", borderBottom: "1px solid var(--border)", fontWeight: 800 }}>Active Threads</div>
+          <div style={{ display: "flex", borderBottom: "1px solid var(--border)" }}>
+            <button 
+              onClick={() => { setViewTab('threads'); setSelectedInquiry(null); setSelectedDraft(null); }}
+              style={{ flex: 1, padding: "16px", fontWeight: 800, background: viewTab === 'threads' ? 'var(--background)' : 'var(--muted-bg)', color: viewTab === 'threads' ? 'var(--primary)' : 'var(--muted)', border: 'none', cursor: 'pointer' }}
+            >
+              Active Threads
+            </button>
+            <button 
+              onClick={() => { setViewTab('drafts'); setSelectedInquiry(null); setSelectedDraft(null); fetchDrafts(); }}
+              style={{ flex: 1, padding: "16px", fontWeight: 800, background: viewTab === 'drafts' ? 'var(--background)' : 'var(--muted-bg)', color: viewTab === 'drafts' ? 'var(--primary)' : 'var(--muted)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            >
+              AI Drafts
+              {drafts.length > 0 && <span style={{ background: 'var(--status-red)', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '10px' }}>{drafts.length}</span>}
+            </button>
+          </div>
+          
           <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
-            {inquiries.length === 0 ? (
+            {viewTab === 'threads' ? (
+              inquiries.length === 0 ? (
               <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.875rem" }}>No active projects.</div>
             ) : (
               inquiries.map((inq) => {
@@ -219,96 +305,177 @@ export default function HubPage() {
                   </div>
                 );
               })
+            ) : (
+              drafts.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.875rem" }}>No pending drafts.</div>
+              ) : (
+                drafts.map(draft => {
+                  const isSelected = selectedDraft?.Draft_ID === draft.Draft_ID;
+                  return (
+                    <div
+                      key={draft.Draft_ID}
+                      onClick={() => setSelectedDraft(draft)}
+                      style={{
+                        padding: "16px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        marginBottom: "4px",
+                        backgroundColor: isSelected ? "var(--muted-bg)" : "transparent",
+                        transition: "background-color 0.2s"
+                      }}
+                      onMouseOver={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.02)" }}
+                      onMouseOut={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = "transparent" }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
+                        <div style={{ fontWeight: 800, fontSize: "0.9375rem" }}>{draft.Inquiries?.Contact_Name || 'Unknown'}</div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{new Date(draft.Created_At).toLocaleDateString()}</div>
+                      </div>
+                      <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)", marginBottom: "4px" }}>By {draft.Agents?.Name} (AI)</div>
+                      <div style={{ fontSize: "0.875rem", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        Subj: {draft.Subject}
+                      </div>
+                    </div>
+                  );
+                })
+              )
             )}
           </div>
         </div>
 
-        {/* Right Pane - Chat/Messages */}
+        {/* Right Pane - Chat/Messages or Drafts */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", backgroundColor: "#fdfdfd" }}>
-          {selectedInquiry ? (
-            <>
-              {/* Header */}
-              <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#fff" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", backgroundColor: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>
-                    {selectedInquiry.Contact_Name.charAt(0)}
+          {viewTab === 'threads' ? (
+            selectedInquiry ? (
+              <>
+                {/* Header */}
+                <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#fff" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", backgroundColor: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>
+                      {selectedInquiry.Contact_Name.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: "1.125rem" }}>{selectedInquiry.Contact_Name}</div>
+                      <div style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{selectedInquiry.Email}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: "1.125rem" }}>{selectedInquiry.Contact_Name}</div>
-                    <div style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{selectedInquiry.Email}</div>
-                  </div>
-                </div>
-                <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setIsEmailModalOpen(true)}>
-                  <Mail size={16} /> Compose Email
-                </button>
-              </div>
-
-              {/* Message Thread */}
-              <div style={{ flex: 1, padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
-                {messages.length === 0 ? (
-                  <div style={{ margin: "auto", color: "var(--muted)", fontSize: "0.875rem", textAlign: "center" }}>
-                    <MessageCircle size={40} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-                    No communication history. Sync Gmail or log a note to start.
-                  </div>
-                ) : (
-                  messages.map((msg) => {
-                    const isClient = msg.Last_Contact_By === "Client";
-                    const isSystem = msg.Last_Contact_By === "System";
-                    return (
-                      <div key={msg.Comm_ID} style={{ display: "flex", flexDirection: "column", alignItems: isClient ? "flex-start" : "flex-end" }}>
-                        <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: "4px", padding: "0 4px" }}>
-                          {new Date(msg.Last_Contact_Date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })} &bull; {msg.Last_Contact_By}
-                        </div>
-                        <div style={{ 
-                          maxWidth: "75%", 
-                          padding: "12px 16px", 
-                          borderRadius: "12px", 
-                          backgroundColor: isClient ? "#e5e7eb" : isSystem ? "#fef3c7" : "var(--primary)", 
-                          color: isClient ? "#1f2937" : isSystem ? "#92400e" : "#fff",
-                          borderBottomLeftRadius: isClient ? 0 : "12px",
-                          borderBottomRightRadius: !isClient ? 0 : "12px",
-                          whiteSpace: "pre-wrap",
-                          fontSize: "0.9375rem",
-                          lineHeight: 1.5,
-                          boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
-                        }}>
-                          {msg.Message}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Input Area */}
-              <div style={{ padding: "20px 24px", borderTop: "1px solid var(--border)", backgroundColor: "#fff" }}>
-                <div style={{ display: "flex", gap: "12px" }}>
-                  <textarea 
-                    className="input" 
-                    placeholder="Log a private note or record a call..." 
-                    style={{ flex: 1, minHeight: "50px", resize: "none" }}
-                    value={noteContent}
-                    onChange={(e) => setNoteContent(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleLogNote();
-                      }
-                    }}
-                  />
-                  <button className="btn btn-primary" style={{ alignSelf: "flex-end", width: "auto" }} onClick={handleLogNote} disabled={isLogging || !noteContent.trim()}>
-                    <Send size={18} /> {isLogging ? "..." : "Log Note"}
+                  <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setIsEmailModalOpen(true)}>
+                    <Mail size={16} /> Compose Email
                   </button>
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "8px" }}>Press Enter to log note, Shift+Enter for new line. Notes are internal.</div>
+
+                {/* Message Thread */}
+                <div style={{ flex: 1, padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+                  {messages.length === 0 ? (
+                    <div style={{ margin: "auto", color: "var(--muted)", fontSize: "0.875rem", textAlign: "center" }}>
+                      <MessageCircle size={40} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
+                      No communication history. Sync Gmail or log a note to start.
+                    </div>
+                  ) : (
+                    messages.map((msg) => {
+                      const isClient = msg.Last_Contact_By === "Client";
+                      const isSystem = msg.Last_Contact_By === "System";
+                      return (
+                        <div key={msg.Comm_ID} style={{ display: "flex", flexDirection: "column", alignItems: isClient ? "flex-start" : "flex-end" }}>
+                          <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: "4px", padding: "0 4px" }}>
+                            {new Date(msg.Last_Contact_Date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })} &bull; {msg.Last_Contact_By}
+                          </div>
+                          <div style={{ 
+                            maxWidth: "75%", 
+                            padding: "12px 16px", 
+                            borderRadius: "12px", 
+                            backgroundColor: isClient ? "#e5e7eb" : isSystem ? "#fef3c7" : "var(--primary)", 
+                            color: isClient ? "#1f2937" : isSystem ? "#92400e" : "#fff",
+                            borderBottomLeftRadius: isClient ? 0 : "12px",
+                            borderBottomRightRadius: !isClient ? 0 : "12px",
+                            whiteSpace: "pre-wrap",
+                            fontSize: "0.9375rem",
+                            lineHeight: 1.5,
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                          }}>
+                            {msg.Message}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input Area */}
+                <div style={{ padding: "20px 24px", borderTop: "1px solid var(--border)", backgroundColor: "#fff" }}>
+                  <div style={{ display: "flex", gap: "12px" }}>
+                    <textarea 
+                      className="input" 
+                      placeholder="Log a private note or record a call..." 
+                      style={{ flex: 1, minHeight: "50px", resize: "none" }}
+                      value={noteContent}
+                      onChange={(e) => setNoteContent(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleLogNote();
+                        }
+                      }}
+                    />
+                    <button className="btn btn-primary" style={{ alignSelf: "flex-end", width: "auto" }} onClick={handleLogNote} disabled={isLogging || !noteContent.trim()}>
+                      <Send size={18} /> {isLogging ? "..." : "Log Note"}
+                    </button>
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "8px" }}>Press Enter to log note, Shift+Enter for new line. Notes are internal.</div>
+                </div>
+              </>
+            ) : (
+              <div style={{ margin: "auto", color: "var(--muted)", fontSize: "0.875rem", textAlign: "center" }}>
+                <MessageCircle size={48} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
+                Select a project to view communication history.
               </div>
-            </>
+            )
           ) : (
-            <div style={{ margin: "auto", color: "var(--muted)", fontSize: "0.875rem", textAlign: "center" }}>
-              <MessageCircle size={48} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
-              Select a project to view communication history.
-            </div>
+            selectedDraft ? (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", backgroundColor: "#fff" }}>
+                  <h2 className="text-xl font-bold mb-1">Review AI Draft</h2>
+                  <p className="text-sm text-[var(--muted)] m-0">Drafted by {selectedDraft.Agents?.Name} ({selectedDraft.Agents?.Role}) for {selectedDraft.Inquiries?.Contact_Name}</p>
+                </div>
+                <div style={{ flex: 1, padding: "24px", overflowY: "auto", display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label className="block text-sm font-bold mb-2 text-[var(--muted)] uppercase tracking-wider">Subject</label>
+                    <input 
+                      type="text" 
+                      value={selectedDraft.Subject} 
+                      onChange={(e) => setSelectedDraft({...selectedDraft, Subject: e.target.value})}
+                      className="input-field w-full"
+                    />
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <label className="block text-sm font-bold mb-2 text-[var(--muted)] uppercase tracking-wider">Message Body</label>
+                    <textarea 
+                      value={selectedDraft.Body} 
+                      onChange={(e) => setSelectedDraft({...selectedDraft, Body: e.target.value})}
+                      className="input-field w-full"
+                      style={{ flex: 1, minHeight: '300px', resize: 'vertical' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ padding: "20px 24px", borderTop: "1px solid var(--border)", backgroundColor: "#fff", display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-outline" style={{ width: 'auto' }} onClick={async () => {
+                    await fetch(`/api/email-drafts?id=${selectedDraft.Draft_ID}`, { method: 'DELETE' });
+                    setSelectedDraft(null);
+                    fetchDrafts();
+                  }}>
+                    <X size={16} /> Discard Draft
+                  </button>
+                  <button className="btn btn-primary" style={{ width: 'auto' }} onClick={handleApproveDraft} disabled={isApproving}>
+                    <Send size={16} /> {isApproving ? "Sending..." : "Approve & Send"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ margin: "auto", color: "var(--muted)", fontSize: "0.875rem", textAlign: "center" }}>
+                <CheckCircle2 size={48} color="var(--status-green)" style={{ margin: "0 auto 16px", opacity: 0.5 }} />
+                Select an AI draft to review and approve.
+              </div>
+            )
           )}
         </div>
       </div>
