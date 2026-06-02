@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import NotificationBell from "@/components/NotificationBell";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
@@ -34,7 +35,26 @@ export default function DashboardLayout({
       {/* Sidebar with open state prop */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className="main-content">
+      {/* Top bar */}
+      <header style={{
+        position: "fixed",
+        top: 0,
+        left: 260,
+        right: 0,
+        height: 56,
+        backgroundColor: "var(--background)",
+        borderBottom: "1px solid var(--border)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        padding: "0 1.5rem",
+        zIndex: 40,
+        gap: "8px",
+      }}>
+        <NotificationBell />
+      </header>
+
+      <main className="main-content" style={{ paddingTop: "calc(56px + 2rem)" }}>
         <div className="dashboard-container">
           <AnimatePresence mode="wait">
             <motion.div
