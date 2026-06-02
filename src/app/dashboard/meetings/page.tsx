@@ -147,11 +147,15 @@ export default function MeetingsPage() {
         zIndex: 10
       }}>
         <div>
-          <h1 className="page-title">Meetings & Calls</h1>
-          <p style={{ color: "var(--muted)", marginTop: "0.25rem" }}>Schedule calls and sync them directly to your Google Calendar.</p>
+          <h1 className="page-title">Meetings</h1>
+          <p style={{ color: "var(--muted)", marginTop: "0.25rem", fontSize: "0.875rem" }}>Schedule calls and sync them directly to your Google Calendar.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-          <Plus size={18} /> Schedule Meeting
+        <button 
+          className="btn btn-primary" 
+          onClick={() => setIsModalOpen(true)}
+          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: 'auto' }}
+        >
+          <Plus size={16} /> Schedule Meeting
         </button>
       </div>
 

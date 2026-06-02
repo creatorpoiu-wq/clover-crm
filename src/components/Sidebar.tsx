@@ -106,7 +106,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       name: "Tools", icon: PenTool,
       subItems: [
         { name: "Team", href: "/dashboard/agents" },
-        { name: "Meetings & Calls", href: "/dashboard/meetings" },
+        { name: "Meetings", href: "/dashboard/meetings" },
         { name: "Availability", href: "/dashboard/settings/scheduling" }
       ]
     },
