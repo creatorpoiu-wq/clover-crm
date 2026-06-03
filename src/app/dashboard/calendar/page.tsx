@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Calendar as CalendarIcon, Bell, Trash2 } from "lucide-react";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { formatDate } from "@/lib/formatDate";
 
 interface EventData {
@@ -325,14 +326,13 @@ export default function CalendarPage() {
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="form-group">
                 <label className="block text-sm font-bold mb-1">Due Date</label>
-                <input 
-                  type="date" 
+                <DatePicker 
                   className="input w-full" 
                   value={newReminder.dueDate} 
-                  onChange={e => setNewReminder({...newReminder, dueDate: e.target.value})}
-                  required
+                  onChange={val => setNewReminder({...newReminder, dueDate: val || ''})} 
+                  required 
                 />
               </div>
               <div>

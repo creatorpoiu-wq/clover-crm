@@ -2,6 +2,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ArrowRight, ArrowLeft, Camera, Calendar, MapPin, Users, CheckCircle2, ChevronRight, DollarSign } from 'lucide-react';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 function PortraitBookingContent() {
   const searchParams = useSearchParams();
@@ -274,13 +275,12 @@ function PortraitBookingContent() {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     <Calendar size={16} /> Preferred Dates
                   </label>
-                  <input 
-                    name="preferredDates" 
+                  <DatePicker 
                     value={formData.preferredDates} 
-                    onChange={handleChange} 
-                    type="date" 
+                    onChange={(val) => setFormData({ ...formData, preferredDates: val })} 
+                    userId={userId || undefined}
                     className="input-field" 
-                    style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', fontFamily: 'inherit', WebkitAppearance: 'none' }}
+                    style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', fontFamily: 'inherit' }}
                   />
                 </div>
                 

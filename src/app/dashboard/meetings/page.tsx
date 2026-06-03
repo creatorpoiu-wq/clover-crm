@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { Plus, Calendar as CalendarIcon, Clock, User, AlignLeft, X, Check, Video, Phone, RefreshCw, Trash2, CalendarPlus } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { supabase } from "@/lib/supabase";
 
 export default function MeetingsPage() {
+  const [userId, setUserId] = useState("");
   const [meetings, setMeetings] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,11 @@ export default function MeetingsPage() {
 
   useEffect(() => {
     fetchData();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUserId(data.user.id);
+      }
+    });
   }, []);
 
   const fetchData = async () => {
@@ -150,13 +158,30 @@ export default function MeetingsPage() {
           <h1 className="page-title">Meetings</h1>
           <p style={{ color: "var(--muted)", marginTop: "0.25rem", fontSize: "0.875rem" }}>Schedule calls and sync them directly to your Google Calendar.</p>
         </div>
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setIsModalOpen(true)}
-          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: 'auto' }}
-        >
-          <Plus size={16} /> Schedule Meeting
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button 
+            className="btn btn-outline" 
+            onClick={() => {
+              if (userId) {
+                const link = `${window.location.origin}/schedule/${userId}`;
+                navigator.clipboard.writeText(link);
+                alert("Booking link copied to clipboard!");
+              } else {
+                alert("Loading your info, please try again in a moment.");
+              }
+            }}
+            style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+          >
+            Copy Public Link
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setIsModalOpen(true)}
+            style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+          >
+            <Plus size={16} /> Schedule Meeting
+          </button>
+        </div>
       </div>
 
       <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
@@ -271,11 +296,10 @@ export default function MeetingsPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div className="form-group">
                   <label className="form-label">Date</label>
-                  <input 
-                    type="date" 
-                    className="form-input" 
+                  <DatePicker 
                     value={date} 
-                    onChange={e => setDate(e.target.value)} 
+                    onChange={val => setDate(val)} 
+                    className="form-input" 
                     required 
                   />
                 </div>

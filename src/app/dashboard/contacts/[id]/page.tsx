@@ -8,6 +8,7 @@ import ContractBuilder from "@/components/ContractBuilder";
 import InvoiceBuilder from "@/components/InvoiceBuilder";
 import DeliverablesManager from "@/components/DeliverablesManager";
 import { supabase } from "@/lib/supabase";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface Contact {
   Contact_ID: number;
@@ -849,7 +850,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Event Date</label>
-              <input type="date" value={newSessionForm.Event_Date} onChange={e => setNewSessionForm({...newSessionForm, Event_Date: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #f0efe9', borderRadius: '0.25rem' }} />
+              <DatePicker value={newSessionForm.Event_Date} onChange={val => setNewSessionForm({...newSessionForm, Event_Date: val})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #f0efe9', borderRadius: '0.25rem' }} />
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button onClick={() => setShowSessionModal(false)} style={{ flex: 1, padding: '0.5rem', background: 'none', border: '1px solid #f0efe9', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
@@ -900,7 +901,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div>
                   <label className="label">Event Date</label>
-                  <input type="date" className="input" value={editInquiryForm.Event_Date || ""} onChange={(e) => setEditInquiryForm({ ...editInquiryForm, Event_Date: e.target.value })} />
+                  <DatePicker className="input" value={editInquiryForm.Event_Date || ""} onChange={(val) => setEditInquiryForm({ ...editInquiryForm, Event_Date: val })} />
                 </div>
                 <div>
                   <label className="label">Estimated Value ($)</label>
@@ -1044,7 +1045,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div>
                 <label className="label">Event Date (Optional)</label>
-                <input type="date" className="input-field" value={newInquiryForm.eventDate} onChange={e => setNewInquiryForm({...newInquiryForm, eventDate: e.target.value})} />
+                <DatePicker className="input-field" value={newInquiryForm.eventDate} onChange={val => setNewInquiryForm({...newInquiryForm, eventDate: val})} />
               </div>
               <div>
                 <label className="label">Estimated Value ($) (Optional)</label>

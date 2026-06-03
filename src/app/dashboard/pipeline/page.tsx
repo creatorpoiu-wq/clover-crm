@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as LinkIcon, Plus, Briefcase, MapPin, Package } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import DeliverablesManager from "@/components/DeliverablesManager";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface InquiryData {
   Inquiry_ID: number;
@@ -268,7 +269,11 @@ export default function PipelinePage() {
                 </div>
                 <div>
                   <label className="label">Event Date</label>
-                  <input type="date" className="input" value={editForm.Event_Date || ""} onChange={(e) => setEditForm({ ...editForm, Event_Date: e.target.value })} />
+                  <DatePicker 
+                    value={editForm.Event_Date || ""} 
+                    onChange={(val) => setEditForm({ ...editForm, Event_Date: val })} 
+                    className="input" 
+                  />
                 </div>
                 <div>
                   <label className="label">Estimated Value ($)</label>
