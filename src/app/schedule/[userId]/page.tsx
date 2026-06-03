@@ -22,7 +22,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
     date: '',
     time: '',
     durationMinutes: 30,
-    meetingType: 'Call',
+    meetingType: 'Google Meet',
     title: 'Consultation',
     notes: ''
   });
@@ -221,9 +221,13 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
                     style={{ fontSize: '1rem', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #cbd5e1', width: '100%' }}
                     required
                   >
-                    <option value="Call">Phone Call</option>
-                    <option value="Facetime">Facetime</option>
+                    <option value="Google Meet">Google Meet</option>
+                    <option value="Zoom">Zoom</option>
+                    <option value="Microsoft Teams">Microsoft Teams</option>
+                    <option value="FaceTime">FaceTime</option>
                     <option value="Whatsapp">Whatsapp</option>
+                    <option value="Phone Call">Phone Call</option>
+                    <option value="In Person">In Person</option>
                   </select>
                 </div>
               </div>

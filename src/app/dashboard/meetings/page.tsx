@@ -21,7 +21,7 @@ export default function MeetingsPage() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [durationMinutes, setDurationMinutes] = useState(30);
-  const [meetingType, setMeetingType] = useState("Video Call");
+  const [meetingType, setMeetingType] = useState("Google Meet");
   const [notes, setNotes] = useState("");
   const [syncToGoogle, setSyncToGoogle] = useState(true);
 
@@ -130,7 +130,7 @@ export default function MeetingsPage() {
     setDate("");
     setTime("");
     setDurationMinutes(30);
-    setMeetingType("Video Call");
+    setMeetingType("Google Meet");
     setNotes("");
     setSyncToGoogle(true);
   };
@@ -338,7 +338,11 @@ export default function MeetingsPage() {
                     value={meetingType} 
                     onChange={e => setMeetingType(e.target.value)}
                   >
-                    <option value="Video Call">Video Call</option>
+                    <option value="Google Meet">Google Meet</option>
+                    <option value="Zoom">Zoom</option>
+                    <option value="Microsoft Teams">Microsoft Teams</option>
+                    <option value="FaceTime">FaceTime</option>
+                    <option value="Whatsapp">Whatsapp</option>
                     <option value="Phone Call">Phone Call</option>
                     <option value="In Person">In Person</option>
                   </select>
