@@ -88,7 +88,23 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
 
   return (
     <>
-      <style>{`html, body { background-color: transparent !important; }`}</style>
+      <style>{`
+        html, body { 
+          background-color: transparent !important; 
+          min-height: auto !important;
+          margin: 0 !important;
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          -webkit-overflow-scrolling: touch;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        html {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        html::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       <div style={{ padding: '2rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
         {formConfig.description && <p style={{ color: '#64748b', marginBottom: '2rem', lineHeight: 1.5 }}>{formConfig.description}</p>}
       
