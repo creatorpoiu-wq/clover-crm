@@ -15,6 +15,8 @@ interface FormField {
   inputBgColor?: string;
   fieldBorderRadius?: string;
   buttonBorderRadius?: string;
+  scheduleLink?: string;
+  scheduleButtonText?: string;
 }
 
 interface Form {
@@ -626,7 +628,9 @@ export default function FormsDashboard() {
                     required: false,
                     inputBgColor: '#ffffff',
                     fieldBorderRadius: '0.5rem',
-                    buttonBorderRadius: '0.5rem'
+                    buttonBorderRadius: '0.5rem',
+                    scheduleLink: '',
+                    scheduleButtonText: 'Schedule a Call'
                   };
                   
                   const updateStyleConfig = (updates: any) => {
@@ -760,6 +764,31 @@ export default function FormsDashboard() {
                             value={editingForm.questionnaire_button_text || ''}
                             onChange={e => setEditingForm({ ...editingForm, questionnaire_button_text: e.target.value })}
                             placeholder="Complete Intake Questionnaire"
+                            style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
+                          />
+                        </>
+                      )}
+                    </div>
+
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Schedule Call Link (Optional)</label>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.75rem' }}>Include a button in the auto-reply email linking to your public booking page.</p>
+                      <input
+                        type="url"
+                        value={styleConfig.scheduleLink || ''}
+                        onChange={e => updateStyleConfig({ scheduleLink: e.target.value })}
+                        placeholder="https://..."
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', marginBottom: '1rem' }}
+                      />
+                      
+                      {styleConfig.scheduleLink && (
+                        <>
+                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Schedule Button Text</label>
+                          <input
+                            type="text"
+                            value={styleConfig.scheduleButtonText || ''}
+                            onChange={e => updateStyleConfig({ scheduleButtonText: e.target.value })}
+                            placeholder="Schedule a Call"
                             style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
                           />
                         </>

@@ -220,6 +220,8 @@ export async function POST(req: NextRequest) {
 
         // 6. Send Auto-Reply to Client
         if (email) {
+          const styleConfig = (form.fields || []).find((f: any) => f.type === '_style_config') || {};
+          
           const autoReplyBody = `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #334155;">
               <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -228,9 +230,17 @@ export async function POST(req: NextRequest) {
                   <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #475569; white-space: pre-wrap;">${form.auto_reply_message || `Thank you for reaching out to <strong>${companyName}</strong>! We have successfully received your submission for <em>${form.title}</em>.\n\nOur team will review your information and get back to you shortly.`}</p>
                   
                   ${form.questionnaire_link ? `
-                  <div style="margin: 32px 0; text-align: center;">
+                  <div style="margin: 16px 0; text-align: center;">
                     <a href="${form.questionnaire_link}" style="background-color: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
                       ${form.questionnaire_button_text || 'Complete Intake Questionnaire'}
+                    </a>
+                  </div>
+                  ` : ''}
+
+                  ${styleConfig.scheduleLink ? `
+                  <div style="margin: 16px 0; text-align: center;">
+                    <a href="${styleConfig.scheduleLink}" style="background-color: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
+                      ${styleConfig.scheduleButtonText || 'Schedule a Call'}
                     </a>
                   </div>
                   ` : ''}
