@@ -456,7 +456,7 @@ function SettingsInner() {
           {/* Danger Zone */}
           <div style={{ marginTop: "3rem", borderTop: "1px solid var(--border)", paddingTop: "2rem" }}>
             <h3 style={{ color: "var(--status-red)", fontSize: "1.125rem", fontWeight: 700, marginBottom: "0.5rem" }}>Danger Zone</h3>
-            <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--status-red)", fontWeight: 600, marginBottom: "1rem" }}>
               Permanently delete all CRM data including contacts, inquiries, communications, meetings, contracts, invoices, and expenses. Configuration settings and your account will remain.
             </p>
             <button 
