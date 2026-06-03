@@ -767,7 +767,7 @@ export default function FormsDashboard() {
                     </div>
                   </div>
                   );
-                })}
+                })()}
               </div>
             </div>
           </div>
