@@ -11,6 +11,10 @@ interface FormField {
   required: boolean;
   width?: 'full' | 'half';
   options?: string[]; // for select/radio/checkbox
+  // Style properties for the _style_config special field
+  inputBgColor?: string;
+  fieldBorderRadius?: string;
+  buttonBorderRadius?: string;
 }
 
 interface Form {
@@ -358,9 +362,14 @@ export default function FormsDashboard() {
 
                 {/* Fields Canvas */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', minHeight: '100px', alignItems: 'flex-start' }}>
-                  {(editingForm.fields || []).map((field, idx) => {
+                  {(editingForm.fields || []).filter(f => f.type !== '_style_config').map((field, idx) => {
                     const isSelected = selectedFieldIdx === idx;
                     const isHalf = field.width === 'half';
+                    const styleConfig = editingForm.fields?.find(f => f.type === '_style_config') || {
+                      inputBgColor: '#ffffff',
+                      fieldBorderRadius: '0.5rem',
+                      buttonBorderRadius: '0.5rem'
+                    };
                     return (
                       <div 
                         key={field.id}
@@ -409,9 +418,9 @@ export default function FormsDashboard() {
 
                           {/* Dummy UI for preview */}
                           {field.type === 'textarea' ? (
-                            <div style={{ width: '100%', height: '80px', borderRadius: '0.5rem', border: '1px solid #cbd5e1', backgroundColor: 'white' }} />
+                            <div style={{ width: '100%', height: '80px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff' }} />
                           ) : field.type === 'select' ? (
-                            <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', backgroundColor: 'white', color: '#94a3b8', fontSize: '0.875rem' }}>Select an option...</div>
+                            <div style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff', color: '#94a3b8', fontSize: '0.875rem' }}>Select an option...</div>
                           ) : field.type === 'radio' ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                               {(field.options || []).map((opt, i) => (
@@ -431,7 +440,7 @@ export default function FormsDashboard() {
                               ))}
                             </div>
                           ) : (
-                            <div style={{ width: '100%', height: '42px', borderRadius: '0.5rem', border: '1px solid #cbd5e1', backgroundColor: 'white' }} />
+                            <div style={{ width: '100%', height: '42px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff' }} />
                           )}
                         </div>
                       </div>
@@ -452,7 +461,7 @@ export default function FormsDashboard() {
                     style={{
                       width: '100%',
                       padding: '1rem',
-                      borderRadius: '0.5rem',
+                      borderRadius: (editingForm.fields?.find(f => f.type === '_style_config')?.buttonBorderRadius) || '0.5rem',
                       backgroundColor: editingForm.theme_color || '#0f172a',
                       color: 'white',
                       fontWeight: 700,
@@ -608,9 +617,31 @@ export default function FormsDashboard() {
                 )}
 
                 {/* TAB: FORM SETTINGS */}
-                {activeTab === 'form' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <div>
+                {activeTab === 'form' && (() => {
+                  const styleConfigIndex = (editingForm.fields || []).findIndex(f => f.type === '_style_config');
+                  const styleConfig = styleConfigIndex >= 0 ? editingForm.fields![styleConfigIndex] : {
+                    id: 'style_config',
+                    type: '_style_config',
+                    label: 'Style Config',
+                    required: false,
+                    inputBgColor: '#ffffff',
+                    fieldBorderRadius: '0.5rem',
+                    buttonBorderRadius: '0.5rem'
+                  };
+                  
+                  const updateStyleConfig = (updates: any) => {
+                    const newFields = [...(editingForm.fields || [])];
+                    if (styleConfigIndex >= 0) {
+                      newFields[styleConfigIndex] = { ...newFields[styleConfigIndex], ...updates };
+                    } else {
+                      newFields.push({ ...styleConfig, ...updates });
+                    }
+                    setEditingForm({ ...editingForm, fields: newFields });
+                  };
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                      <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Form Title</label>
                       <input
                         type="text"
@@ -639,7 +670,7 @@ export default function FormsDashboard() {
                       />
 
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Theme Color</label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.5rem' }}>
                         <input
                           type="color"
                           value={editingForm.theme_color || '#0f172a'}
@@ -648,6 +679,43 @@ export default function FormsDashboard() {
                         />
                         <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{editingForm.theme_color || '#0f172a'}</span>
                       </div>
+                      
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Input Field Background</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.5rem' }}>
+                        <input
+                          type="color"
+                          value={styleConfig.inputBgColor || '#ffffff'}
+                          onChange={e => updateStyleConfig({ inputBgColor: e.target.value })}
+                          style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{styleConfig.inputBgColor || '#ffffff'}</span>
+                      </div>
+
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Field Border Radius</label>
+                      <select
+                        value={styleConfig.fieldBorderRadius || '0.5rem'}
+                        onChange={e => updateStyleConfig({ fieldBorderRadius: e.target.value })}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', marginBottom: '1.5rem' }}
+                      >
+                        <option value="0">Square</option>
+                        <option value="0.25rem">Small (4px)</option>
+                        <option value="0.5rem">Medium (8px)</option>
+                        <option value="0.75rem">Large (12px)</option>
+                        <option value="9999px">Pill</option>
+                      </select>
+
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Button Shape (Border Radius)</label>
+                      <select
+                        value={styleConfig.buttonBorderRadius || '0.5rem'}
+                        onChange={e => updateStyleConfig({ buttonBorderRadius: e.target.value })}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
+                      >
+                        <option value="0">Square</option>
+                        <option value="0.25rem">Small (4px)</option>
+                        <option value="0.5rem">Medium (8px)</option>
+                        <option value="0.75rem">Large (12px)</option>
+                        <option value="9999px">Pill</option>
+                      </select>
                     </div>
 
                     <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
@@ -698,7 +766,8 @@ export default function FormsDashboard() {
                       )}
                     </div>
                   </div>
-                )}
+                  );
+                })}
               </div>
             </div>
           </div>
