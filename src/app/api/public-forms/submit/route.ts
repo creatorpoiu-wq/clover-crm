@@ -33,15 +33,21 @@ export async function POST(req: NextRequest) {
     const userId = form.user_id;
 
     // We expect the form to at least have an 'email' field or a 'Name' field for the contact.
-    // Let's try to extract standard fields (case insensitive search)
-    const getField = (keys: string[]) => {
-      const key = Object.keys(formData).find(k => keys.some(searchKey => k.toLowerCase().includes(searchKey)));
-      return key ? formData[key] : '';
+    // Let's try to extract standard fields by mapping the form data IDs to their actual labels (case insensitive search)
+    const getFieldByLabel = (searchKeys: string[]) => {
+      const fieldDef = (form.fields || []).find((f: any) => 
+        searchKeys.some(searchKey => f.label.toLowerCase().includes(searchKey))
+      );
+      if (fieldDef && formData[fieldDef.id]) {
+        return formData[fieldDef.id];
+      }
+      return '';
     };
 
-    const email = getField(['email']);
-    const name = getField(['name', 'first', 'last']) || 'Unknown Lead';
-    const phone = getField(['phone', 'mobile', 'cell']) || '';
+    const email = getFieldByLabel(['email']);
+    const name = getFieldByLabel(['name', 'first', 'last']) || 'Unknown Lead';
+    const phone = getFieldByLabel(['phone', 'mobile', 'cell']) || '';
+    const packageSelection = getFieldByLabel(['package', 'service', 'tier', 'plan']) || '';
 
     if (!email) {
       // It's highly recommended forms have an email field, but if not, we still need a placeholder
@@ -86,7 +92,7 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: userId,
         Contact_ID: contactId,
-        Service_Type: `Form Submission: ${form.title}`,
+        Service_Type: packageSelection || `Form Submission: ${form.title}`,
         Pipeline_Stage: 'New Inquiry',
         Questionnaire_Data: formData, // Store all form data here
       })
