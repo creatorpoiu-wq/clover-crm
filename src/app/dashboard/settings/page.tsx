@@ -498,16 +498,16 @@ function SettingsInner() {
         </div>
         )}
 
-        {/* Gmail Integration */}
+        {/* Google Integration */}
         {activeTab === 'integrations' && (
         <div className="glass-panel" style={{ padding: "2rem" }}>
           <div className="flex items-center gap-2 section-header">
             <Mail size={20} className="text-[var(--primary)]" />
-            <h2>Gmail Integration</h2>
+            <h2>Google Account Integration</h2>
           </div>
 
           <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "1.5rem" }}>
-            Connect your Gmail account via OAuth to automatically pull in replies from clients and log them in your Communications tab.
+            Connect your Google account via OAuth to enable <strong>Calendar Sync</strong> for meetings and automatically pull client <strong>Gmail</strong> replies into your Communications tab.
           </p>
 
           <form onSubmit={handleSave} className="space-y-4 mb-6">
@@ -544,7 +544,7 @@ function SettingsInner() {
                     }
                   }}
                 >
-                  <LinkIcon size={16} /> Connect Account
+                  <LinkIcon size={16} /> Sign in with Google
                 </a>
               ) : (
                 <div style={{ display: "flex", gap: "0.5rem" }}>
