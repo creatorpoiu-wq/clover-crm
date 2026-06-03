@@ -12,7 +12,16 @@ export async function GET(req: Request) {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    return NextResponse.json({ error: "Google OAuth credentials not configured on server." }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Google OAuth credentials not configured on server.",
+      debug: {
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+        clientIdValue: clientId ? `${clientId.substring(0, 5)}...` : 'undefined',
+        envKeys: Object.keys(process.env).filter(k => k.includes('GOOGLE') || k.includes('NEXT')),
+        nodeEnv: process.env.NODE_ENV
+      }
+    }, { status: 500 });
   }
 
   const SCOPES = [
