@@ -95,12 +95,15 @@ export async function POST(req: NextRequest) {
       try {
         const { data: config } = await supabase
           .from('AppConfig')
-          .select('Google_Client_ID, Google_Client_Secret, Google_Refresh_Token')
+          .select('Google_Refresh_Token')
           .eq('user_id', user.id)
           .single();
 
-        if (config?.Google_Client_ID && config?.Google_Refresh_Token) {
-          const oAuth2Client = new google.auth.OAuth2(config.Google_Client_ID, config.Google_Client_Secret);
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+        if (clientId && clientSecret && config?.Google_Refresh_Token) {
+          const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret);
           oAuth2Client.setCredentials({ refresh_token: config.Google_Refresh_Token });
 
           // Fetch contact email if linked
@@ -183,12 +186,15 @@ export async function DELETE(req: NextRequest) {
       try {
         const { data: config } = await supabase
           .from('AppConfig')
-          .select('Google_Client_ID, Google_Client_Secret, Google_Refresh_Token')
+          .select('Google_Refresh_Token')
           .eq('user_id', user.id)
           .single();
 
-        if (config?.Google_Refresh_Token) {
-          const oAuth2Client = new google.auth.OAuth2(config.Google_Client_ID, config.Google_Client_Secret);
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+        if (clientId && clientSecret && config?.Google_Refresh_Token) {
+          const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret);
           oAuth2Client.setCredentials({ refresh_token: config.Google_Refresh_Token });
           const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
           await calendar.events.delete({ calendarId: 'primary', eventId: meeting.Google_Event_ID });

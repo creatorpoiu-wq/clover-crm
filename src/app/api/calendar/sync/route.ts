@@ -11,17 +11,24 @@ export async function POST() {
 
     const { data: config } = await supabase
       .from('AppConfig')
-      .select('Google_Client_ID, Google_Client_Secret, Google_Refresh_Token')
+      .select('Google_Refresh_Token')
       .eq('user_id', user.id)
       .single();
     
-    if (!config || !config.Google_Client_ID || !config.Google_Refresh_Token) {
+    if (!config || !config.Google_Refresh_Token) {
       return NextResponse.json({ success: false, error: "Google Integration is not fully configured or connected." }, { status: 400 });
     }
 
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      return NextResponse.json({ success: false, error: "Google OAuth not configured on server" }, { status: 500 });
+    }
+
     const oAuth2Client = new google.auth.OAuth2(
-      config.Google_Client_ID,
-      config.Google_Client_Secret
+      clientId,
+      clientSecret
     );
     oAuth2Client.setCredentials({ refresh_token: config.Google_Refresh_Token });
 
