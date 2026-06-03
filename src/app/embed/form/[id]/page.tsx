@@ -88,7 +88,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
 
   return (
     <>
-      <style>{`body { background-color: transparent !important; }`}</style>
+      <style>{`html, body { background-color: transparent !important; }`}</style>
       <div style={{ padding: '2rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
         {formConfig.description && <p style={{ color: '#64748b', marginBottom: '2rem', lineHeight: 1.5 }}>{formConfig.description}</p>}
       
