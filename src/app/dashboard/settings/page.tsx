@@ -51,6 +51,11 @@ function SettingsInner() {
   const [twilioPhone, setTwilioPhone] = useState("");
   const [testingSms, setTestingSms] = useState(false);
 
+  // Reset CRM state
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -262,6 +267,41 @@ function SettingsInner() {
     }
   };
 
+  const handleResetCrm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetConfirmText !== "RESET") {
+      setAccountMsg({ type: "error", text: "You must type exactly 'RESET' to confirm." });
+      return;
+    }
+    if (!confirm("Are you absolutely sure? This action is permanent and will wipe all CRM data.")) {
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const res = await fetch("/api/settings/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmText: resetConfirmText })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setAccountMsg({ type: "success", text: data.message });
+        setShowResetModal(false);
+        setResetConfirmText("");
+        // Optionally trigger a page reload to clear cached client state
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        setAccountMsg({ type: "error", text: data.error || "Failed to reset CRM." });
+      }
+    } catch (error) {
+      setAccountMsg({ type: "error", text: "An error occurred during reset." });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (loading) return <div className="empty-state">Loading settings...</div>;
 
   const inputStyle = { textAlign: "left" as const, letterSpacing: "normal", fontSize: "0.875rem", width: "100%", padding: "10px 14px", border: "1px solid var(--border)", borderRadius: 8, background: "var(--background)" };
@@ -412,6 +452,54 @@ function SettingsInner() {
               {updatingAccount ? "Updating..." : "Update Credentials"}
             </button>
           </form>
+
+          {/* Danger Zone */}
+          <div style={{ marginTop: "3rem", borderTop: "1px solid var(--border)", paddingTop: "2rem" }}>
+            <h3 style={{ color: "var(--status-red)", fontSize: "1.125rem", fontWeight: 700, marginBottom: "0.5rem" }}>Danger Zone</h3>
+            <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "1rem" }}>
+              Permanently delete all CRM data including contacts, inquiries, communications, meetings, contracts, invoices, and expenses. Configuration settings and your account will remain.
+            </p>
+            <button 
+              onClick={() => setShowResetModal(true)} 
+              className="btn btn-outline" 
+              style={{ width: "auto", borderColor: "var(--status-red)", color: "var(--status-red)" }}
+            >
+              Reset CRM Data
+            </button>
+          </div>
+
+          {/* Reset Modal */}
+          {showResetModal && (
+            <div className="modal-overlay" onClick={() => setShowResetModal(false)}>
+              <div className="modal-content animate-fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: "450px" }}>
+                <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--status-red)", marginBottom: "1rem" }}>Factory Reset CRM</h2>
+                <p style={{ fontSize: "0.875rem", marginBottom: "1.5rem", lineHeight: 1.5 }}>
+                  This will permanently delete all client records, files, forms, contracts, emails, and history. <strong>This cannot be undone.</strong>
+                </p>
+                <form onSubmit={handleResetCrm}>
+                  <label style={labelStyle}>
+                    Type <strong style={{ color: "var(--status-red)" }}>RESET</strong> to confirm
+                  </label>
+                  <input 
+                    type="text" 
+                    style={inputStyle}
+                    value={resetConfirmText}
+                    onChange={e => setResetConfirmText(e.target.value)}
+                    placeholder="RESET"
+                    required
+                  />
+                  <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem", justifyContent: "flex-end" }}>
+                    <button type="button" className="btn btn-outline" onClick={() => { setShowResetModal(false); setResetConfirmText(""); }}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn" disabled={isResetting || resetConfirmText !== "RESET"} style={{ backgroundColor: "var(--status-red)", color: "white", border: "none" }}>
+                      {isResetting ? "Wiping..." : "Permanently Delete Data"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
         )}
 
