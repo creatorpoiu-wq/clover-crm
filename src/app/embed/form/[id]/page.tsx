@@ -87,9 +87,10 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
   }
 
   return (
-    <div style={{ padding: '2rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
-      {formConfig.title && <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.5rem' }}>{formConfig.title}</h2>}
-      {formConfig.description && <p style={{ color: '#64748b', marginBottom: '2rem', lineHeight: 1.5 }}>{formConfig.description}</p>}
+    <>
+      <style>{`body { background-color: transparent !important; }`}</style>
+      <div style={{ padding: '2rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+        {formConfig.description && <p style={{ color: '#64748b', marginBottom: '2rem', lineHeight: 1.5 }}>{formConfig.description}</p>}
       
       {error && <div style={{ padding: '1rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
 
@@ -193,5 +194,6 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
         </button>
       </form>
     </div>
+    </>
   );
 }

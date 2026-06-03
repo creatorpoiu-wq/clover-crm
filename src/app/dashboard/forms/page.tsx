@@ -187,13 +187,13 @@ export default function FormsDashboard() {
   // Drag and Drop implementation
   const handleDragStartSidebar = (e: React.DragEvent, type: string) => {
     e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('application/json', JSON.stringify({ action: 'add', type }));
+    e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'add', type }));
   };
 
   const handleDragStartCanvas = (e: React.DragEvent, index: number) => {
     setDraggedIdx(index);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/json', JSON.stringify({ action: 'move', index }));
+    e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', index }));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -206,7 +206,7 @@ export default function FormsDashboard() {
     if (!editingForm) return;
     
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
       const newFields = [...(editingForm.fields || [])];
 
       if (data.action === 'add') {
