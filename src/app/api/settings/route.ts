@@ -32,8 +32,6 @@ export async function GET() {
         phone: config.Phone || '',
         timeZone: config.Time_Zone || '',
         dateFormat: config.Date_Format || '',
-        googleClientId: config.Google_Client_ID || '',
-        googleClientSecret: config.Google_Client_Secret || '',
         hasRefreshToken: !!config.Google_Refresh_Token,
         emailUser: config.Email_User || '',
         hasEmailPass: !!(config.Email_Pass && config.Email_Pass.length > 0),
@@ -54,7 +52,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, googleClientId, googleClientSecret, emailUser, emailPass, businessLogo, businessAddress, brandColor, twilioSid, twilioAuthToken, twilioPhone } = await req.json();
+    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, emailUser, emailPass, businessLogo, businessAddress, brandColor, twilioSid, twilioAuthToken, twilioPhone } = await req.json();
     
     // Check if the user has an AppConfig row
     const { data: userAuth } = await supabase.auth.getUser();
@@ -72,8 +70,6 @@ export async function POST(req: NextRequest) {
       Phone: phone,
       Time_Zone: timeZone,
       Date_Format: dateFormat,
-      Google_Client_ID: googleClientId,
-      Google_Client_Secret: googleClientSecret,
       Email_User: emailUser,
       Business_Logo: businessLogo,
       Business_Address: businessAddress,

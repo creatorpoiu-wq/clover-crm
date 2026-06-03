@@ -15,8 +15,6 @@ function SettingsInner() {
   const [timeZone, setTimeZone] = useState("(GMT-05:00) America, Jamaica");
   const [dateFormat, setDateFormat] = useState("dd/mm/yyyy");
 
-  const [clientId, setClientId] = useState("");
-  const [clientSecret, setClientSecret] = useState("");
   const [hasToken, setHasToken] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -78,8 +76,6 @@ function SettingsInner() {
           if (data.config.timeZone) setTimeZone(data.config.timeZone);
           if (data.config.dateFormat) setDateFormat(data.config.dateFormat);
           
-          setClientId(data.config.googleClientId || "");
-          setClientSecret(data.config.googleClientSecret || "");
           setHasToken(data.config.hasRefreshToken || false);
           setEmailUser(data.config.emailUser || "");
           setHasEmailPass(data.config.hasEmailPass || false);
@@ -108,10 +104,8 @@ function SettingsInner() {
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat,
-          googleClientId: clientId,
-          googleClientSecret: clientSecret,
           emailUser,
           emailPass,
           businessLogo,
@@ -598,20 +592,6 @@ function SettingsInner() {
             Connect your Google account via OAuth to enable <strong>Calendar Sync</strong> for meetings and automatically pull client <strong>Gmail</strong> replies into your Communications tab.
           </p>
 
-          <form onSubmit={handleSave} className="space-y-4 mb-6">
-            <div>
-              <label style={labelStyle}>Google Client ID</label>
-              <input type="text" className="input" style={inputStyle} value={clientId}
-                onChange={e => setClientId(e.target.value)} placeholder="xxx.apps.googleusercontent.com" />
-            </div>
-            <div>
-              <label style={labelStyle}>Google Client Secret</label>
-              <input type="password" className="input" style={inputStyle} value={clientSecret}
-                onChange={e => setClientSecret(e.target.value)} placeholder="GOCSPX-xxxxxx" />
-            </div>
-            <button type="submit" className="btn btn-outline" style={{ width: "auto" }}>Save API Keys</button>
-          </form>
-
           <div style={{ padding: "1.5rem", backgroundColor: "var(--muted-bg)", borderRadius: "0.5rem", border: "1px solid var(--border)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: hasToken ? "1rem" : "0" }}>
               <div>
@@ -625,12 +605,6 @@ function SettingsInner() {
                 <a href="/api/gmail/auth" 
                   className="btn btn-primary" 
                   style={{ width: "auto", textDecoration: "none" }}
-                  onClick={(e) => {
-                    if (!clientId || !clientSecret) {
-                      e.preventDefault();
-                      setMessage({ type: "error", text: "Please enter and save your Google Client ID and Secret first." });
-                    }
-                  }}
                 >
                   <LinkIcon size={16} /> Sign in with Google
                 </a>

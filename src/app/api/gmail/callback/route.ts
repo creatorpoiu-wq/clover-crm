@@ -14,21 +14,18 @@ export async function GET(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.redirect(new URL('/login', req.url));
 
-  const { data: config } = await supabase
-    .from('AppConfig')
-    .select('Google_Client_ID, Google_Client_Secret')
-    .eq('user_id', user.id)
-    .single();
-  
-  if (!config || !config.Google_Client_ID || !config.Google_Client_Secret) {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
     return NextResponse.redirect(new URL('/dashboard/settings?error=NoConfig', req.url));
   }
 
   const REDIRECT_URI = `${url.protocol}//${url.host}/api/gmail/callback`;
 
   const oAuth2Client = new google.auth.OAuth2(
-    config.Google_Client_ID,
-    config.Google_Client_Secret,
+    clientId,
+    clientSecret,
     REDIRECT_URI
   );
 
