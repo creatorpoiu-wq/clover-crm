@@ -111,6 +111,21 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({ inquiryId: newInquiry.Inquiry_ID }),
     }).catch((e) => console.error('AI draft auto-trigger (form) failed:', e));
 
+    // Map field IDs to their actual labels for readable output
+    const fieldMap: Record<string, string> = {};
+    if (form.fields) {
+      form.fields.forEach((f: any) => {
+        fieldMap[f.id] = f.label;
+      });
+    }
+
+    let formSummaryText = `Submitted form: ${form.title}\n\n`;
+    for (const [key, value] of Object.entries(formData)) {
+      const displayValue = Array.isArray(value) ? value.join(', ') : value;
+      const label = fieldMap[key] || key;
+      formSummaryText += `${label}:\n${displayValue}\n\n`;
+    }
+
     // 4. Log Communication
     await supabase.from('Communications').insert({
       user_id: userId,
@@ -118,7 +133,7 @@ export async function POST(req: NextRequest) {
       Last_Contact_By: name,
       Last_Contact_Date: new Date().toISOString(),
       Method: 'Form',
-      Notes: `Submitted form: ${form.title}`
+      Notes: formSummaryText.trim()
     });
 
     // 5. Send Email Notification to CRM Owner
@@ -158,13 +173,7 @@ export async function POST(req: NextRequest) {
                 <table style="width: 100%; border-collapse: collapse;">
                   <tbody>`;
         
-        // Map field IDs to their actual labels
-        const fieldMap: Record<string, string> = {};
-        if (form.fields) {
-          form.fields.forEach((f: any) => {
-            fieldMap[f.id] = f.label;
-          });
-        }
+        // (fieldMap already generated above)
         
         let isEven = false;
         for (const [key, value] of Object.entries(formData)) {
