@@ -78,7 +78,8 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
     fieldBorderRadius: '0.5rem',
     buttonBorderRadius: '0.5rem',
     labelColor: '#334155',
-    inputTextColor: '#0f172a'
+    inputTextColor: '#0f172a',
+    fontFamily: 'system-ui, sans-serif'
   };
   const activeFields = (formConfig?.fields || []).filter((f: any) => f.type !== '_style_config');
 
@@ -118,7 +119,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
       
       {error && <div style={{ padding: '1rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', fontFamily: styleConfig.fontFamily || 'system-ui, sans-serif' }}>
         {activeFields.map((field: any) => {
           const isHalf = field.width === 'half';
           return (
@@ -208,6 +209,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
             color: 'white',
             fontWeight: 700,
             fontSize: '1rem',
+            fontFamily: 'inherit',
             border: 'none',
             cursor: submitting ? 'not-allowed' : 'pointer',
             opacity: submitting ? 0.7 : 1,

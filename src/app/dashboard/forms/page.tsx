@@ -17,6 +17,7 @@ interface FormField {
   buttonBorderRadius?: string;
   labelColor?: string;
   inputTextColor?: string;
+  fontFamily?: string;
   scheduleLink?: string;
   scheduleButtonText?: string;
 }
@@ -379,7 +380,8 @@ export default function FormsDashboard() {
                       fieldBorderRadius: '0.5rem',
                       buttonBorderRadius: '0.5rem',
                       labelColor: '#334155',
-                      inputTextColor: '#0f172a'
+                      inputTextColor: '#0f172a',
+                      fontFamily: 'system-ui, sans-serif'
                     };
                     return (
                       <div 
@@ -419,7 +421,7 @@ export default function FormsDashboard() {
                         )}
 
                         {/* Field Render Preview */}
-                        <div style={{ pointerEvents: 'none' }}> {/* Prevent interaction with preview inputs */}
+                        <div style={{ pointerEvents: 'none', fontFamily: styleConfig.fontFamily || 'system-ui, sans-serif' }}> {/* Prevent interaction with preview inputs */}
                           <div style={{ marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem', color: styleConfig.labelColor || '#334155', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                             {field.label}
                             {field.required && <span style={{ color: '#ef4444' }}>*</span>}
@@ -478,6 +480,7 @@ export default function FormsDashboard() {
                       color: 'white',
                       fontWeight: 700,
                       fontSize: '1rem',
+                      fontFamily: (editingForm.fields?.find(f => f.type === '_style_config')?.fontFamily) || 'system-ui, sans-serif',
                       border: 'none',
                       opacity: 0.9
                     }}
@@ -641,6 +644,7 @@ export default function FormsDashboard() {
                     buttonBorderRadius: '0.5rem',
                     labelColor: '#334155',
                     inputTextColor: '#0f172a',
+                    fontFamily: 'system-ui, sans-serif',
                     scheduleLink: '',
                     scheduleButtonText: 'Schedule a Call'
                   };
@@ -746,13 +750,27 @@ export default function FormsDashboard() {
                       <select
                         value={styleConfig.buttonBorderRadius || '0.5rem'}
                         onChange={e => updateStyleConfig({ buttonBorderRadius: e.target.value })}
-                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', marginBottom: '1.5rem' }}
                       >
                         <option value="0">Square</option>
                         <option value="0.25rem">Small (4px)</option>
                         <option value="0.5rem">Medium (8px)</option>
                         <option value="0.75rem">Large (12px)</option>
                         <option value="9999px">Pill</option>
+                      </select>
+
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Form Font Style</label>
+                      <select
+                        value={styleConfig.fontFamily || 'system-ui, sans-serif'}
+                        onChange={e => updateStyleConfig({ fontFamily: e.target.value })}
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', fontFamily: styleConfig.fontFamily || 'system-ui, sans-serif' }}
+                      >
+                        <option value="system-ui, sans-serif">System Default (Modern)</option>
+                        <option value="var(--font-sans), 'Inter', sans-serif">Inter (Clean)</option>
+                        <option value="Arial, Helvetica, sans-serif">Arial (Classic)</option>
+                        <option value="Georgia, serif">Georgia (Elegant)</option>
+                        <option value="'Times New Roman', Times, serif">Times New Roman (Formal)</option>
+                        <option value="'Courier New', Courier, monospace">Monospace (Technical)</option>
                       </select>
                     </div>
 
