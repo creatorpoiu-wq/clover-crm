@@ -426,10 +426,6 @@ export default function FormsDashboard() {
                             {field.label}
                             {field.required && <span style={{ color: '#ef4444' }}>*</span>}
                           </div>
-                          {field.description && (
-                            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.5rem 0' }}>{field.description}</p>
-                          )}
-
                           {/* Dummy UI for preview */}
                           {field.type === 'textarea' ? (
                             <div style={{ width: '100%', height: '80px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff', color: styleConfig.inputTextColor || '#0f172a' }} />
@@ -455,6 +451,10 @@ export default function FormsDashboard() {
                             </div>
                           ) : (
                             <div style={{ width: '100%', height: '42px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff', color: styleConfig.inputTextColor || '#0f172a' }} />
+                          )}
+                          
+                          {field.description && (
+                            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0.5rem 0 0 0' }}>{field.description}</p>
                           )}
                         </div>
                       </div>

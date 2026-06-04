@@ -127,9 +127,6 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: styleConfig.labelColor, marginBottom: '0.25rem' }}>
                 {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
               </label>
-              {field.description && (
-                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>{field.description}</p>
-              )}
               
               {field.type === 'textarea' ? (
                 <textarea
@@ -192,6 +189,10 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   title={field.type === 'phone' ? 'Please enter a valid phone number' : undefined}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
                 />
+              )}
+
+              {field.description && (
+                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>{field.description}</p>
               )}
             </div>
           );
