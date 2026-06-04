@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
         </div>`;
 
         await transporter.sendMail({
-          from: `"${companyName} Notifications" <${config.Email_User}>`,
+          from: `"${companyName} Notifications" <${config.Email_User.replace('@', '+notifications@')}>`,
           to: config.Email_User, // send to self
           subject: `New Inquiry: ${form.title} - ${name}`,
           html: htmlBody

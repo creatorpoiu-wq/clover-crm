@@ -109,7 +109,7 @@ export async function PUT(req: NextRequest) {
           const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: config.Email_User, pass: config.Email_Pass } });
           const subject = clientStatus === 'approved' ? `Deliverable Approved: ${deliverable.Title}` : `Revision Requested: ${deliverable.Title}`;
           await transporter.sendMail({
-            from: `"${config.Company_Name}" <${config.Email_User}>`,
+            from: `"${config.Company_Name} Notifications" <${config.Email_User.replace('@', '+notifications@')}>`,
             to: config.Email_User, // Send to admin
             subject: subject,
             html: `<div style="font-family: sans-serif; padding: 20px;">
