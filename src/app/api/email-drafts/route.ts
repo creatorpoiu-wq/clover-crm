@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('Email_Drafts')
-      .select('*, Inquiries(Contact_Name, Email), Agents(Name, Role)')
+      .select('*, Inquiries(Contact_ID, Contact_Name, Email), Agents(Name, Role)')
       .eq('Status', 'draft')
       .order('Created_At', { ascending: false });
 

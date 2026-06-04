@@ -99,8 +99,8 @@ export default function HubPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contactId: selectedDraft.Inquiries.Contact_ID || 0, // In reality, we need Contact_ID, let's assume it's linked
-          email: selectedDraft.Inquiries.Email,
+          contactId: selectedDraft.Inquiries?.Contact_ID || 0,
+          email: selectedDraft.Inquiries?.Email,
           subject: selectedDraft.Subject,
           body: selectedDraft.Body
         })
@@ -481,7 +481,7 @@ export default function HubPage() {
                       }}
                     />
                     <button className="btn btn-primary" style={{ alignSelf: "flex-end", width: "auto" }} onClick={handleLogNote} disabled={isLogging || !noteContent.trim()}>
-                      <Send size={18} /> {isLogging ? "..." : "Log Note"}
+                      <Send size={18} /> {isLogging ? "..." : "Send"}
                     </button>
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "8px" }}>Press Enter to log note, Shift+Enter for new line. Notes are internal.</div>

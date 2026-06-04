@@ -134,7 +134,7 @@ Reply only with the email body — no subject line, no extra commentary.`;
         Body: draftBody,
         Status: 'draft',
       })
-      .select()
+      .select('*, Inquiries(Contact_ID, Contact_Name, Email), Agents(Name, Role)')
       .single();
 
     if (draftError) throw draftError;
