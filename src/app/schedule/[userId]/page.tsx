@@ -132,7 +132,22 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'inherit', display: 'flex', flexDirection: 'column' }}>
-      
+      <style dangerouslySetInnerHTML={{__html: `
+        .schedule-main { padding: 1.5rem 1rem; flex: 1; display: flex; justify-content: center; align-items: flex-start; }
+        .schedule-panel { display: flex; flex-direction: column; width: 100%; max-width: 900px; background-color: white; border-radius: 1.5rem; overflow: hidden; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; }
+        .schedule-left { flex: 1; padding: 2rem; border-bottom: 1px solid #f1f5f9; border-right: none; }
+        .schedule-right { flex: 1.5; padding: 2rem; }
+        .schedule-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        
+        @media (min-width: 768px) {
+          .schedule-main { padding: 3rem 2rem; }
+          .schedule-panel { flex-direction: row; }
+          .schedule-left { padding: 3rem; border-bottom: none; border-right: 1px solid #f1f5f9; }
+          .schedule-right { padding: 3rem; }
+          .schedule-grid { grid-template-columns: 1fr 1fr; }
+        }
+      `}} />
+
       {/* Header */}
       <header style={{ backgroundColor: 'white', padding: '1.5rem 2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
         {logo ? (
@@ -142,11 +157,11 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
         )}
       </header>
 
-      <main className="flex-1 p-6 sm:p-8 md:p-12 flex justify-center items-start">
-        <div className="glass-panel flex flex-col md:flex-row w-full max-w-[900px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100">
+      <main className="schedule-main">
+        <div className="glass-panel schedule-panel">
           
           {/* Left Side: Info */}
-          <div className="flex-1 p-6 md:p-12 border-b md:border-b-0 md:border-r border-slate-100" style={{ backgroundColor: `${themeColor}05` }}>
+          <div className="schedule-left" style={{ backgroundColor: `${themeColor}05` }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, color: themeColor, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Book a Meeting</h2>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginBottom: '1.5rem' }}>
               Schedule Time with {companyName}
@@ -168,10 +183,10 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
           </div>
 
           {/* Right Side: Form */}
-          <div className="flex-[1.5] p-6 md:p-12">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="schedule-right">
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="schedule-grid">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Date *</label>
                   <DatePicker 
@@ -197,7 +212,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="schedule-grid">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Full Name *</label>
                   <input 
@@ -232,7 +247,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="schedule-grid">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Email *</label>
                   <input 
