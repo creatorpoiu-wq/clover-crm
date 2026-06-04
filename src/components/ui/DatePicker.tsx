@@ -96,7 +96,7 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
           padding-top: 0.5rem;
         }
         .react-datepicker__header select {
-          padding: 6px 10px;
+          padding: 6px 24px 6px 12px;
           border-radius: 6px;
           border: 1px solid #cbd5e1;
           font-family: inherit;
