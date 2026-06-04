@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UserPlus, Plus, MessageSquare, Users, Edit2, Trash2, Save, X, Search } from "lucide-react";
 import Link from "next/link";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface InquiryOption {
   Inquiry_ID: number;
@@ -426,7 +427,7 @@ export default function ContactsPage() {
                   </div>
                   <div>
                     <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Event Date</label>
-                    <input type="date" className="input" style={{ textAlign: "left", letterSpacing: "normal" }} value={newContact.eventDate} onChange={e => setNewContact({...newContact, eventDate: e.target.value})} />
+                    <DatePicker className="input" style={{ textAlign: "left", letterSpacing: "normal" }} value={newContact.eventDate} onChange={val => setNewContact({...newContact, eventDate: val})} />
                   </div>
                   <div>
                     <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Estimated Value ($)</label>

@@ -6,6 +6,7 @@ import { FileText, DollarSign, Plus, Edit2, Trash2, Check, X, Printer, Search, P
 import ContractBuilder from "@/components/ContractBuilder";
 import InvoiceBuilder from "@/components/InvoiceBuilder";
 import { formatDate } from "@/lib/formatDate";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface InquiryOption {
   Inquiry_ID: number;
@@ -524,7 +525,7 @@ export default function FinancePage() {
                   </div>
                   <div>
                     <label className="label" style={{ fontSize: "0.75rem" }}>Date</label>
-                    <input type="date" className="input" style={{ fontSize: "0.875rem", padding: "0.6rem", textAlign: "left", letterSpacing: "normal" }} value={expenseForm.date} onChange={e => setExpenseForm({...expenseForm, date: e.target.value})} required />
+                    <DatePicker className="input" style={{ fontSize: "0.875rem", padding: "0.6rem", textAlign: "left", letterSpacing: "normal" }} value={expenseForm.date} onChange={val => setExpenseForm({...expenseForm, date: val})} required />
                   </div>
                   <div>
                     <label className="label" style={{ fontSize: "0.75rem" }}>Description</label>

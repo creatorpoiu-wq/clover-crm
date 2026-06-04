@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 interface Props {
   inquiryId: number;
@@ -202,10 +203,9 @@ export default function DeliverablesManager({ inquiryId }: Props) {
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <input 
-                type="date" 
+              <DatePicker 
                 value={m.dueDate || ''} 
-                onChange={e => updateMilestone(i, undefined, e.target.value, undefined)}
+                onChange={val => updateMilestone(i, undefined, val, undefined)}
                 style={{ fontSize: '0.75rem', padding: '0.375rem 0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', color: '#475569', outline: 'none', boxSizing: 'border-box' }}
               />
               <select 
@@ -227,7 +227,7 @@ export default function DeliverablesManager({ inquiryId }: Props) {
       {/* Add Timeline Step */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', background: '#f8fafc', padding: '1rem', borderRadius: '0.75rem', border: '1px dashed #cbd5e1', boxSizing: 'border-box' }}>
         <input type="text" placeholder="New Step Name (e.g. Teasers)" value={newMilestoneName} onChange={e => setNewMilestoneName(e.target.value)} style={{ padding: '0.625rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 1, minWidth: 150, fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
-        <input type="date" value={newMilestoneDate} onChange={e => setNewMilestoneDate(e.target.value)} style={{ padding: '0.625rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
+        <DatePicker value={newMilestoneDate} onChange={val => setNewMilestoneDate(val)} style={{ padding: '0.625rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }} />
         <button onClick={addMilestone} disabled={!newMilestoneName} style={{ padding: '0.625rem 1rem', background: '#e2e8f0', color: '#334155', borderRadius: '0.5rem', fontWeight: 600, border: 'none', cursor: newMilestoneName ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '0.25rem', boxSizing: 'border-box' }}>
           <Plus size={16} /> Add Step
         </button>

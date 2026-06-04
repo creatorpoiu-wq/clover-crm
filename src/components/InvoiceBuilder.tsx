@@ -5,6 +5,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import { SaveTemplateModal, LoadTemplateModal } from './InvoiceBuilderModals';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 interface LineItem { id: string; description: string; quantity: number; price: number; }
 interface Contact { Contact_ID: number; Name: string; Email: string; }
@@ -270,7 +271,7 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
                 <div style={{ height:1, background:'#e5e7eb', margin:'4px 0' }}/>
                 <div><label style={labelStyle}>Client Name</label><input value={clientName} onChange={e=>setClientName(e.target.value)} placeholder="e.g. Jane Smith" style={inputStyle}/></div>
                 <div><label style={labelStyle}>Client Email *</label><input type="email" value={clientEmail} onChange={e=>setClientEmail(e.target.value)} placeholder="client@email.com" style={inputStyle}/></div>
-                <div><label style={labelStyle}>Due Date</label><input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)} style={inputStyle}/></div>
+                <div><label style={labelStyle}>Due Date</label><DatePicker value={dueDate} onChange={val=>setDueDate(val)} style={inputStyle}/></div>
               </div>
             </div>
           )}
