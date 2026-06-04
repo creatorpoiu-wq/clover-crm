@@ -766,6 +766,7 @@ export default function FormsDashboard() {
                         style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', fontFamily: styleConfig.fontFamily || 'system-ui, sans-serif' }}
                       >
                         <option value="system-ui, sans-serif">System Default (Modern)</option>
+                        <option value="initial">Initial / Inherit</option>
                         <option value="var(--font-sans), 'Inter', sans-serif">Inter (Clean)</option>
                         <option value="Arial, Helvetica, sans-serif">Arial (Classic)</option>
                         <option value="Georgia, serif">Georgia (Elegant)</option>
