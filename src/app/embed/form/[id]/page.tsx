@@ -76,7 +76,9 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
   const styleConfig = (formConfig?.fields || []).find((f: any) => f.type === '_style_config') || {
     inputBgColor: '#ffffff',
     fieldBorderRadius: '0.5rem',
-    buttonBorderRadius: '0.5rem'
+    buttonBorderRadius: '0.5rem',
+    labelColor: '#334155',
+    inputTextColor: '#0f172a'
   };
   const activeFields = (formConfig?.fields || []).filter((f: any) => f.type !== '_style_config');
 
@@ -121,7 +123,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
           const isHalf = field.width === 'half';
           return (
             <div key={field.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: isHalf ? '1 1 calc(50% - 0.75rem)' : '1 1 100%', minWidth: isHalf ? '200px' : '100%' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: styleConfig.labelColor, marginBottom: '0.25rem' }}>
                 {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
               </label>
               {field.description && (
@@ -134,14 +136,14 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   value={formData[field.id] || ''}
                   onChange={e => handleFieldChange(field.id, e.target.value)}
                   rows={4}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', resize: 'vertical', backgroundColor: styleConfig.inputBgColor }}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', resize: 'vertical', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
                 />
               ) : field.type === 'select' ? (
                 <select
                   required={field.required}
                   value={formData[field.id] || ''}
                   onChange={e => handleFieldChange(field.id, e.target.value)}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor }}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
                 >
                   <option value="" disabled>Select an option...</option>
                   {(field.options || []).map((opt: string) => (
@@ -149,7 +151,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   ))}
                 </select>
               ) : field.type === 'radio' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: styleConfig.inputTextColor }}>
                   {(field.options || []).map((opt: string) => (
                     <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
                       <input
@@ -165,7 +167,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   ))}
                 </div>
               ) : field.type === 'checkbox' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: styleConfig.inputTextColor }}>
                   {(field.options || []).map((opt: string) => (
                     <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
                       <input
@@ -187,7 +189,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   onChange={e => handleFieldChange(field.id, e.target.value)}
                   pattern={field.type === 'phone' ? '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$' : undefined}
                   title={field.type === 'phone' ? 'Please enter a valid phone number' : undefined}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor }}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
                 />
               )}
             </div>

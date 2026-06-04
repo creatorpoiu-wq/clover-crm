@@ -15,6 +15,8 @@ interface FormField {
   inputBgColor?: string;
   fieldBorderRadius?: string;
   buttonBorderRadius?: string;
+  labelColor?: string;
+  inputTextColor?: string;
   scheduleLink?: string;
   scheduleButtonText?: string;
 }
@@ -370,7 +372,9 @@ export default function FormsDashboard() {
                     const styleConfig = editingForm.fields?.find(f => f.type === '_style_config') || {
                       inputBgColor: '#ffffff',
                       fieldBorderRadius: '0.5rem',
-                      buttonBorderRadius: '0.5rem'
+                      buttonBorderRadius: '0.5rem',
+                      labelColor: '#334155',
+                      inputTextColor: '#0f172a'
                     };
                     return (
                       <div 
@@ -411,20 +415,21 @@ export default function FormsDashboard() {
 
                         {/* Field Render Preview */}
                         <div style={{ pointerEvents: 'none' }}> {/* Prevent interaction with preview inputs */}
-                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.25rem' }}>
-                            {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
-                          </label>
+                          <div style={{ marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem', color: styleConfig.labelColor || '#334155', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            {field.label}
+                            {field.required && <span style={{ color: '#ef4444' }}>*</span>}
+                          </div>
                           {field.description && (
                             <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.5rem 0' }}>{field.description}</p>
                           )}
 
                           {/* Dummy UI for preview */}
                           {field.type === 'textarea' ? (
-                            <div style={{ width: '100%', height: '80px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff' }} />
+                            <div style={{ width: '100%', height: '80px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff', color: styleConfig.inputTextColor || '#0f172a' }} />
                           ) : field.type === 'select' ? (
-                            <div style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff', color: '#94a3b8', fontSize: '0.875rem' }}>Select an option...</div>
+                            <div style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff', color: styleConfig.inputTextColor || '#0f172a', fontSize: '0.875rem' }}>Select an option...</div>
                           ) : field.type === 'radio' ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: styleConfig.inputTextColor || '#0f172a' }}>
                               {(field.options || []).map((opt, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#334155' }}>
                                   <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid #cbd5e1' }} />
@@ -433,7 +438,7 @@ export default function FormsDashboard() {
                               ))}
                             </div>
                           ) : field.type === 'checkbox' ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: styleConfig.inputTextColor || '#0f172a' }}>
                               {(field.options || []).map((opt, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#334155' }}>
                                   <div style={{ width: 14, height: 14, borderRadius: 4, border: '1px solid #cbd5e1' }} />
@@ -442,7 +447,7 @@ export default function FormsDashboard() {
                               ))}
                             </div>
                           ) : (
-                            <div style={{ width: '100%', height: '42px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff' }} />
+                            <div style={{ width: '100%', height: '42px', borderRadius: styleConfig.fieldBorderRadius || '0.5rem', border: '1px solid #cbd5e1', backgroundColor: styleConfig.inputBgColor || '#ffffff', color: styleConfig.inputTextColor || '#0f172a' }} />
                           )}
                         </div>
                       </div>
@@ -629,6 +634,8 @@ export default function FormsDashboard() {
                     inputBgColor: '#ffffff',
                     fieldBorderRadius: '0.5rem',
                     buttonBorderRadius: '0.5rem',
+                    labelColor: '#334155',
+                    inputTextColor: '#0f172a',
                     scheduleLink: '',
                     scheduleButtonText: 'Schedule a Call'
                   };
@@ -693,6 +700,28 @@ export default function FormsDashboard() {
                           style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 6, cursor: 'pointer' }}
                         />
                         <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{styleConfig.inputBgColor || '#ffffff'}</span>
+                      </div>
+
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Label Text Color</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.5rem' }}>
+                        <input
+                          type="color"
+                          value={styleConfig.labelColor || '#334155'}
+                          onChange={e => updateStyleConfig({ labelColor: e.target.value })}
+                          style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{styleConfig.labelColor || '#334155'}</span>
+                      </div>
+
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Input Text Color</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.5rem' }}>
+                        <input
+                          type="color"
+                          value={styleConfig.inputTextColor || '#0f172a'}
+                          onChange={e => updateStyleConfig({ inputTextColor: e.target.value })}
+                          style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{styleConfig.inputTextColor || '#0f172a'}</span>
                       </div>
 
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Field Border Radius</label>
