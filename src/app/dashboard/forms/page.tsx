@@ -143,7 +143,14 @@ export default function FormsDashboard() {
   };
 
   const handleCopyEmbed = (id: string) => {
-    const code = `<iframe src="${hostUrl}/embed/form/${id}" width="100%" height="800px" frameborder="0" style="border:none; background:transparent;"></iframe>`;
+    const code = `<iframe id="crm-form-${id}" src="${hostUrl}/embed/form/${id}" width="100%" style="border:none; background:transparent; overflow:hidden;" scrolling="no"></iframe>
+<script>
+  window.addEventListener("message", function(e) {
+    if (e.data && e.data.type === "crm-form-resize" && e.data.id === "${id}") {
+      document.getElementById("crm-form-${id}").style.height = e.data.height + "px";
+    }
+  });
+</script>`;
     navigator.clipboard.writeText(code);
     setCopiedCode(id);
     setTimeout(() => setCopiedCode(null), 2000);
@@ -869,7 +876,14 @@ export default function FormsDashboard() {
             </p>
             <div style={{ position: 'relative' }}>
               <pre style={{ backgroundColor: '#1e293b', color: '#e2e8f0', padding: '1rem', borderRadius: 8, overflowX: 'auto', fontSize: '0.875rem', lineHeight: 1.5 }}>
-                {`<iframe\n  src="${hostUrl}/embed/form/${embedModalOpen}"\n  width="100%"\n  height="800px"\n  frameborder="0"\n  style="border:none; background:transparent;"\n></iframe>`}
+                {`<iframe id="crm-form-${embedModalOpen}" src="${hostUrl}/embed/form/${embedModalOpen}" width="100%" style="border:none; background:transparent; overflow:hidden;" scrolling="no"></iframe>
+<script>
+  window.addEventListener("message", function(e) {
+    if (e.data && e.data.type === "crm-form-resize" && e.data.id === "${embedModalOpen}") {
+      document.getElementById("crm-form-${embedModalOpen}").style.height = e.data.height + "px";
+    }
+  });
+</script>`}
               </pre>
               <button
                 onClick={() => handleCopyEmbed(embedModalOpen)}
