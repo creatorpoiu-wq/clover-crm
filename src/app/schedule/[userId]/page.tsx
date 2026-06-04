@@ -142,11 +142,11 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
         )}
       </header>
 
-      <main style={{ flex: 1, padding: '3rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: window.innerWidth > 768 ? 'row' : 'column', width: '100%', maxWidth: '900px', backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9' }}>
+      <main style={{ flex: 1, padding: '2rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+        <div className="glass-panel flex flex-col md:flex-row w-full max-w-[900px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100">
           
           {/* Left Side: Info */}
-          <div style={{ flex: '1', padding: '3rem', backgroundColor: `${themeColor}05`, borderRight: window.innerWidth > 768 ? '1px solid #f1f5f9' : 'none', borderBottom: window.innerWidth <= 768 ? '1px solid #f1f5f9' : 'none' }}>
+          <div className="flex-1 p-8 md:p-12 border-b md:border-b-0 md:border-r border-slate-100" style={{ backgroundColor: `${themeColor}05` }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, color: themeColor, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Book a Meeting</h2>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginBottom: '1.5rem' }}>
               Schedule Time with {companyName}
@@ -168,10 +168,10 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
           </div>
 
           {/* Right Side: Form */}
-          <div style={{ flex: '1.5', padding: '3rem' }}>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="flex-[1.5] p-8 md:p-12">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Date *</label>
                   <DatePicker 
@@ -197,7 +197,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Full Name *</label>
                   <input 
@@ -232,7 +232,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Email *</label>
                   <input 
