@@ -328,6 +328,11 @@ export default function FormsDashboard() {
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button onClick={() => setView('list')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', fontWeight: 600, color: 'var(--text)' }}>Cancel</button>
+              {editingForm.id && (
+                <button onClick={() => window.open(`/embed/form/${editingForm.id}`, '_blank')} style={{ padding: '8px 16px', background: 'var(--muted-bg)', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', fontWeight: 600, color: 'var(--text)' }}>
+                  Preview Form
+                </button>
+              )}
               <button onClick={saveForm} disabled={saving} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
                 {saving ? 'Saving...' : 'Save Form'}
               </button>
