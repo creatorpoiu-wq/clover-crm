@@ -67,7 +67,7 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
           }
         }}
         excludeDates={blockedDates}
-        className={className || "input"}
+        customInput={<input style={style} className={className || "input"} />}
         placeholderText={isLoading ? "Loading availability..." : placeholder}
         required={required}
         disabled={isLoading}
@@ -78,9 +78,56 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
         .custom-datepicker-wrapper .react-datepicker-wrapper {
           width: 100%;
         }
-        .custom-datepicker-wrapper .react-datepicker__input-container input {
-          width: 100%;
-          ${style ? Object.entries(style).map(([k, v]) => `${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}: ${v};`).join('\n') : ''}
+        .react-datepicker {
+          font-family: inherit;
+          font-size: 1.15rem;
+          border-radius: 12px;
+          border: 1px solid #cbd5e1;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          padding: 1rem;
+          background-color: #ffffff;
+        }
+        .react-datepicker__header {
+          background-color: transparent;
+          border-bottom: none;
+          padding-top: 0.5rem;
+        }
+        .react-datepicker__current-month {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 0.75rem;
+        }
+        .react-datepicker__day-name {
+          color: #64748b;
+          font-weight: 600;
+          font-size: 0.95rem;
+        }
+        .react-datepicker__day-name, .react-datepicker__day {
+          width: 3rem;
+          line-height: 3rem;
+          margin: 0.25rem;
+          border-radius: 8px;
+        }
+        .react-datepicker__day:hover {
+          background-color: #f1f5f9;
+        }
+        .react-datepicker__day--selected, .react-datepicker__day--keyboard-selected {
+          background-color: #0f172a !important;
+          color: white !important;
+          font-weight: 600;
+        }
+        .react-datepicker__navigation {
+          top: 24px;
+        }
+        .react-datepicker__navigation-icon::before {
+          border-color: #64748b;
+          border-width: 2px 2px 0 0;
+          height: 10px;
+          width: 10px;
+        }
+        .react-datepicker__navigation:hover *::before {
+          border-color: #0f172a;
         }
       `}</style>
     </div>

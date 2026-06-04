@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 export default function FormEmbedPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
@@ -179,9 +180,17 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                     </label>
                   ))}
                 </div>
+              ) : field.type === 'date' ? (
+                <DatePicker
+                  value={formData[field.id] || ''}
+                  onChange={val => handleFieldChange(field.id, val)}
+                  required={field.required}
+                  placeholder={`Select ${field.label}`}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
+                />
               ) : (
                 <input
-                  type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : field.type === 'date' ? 'date' : field.type === 'time' ? 'time' : field.type === 'number' ? 'number' : field.type === 'website' ? 'url' : 'text'}
+                  type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : field.type === 'time' ? 'time' : field.type === 'number' ? 'number' : field.type === 'website' ? 'url' : 'text'}
                   required={field.required}
                   value={formData[field.id] || ''}
                   onChange={e => handleFieldChange(field.id, e.target.value)}
