@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Calendar as CalendarIcon, Clock, User, AlignLeft, X, Check, Video, Phone, RefreshCw, Trash2, CalendarPlus } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import { DatePicker } from "@/components/ui/DatePicker";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 
 export default function MeetingsPage() {
   const [userId, setUserId] = useState("");
@@ -27,6 +27,7 @@ export default function MeetingsPage() {
 
   useEffect(() => {
     fetchData();
+    const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUserId(data.user.id);
