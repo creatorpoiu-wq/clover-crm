@@ -67,12 +67,15 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
           }
         }}
         excludeDates={blockedDates}
-        customInput={<input style={style} className={className || "input"} />}
+        customInput={<input style={{ textAlign: 'left', ...(style || {}) }} className={className || "input"} />}
         placeholderText={isLoading ? "Loading availability..." : placeholder}
         required={required}
         disabled={isLoading}
         dateFormat="MMMM d, yyyy"
         minDate={new Date()} // Prevent booking in the past
+        showYearDropdown
+        showMonthDropdown
+        dropdownMode="select"
       />
       <style jsx global>{`
         .custom-datepicker-wrapper .react-datepicker-wrapper {
@@ -91,6 +94,18 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
           background-color: transparent;
           border-bottom: none;
           padding-top: 0.5rem;
+        }
+        .react-datepicker__header select {
+          padding: 6px 10px;
+          border-radius: 6px;
+          border: 1px solid #cbd5e1;
+          font-family: inherit;
+          font-weight: 600;
+          font-size: 1.1rem;
+          color: #0f172a;
+          background-color: #f8fafc;
+          margin: 0 4px;
+          cursor: pointer;
         }
         .react-datepicker__current-month {
           font-size: 1.25rem;
