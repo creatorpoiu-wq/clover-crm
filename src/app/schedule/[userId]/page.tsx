@@ -142,11 +142,11 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
         )}
       </header>
 
-      <main style={{ flex: 1, padding: '2rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+      <main className="flex-1 p-6 sm:p-8 md:p-12 flex justify-center items-start">
         <div className="glass-panel flex flex-col md:flex-row w-full max-w-[900px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100">
           
           {/* Left Side: Info */}
-          <div className="flex-1 p-8 md:p-12 border-b md:border-b-0 md:border-r border-slate-100" style={{ backgroundColor: `${themeColor}05` }}>
+          <div className="flex-1 p-6 md:p-12 border-b md:border-b-0 md:border-r border-slate-100" style={{ backgroundColor: `${themeColor}05` }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, color: themeColor, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Book a Meeting</h2>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginBottom: '1.5rem' }}>
               Schedule Time with {companyName}
@@ -168,7 +168,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
           </div>
 
           {/* Right Side: Form */}
-          <div className="flex-[1.5] p-8 md:p-12">
+          <div className="flex-[1.5] p-6 md:p-12">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
