@@ -86,7 +86,7 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
             name: "preventOverflow",
             options: { rootBoundary: "document" },
           }
-        ]}
+        ] as any}
         onCalendarOpen={() => {
           setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
           setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
