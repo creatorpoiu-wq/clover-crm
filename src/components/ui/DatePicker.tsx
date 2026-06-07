@@ -76,17 +76,6 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
         showYearDropdown
         showMonthDropdown
         dropdownMode="select"
-        popperPlacement="bottom-start"
-        popperModifiers={[
-          {
-            name: "flip",
-            options: { fallbackPlacements: ["bottom"] },
-          },
-          {
-            name: "preventOverflow",
-            options: { rootBoundary: "document" },
-          }
-        ] as any}
         onCalendarOpen={() => {
           setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
           setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
@@ -142,6 +131,27 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
           margin: 0.25rem;
           border-radius: 8px;
         }
+        
+        @media (max-width: 600px) {
+          .react-datepicker {
+            font-size: 0.95rem;
+            padding: 0.5rem;
+          }
+          .react-datepicker__day-name, .react-datepicker__day {
+            width: 2.2rem;
+            line-height: 2.2rem;
+            margin: 0.15rem;
+          }
+          .react-datepicker__current-month {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+          }
+          .react-datepicker__header select {
+            font-size: 0.95rem;
+            padding: 4px 20px 4px 8px;
+          }
+        }
+
         .react-datepicker__day:hover {
           background-color: #f1f5f9;
         }
