@@ -76,6 +76,24 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
         showYearDropdown
         showMonthDropdown
         dropdownMode="select"
+        popperPlacement="bottom-start"
+        popperModifiers={[
+          {
+            name: "flip",
+            options: { fallbackPlacements: ["bottom"] },
+          },
+          {
+            name: "preventOverflow",
+            options: { rootBoundary: "document" },
+          }
+        ]}
+        onCalendarOpen={() => {
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
+        }}
+        onCalendarClose={() => {
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+        }}
       />
       <style jsx global>{`
         .custom-datepicker-wrapper .react-datepicker-wrapper {
