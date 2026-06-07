@@ -6,6 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import { SaveTemplateModal, LoadTemplateModal } from './InvoiceBuilderModals';
 import { DatePicker } from '@/components/ui/DatePicker';
+import ImageDropzone from '@/components/ui/ImageDropzone';
 
 interface LineItem { id: string; description: string; quantity: number; price: number; }
 interface Contact { Contact_ID: number; Name: string; Email: string; }
@@ -377,16 +378,13 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
                             <button onClick={()=>updatePaymentMethod(m.id, 'qrCode', '')} style={{ border:'none', background:'none', color:'#dc2626', cursor:'pointer', fontSize:12, fontWeight:600 }}>Remove QR</button>
                           </div>
                         ) : (
-                          <label style={{ display:'block', cursor:'pointer', padding:'8px 12px', border:'1px dashed #d1d5db', borderRadius:6, textAlign:'center', color:'#6b7280', fontWeight:600 }}>
-                            Upload QR Code
-                            <input type="file" accept="image/*" style={{ display:'none' }} onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              const reader = new FileReader();
-                              reader.onload = (ev) => updatePaymentMethod(m.id, 'qrCode', ev.target?.result as string);
-                              reader.readAsDataURL(file);
-                            }} />
-                          </label>
+                          <ImageDropzone 
+                            label="Upload QR Code" 
+                            value="" 
+                            onChange={(val) => updatePaymentMethod(m.id, 'qrCode', val)}
+                            aspectRatio="square"
+                            maxDimension={400}
+                          />
                         )}
                       </div>
                     </div>

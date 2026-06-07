@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { Settings as SettingsIcon, Mail, Link as LinkIcon, CheckCircle2, RefreshCw, Eye, EyeOff, Send, ShieldCheck } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 
 function SettingsInner() {
   const [companyName, setCompanyName] = useState("");
@@ -373,25 +374,12 @@ function SettingsInner() {
             <input type="text" style={inputStyle} value={dateFormat} onChange={e => setDateFormat(e.target.value)} />
             
             <div style={{ gridColumn: "1 / -1", borderTop: "1px solid var(--border)", margin: "1rem 0", paddingTop: "1rem" }}>
-              <label style={labelStyle}>Business Logo</label>
-              {businessLogo && (
-                <div style={{ marginBottom: "0.75rem", padding: "0.75rem", border: "1px solid var(--border)", borderRadius: "0.5rem", background: "var(--muted-bg)", display: "flex", alignItems: "center", gap: "1rem" }}>
-                  <img src={businessLogo} alt="Business logo" style={{ maxHeight: "60px", maxWidth: "180px", objectFit: "contain" }} />
-                  <button type="button" onClick={() => setBusinessLogo("")} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.75rem" }}>Remove</button>
-                </div>
-              )}
-              <label style={{ display: "block", cursor: "pointer" }}>
-                <div style={{ padding: "0.75rem 1rem", border: "1.5px dashed var(--border)", borderRadius: "0.5rem", textAlign: "center" as const, fontSize: "0.875rem", color: "var(--muted)" }}>
-                  {businessLogo ? "Replace logo" : "Upload logo (PNG, JPG, SVG)"}
-                </div>
-                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = (ev) => setBusinessLogo(ev.target?.result as string);
-                  reader.readAsDataURL(file);
-                }}/>
-              </label>
+              <ImageDropzone 
+                label="Business Logo" 
+                value={businessLogo} 
+                onChange={setBusinessLogo} 
+                aspectRatio="auto"
+              />
             </div>
 
             <div style={{ gridColumn: "1 / -1", borderTop: "1px solid var(--border)", margin: "1rem 0", paddingTop: "1rem" }}>

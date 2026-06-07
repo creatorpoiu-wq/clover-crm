@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Save, Type, CheckCircle, FileText, Settings, Image as ImageIcon, DollarSign, HelpCircle, Camera, Package, ArrowRight, CreditCard, Plus, Trash2, GripVertical } from "lucide-react";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 
 const TABS = [
   { id: "general", label: "General Intro", icon: Settings },
@@ -192,61 +193,13 @@ export default function PortraitSettingsPage() {
               <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 0 }}>The full-screen section at the top of your client's Welcome Guide page.</p>
             </div>
 
-            {/* Hero Image Upload */}
-            <div>
-              <label style={labelCls}>Hero Background Photo</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {settings.welcomeHeroPhotoUrl && (
-                  <div style={{ position: 'relative', width: '100%', height: 200, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
-                    <img src={settings.welcomeHeroPhotoUrl} alt="Hero preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <button
-                      onClick={() => setSettings(s => ({ ...s, welcomeHeroPhotoUrl: '' }))}
-                      style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.65)', color: 'white', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700, fontSize: 12 }}
-                    >Remove</button>
-                  </div>
-                )}
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', border: '2px dashed var(--border)', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={e => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        const img = new Image();
-                        img.onload = () => {
-                          const canvas = document.createElement('canvas');
-                          let width = img.width;
-                          let height = img.height;
-                          
-                          // Max width 1920px for hero
-                          if (width > 1920) {
-                            height = Math.round((height * 1920) / width);
-                            width = 1920;
-                          }
-                          
-                          canvas.width = width;
-                          canvas.height = height;
-                          const ctx = canvas.getContext('2d');
-                          if (ctx) {
-                            ctx.drawImage(img, 0, 0, width, height);
-                            // Compress as JPEG at 60% quality
-                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                            setSettings(s => ({ ...s, welcomeHeroPhotoUrl: compressedBase64 }));
-                          }
-                        };
-                        img.src = reader.result as string;
-                      };
-                      reader.readAsDataURL(file);
-                    }}
-                  />
-                  📷 {settings.welcomeHeroPhotoUrl ? 'Replace Photo' : 'Upload Hero Photo'}
-                </label>
-                <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>If no photo is uploaded, a dark gradient will be displayed instead.</p>
-              </div>
-            </div>
+              <ImageDropzone 
+                label="Hero Background Photo" 
+                value={settings.welcomeHeroPhotoUrl} 
+                onChange={val => setSettings(s => ({ ...s, welcomeHeroPhotoUrl: val }))}
+                aspectRatio="video"
+              />
+              <p style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 0 0' }}>If no photo is uploaded, a dark gradient will be displayed instead.</p>
 
             <div>
               <label style={labelCls}>Hero Headline</label>
@@ -453,42 +406,14 @@ export default function PortraitSettingsPage() {
               <textarea style={{ ...inputCls, resize: 'vertical' }} rows={4} value={settings.styleDescription} onChange={e => setSettings(s => ({ ...s, styleDescription: e.target.value }))} />
             </div>
             <div>
-              <label style={labelCls}>Style Photo</label>
-              {settings.stylePhotoUrl && (
-                <div style={{ marginBottom: 12, borderRadius: 10, overflow: 'hidden', position: 'relative', border: '1px solid var(--border)', aspectRatio: '4/5', maxWidth: 220 }}>
-                  <img
-                    src={settings.stylePhotoUrl}
-                    alt="Signature style preview"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
-                  <button
-                    onClick={() => setSettings(s => ({ ...s, stylePhotoUrl: '' }))}
-                    style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: 14 }}
-                    title="Remove photo"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              <label style={{ display: 'block', cursor: 'pointer' }}>
-                <div style={{ padding: '1rem', border: '1.5px dashed var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 13, color: 'var(--muted)', transition: 'all 0.2s' }}>
-                  <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
-                  {settings.stylePhotoUrl ? 'Click to replace photo' : 'Upload a photo (JPG, PNG, WebP)'}
-                  <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => setSettings(s => ({ ...s, stylePhotoUrl: ev.target?.result as string }));
-                    reader.readAsDataURL(file);
-                  }}
-                />
-              </label>
+              <ImageDropzone 
+                label="Style Photo" 
+                value={settings.stylePhotoUrl} 
+                onChange={val => setSettings(s => ({ ...s, stylePhotoUrl: val }))}
+                aspectRatio="auto"
+                maxDimension={800}
+              />
+              <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
             </div>
             <div>
               <label style={labelCls}>Style Bullets</label>

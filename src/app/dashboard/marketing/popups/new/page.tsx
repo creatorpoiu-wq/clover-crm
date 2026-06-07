@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { ArrowLeft, Save, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 
 export default function NewPopup() {
   const [internalName, setInternalName] = useState("");
@@ -14,6 +15,9 @@ export default function NewPopup() {
   const [buttonColor, setButtonColor] = useState("#3b82f6");
   const [delaySeconds, setDelaySeconds] = useState(3);
   const [imageUrl, setImageUrl] = useState("");
+  const [modalRadius, setModalRadius] = useState("16px");
+  const [buttonRadius, setButtonRadius] = useState("8px");
+  const [layout, setLayout] = useState("image-top");
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -43,6 +47,9 @@ export default function NewPopup() {
         button_color: buttonColor,
         delay_seconds: delaySeconds,
         image_url: imageUrl,
+        modal_radius: modalRadius,
+        button_radius: buttonRadius,
+        layout,
         active: true
       });
 
@@ -140,16 +147,59 @@ export default function NewPopup() {
               />
             </div>
 
-            <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Image URL (Optional)</label>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <ImageIcon size={20} color="#64748b" />
-              <input 
-                type="url" value={imageUrl} onChange={e => setImageUrl(e.target.value)} 
-                placeholder="https://example.com/promo-image.jpg"
-                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '1rem' }}
-              />
+            <ImageDropzone 
+              label="Popup Image (Optional)" 
+              value={imageUrl} 
+              onChange={setImageUrl} 
+              aspectRatio="video"
+            />
+            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0.5rem 0 1.5rem 0' }}>This image will appear in your popup based on the layout.</p>
+
+            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#334155', margin: '0 0 1rem 0', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>Layout & Styling</h4>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Popup Layout</label>
+                <select 
+                  value={layout} 
+                  onChange={e => setLayout(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                >
+                  <option value="image-top">Image Top</option>
+                  <option value="image-left">Image Left</option>
+                  <option value="image-right">Image Right</option>
+                  <option value="image-bottom">Image Bottom</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Modal Roundness</label>
+                <select 
+                  value={modalRadius} 
+                  onChange={e => setModalRadius(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                >
+                  <option value="0px">Square (0px)</option>
+                  <option value="8px">Slight (8px)</option>
+                  <option value="16px">Rounded (16px)</option>
+                  <option value="24px">Very Rounded (24px)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Button Roundness</label>
+                <select 
+                  value={buttonRadius} 
+                  onChange={e => setButtonRadius(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                >
+                  <option value="0px">Square (0px)</option>
+                  <option value="4px">Slight (4px)</option>
+                  <option value="8px">Rounded (8px)</option>
+                  <option value="999px">Pill (999px)</option>
+                </select>
+              </div>
             </div>
-            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0.5rem 0 0 0' }}>Paste a link to an image (e.g. from your website or social media).</p>
           </div>
         </div>
 
@@ -169,15 +219,20 @@ export default function NewPopup() {
               
               {/* The Popup */}
               <div style={{ 
-                backgroundColor: 'white', borderRadius: '1rem', overflow: 'hidden', width: '90%', maxWidth: '320px',
+                backgroundColor: 'white', borderRadius: modalRadius, overflow: 'hidden', width: '90%', maxWidth: layout === 'image-left' || layout === 'image-right' ? '460px' : '320px',
                 boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                display: 'flex', flexDirection: 'column'
+                display: 'flex', flexDirection: layout === 'image-left' ? 'row' : layout === 'image-right' ? 'row-reverse' : layout === 'image-bottom' ? 'column-reverse' : 'column'
               }}>
                 {imageUrl && (
-                  <div style={{ width: '100%', height: '140px', backgroundColor: '#f8fafc', backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                  <div style={{ 
+                    width: layout === 'image-left' || layout === 'image-right' ? '40%' : '100%', 
+                    height: layout === 'image-left' || layout === 'image-right' ? 'auto' : '140px', 
+                    minHeight: layout === 'image-left' || layout === 'image-right' ? '240px' : 'auto',
+                    backgroundColor: '#f8fafc', backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' 
+                  }} />
                 )}
                 
-                <div style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <div style={{ padding: '1.5rem', textAlign: 'center', flex: 1 }}>
                   <h4 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: '0 0 0.5rem 0', lineHeight: 1.2 }}>
                     {headline || "Your Headline Here"}
                   </h4>
@@ -190,7 +245,7 @@ export default function NewPopup() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <input type="text" placeholder="Name" style={{ padding: '0.6rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }} disabled />
                     <input type="email" placeholder="Email Address" style={{ padding: '0.6rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }} disabled />
-                    <button style={{ backgroundColor: buttonColor, color: 'white', padding: '0.6rem', borderRadius: '0.25rem', border: 'none', fontWeight: 600, fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                    <button style={{ backgroundColor: buttonColor, color: 'white', padding: '0.6rem', borderRadius: buttonRadius, border: 'none', fontWeight: 600, fontSize: '0.875rem', marginTop: '0.5rem' }}>
                       {buttonText || "Subscribe"}
                     </button>
                   </div>

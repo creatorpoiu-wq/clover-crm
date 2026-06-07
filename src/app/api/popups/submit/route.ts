@@ -78,18 +78,7 @@ export async function POST(req: NextRequest) {
       contactId = newContact.Contact_ID;
     }
 
-    // 3. Create Inquiry to ensure it shows up in Pipeline
-    await supabase
-      .from('Inquiries')
-      .insert({
-        user_id: userId,
-        Contact_ID: contactId,
-        Pipeline_Stage: 'New Inquiry',
-        Job_Type: 'Popup Lead',
-        Inquiry_Date: new Date().toISOString().split('T')[0]
-      });
-
-    // 4. Increment Conversion Count
+    // 3. Increment Conversion Count
     await supabase
       .from('Marketing_Popups')
       .update({ conversion_count: (popup.conversion_count || 0) + 1 })

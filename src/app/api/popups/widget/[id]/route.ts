@@ -68,7 +68,7 @@ export async function GET(
     }
     .crm-popup-container {
       background: white;
-      border-radius: 16px;
+      border-radius: ${popup.modal_radius || '16px'};
       width: 90%;
       max-width: 400px;
       overflow: hidden;
@@ -139,7 +139,7 @@ export async function GET(
       background-color: ${popup.button_color || '#3b82f6'};
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: ${popup.button_radius || '8px'};
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
@@ -178,6 +178,22 @@ export async function GET(
   let imageHtml = '';
   if (${popup.image_url ? 'true' : 'false'}) {
     imageHtml = \`<div class="crm-popup-image" style="background-image: url('${popup.image_url}')"></div>\`;
+  }
+
+  const layout = '${popup.layout || 'image-top'}';
+  const isHorizontal = layout === 'image-left' || layout === 'image-right';
+  
+  if (isHorizontal) {
+    style.innerHTML += \`
+      .crm-popup-container { max-width: 460px; display: flex; flex-direction: \${layout === 'image-left' ? 'row' : 'row-reverse'}; }
+      .crm-popup-image { width: 40%; height: auto; min-height: 240px; }
+      .crm-popup-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    \`;
+  } else {
+    style.innerHTML += \`
+      .crm-popup-container { max-width: 320px; display: flex; flex-direction: \${layout === 'image-bottom' ? 'column-reverse' : 'column'}; }
+      .crm-popup-image { width: 100%; height: 140px; }
+    \`;
   }
 
   overlay.innerHTML = \`
