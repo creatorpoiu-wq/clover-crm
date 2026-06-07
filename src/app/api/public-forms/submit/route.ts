@@ -14,7 +14,14 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceClient();
     const payload = await req.json();
 
-    const { formId, formData } = payload;
+    const { formId, formData, _hp } = payload;
+    
+    // Honeypot check - if a bot filled this out, silently accept but do nothing
+    if (_hp) {
+      console.log('Spam trapped via honeypot:', { formId });
+      return NextResponse.json({ success: true });
+    }
+
     if (!formId || !formData) {
       return NextResponse.json({ success: false, error: 'Missing formId or formData' }, { status: 400 });
     }

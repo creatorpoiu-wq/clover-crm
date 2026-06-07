@@ -39,12 +39,18 @@ async function pushToGoogleCalendar(oAuth2Client: any, meeting: any, contactEmai
 
 export async function POST(req: NextRequest) {
   try {
+    const payload = await req.json();
+    const { userId, name, email, phone, date, time, durationMinutes, meetingType, title, notes, _hp } = payload;
+
+    // Honeypot check - if a bot filled this out, silently accept but do nothing
+    if (_hp) {
+      console.log('Spam trapped via honeypot:', { type: 'meeting' });
+      return NextResponse.json({ success: true });
+    }
+
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const supabase = createServiceClient(url, key);
-
-    const body = await req.json();
-    const { userId, name, email, phone, date, time, durationMinutes, title, notes, meetingType } = body;
 
     if (!userId || !name || !email || !date || !time) {
       return NextResponse.json({ success: false, error: 'Missing required fields.' }, { status: 400 });

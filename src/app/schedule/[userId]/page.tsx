@@ -13,6 +13,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [hpValue, setHpValue] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -63,7 +64,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
       const res = await fetch('/api/meetings/public', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, ...formData })
+        body: JSON.stringify({ userId, ...formData, _hp: hpValue })
       });
 
       const data = await res.json();
@@ -186,6 +187,17 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
           <div className="schedule-right">
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               
+              {/* Honeypot Spam Protection */}
+              <input 
+                type="text" 
+                name="url" 
+                style={{ display: 'none' }} 
+                tabIndex={-1} 
+                autoComplete="off" 
+                value={hpValue} 
+                onChange={(e) => setHpValue(e.target.value)} 
+              />
+
               <div className="schedule-grid">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Date *</label>
