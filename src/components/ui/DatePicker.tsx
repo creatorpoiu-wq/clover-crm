@@ -18,6 +18,14 @@ interface DatePickerProps {
 export function DatePicker({ value, onChange, userId, className, placeholder = "Select a date", required, style }: DatePickerProps) {
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 600);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -76,11 +84,8 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
         showYearDropdown
         showMonthDropdown
         dropdownMode="select"
+        withPortal={isMobile}
         onCalendarOpen={() => {
-          setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-          setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
-        }}
-        onCalendarClose={() => {
           setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
         }}
       />
