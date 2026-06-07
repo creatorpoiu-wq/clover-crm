@@ -70,6 +70,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       subItems: [
         { name: "Inbox & Hub", href: "/dashboard/hub" },
         { name: "Forms", href: "/dashboard/forms" },
+        { name: "Email Campaigns", href: "/dashboard/marketing" },
       ]
     },
     { 
