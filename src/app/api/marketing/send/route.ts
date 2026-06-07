@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
     // This is an app router API route, usually called from client.
     // Let's get the authorization header or assume cookie is passed.
     const authHeader = req.headers.get('authorization');
-    let userId: string | null = null;
     
     // If client sends session token:
     // We'll need to parse the cookie or token.
