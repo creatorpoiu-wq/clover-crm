@@ -66,7 +66,7 @@ export default function LoginPage() {
     setMessage(null);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${location.origin}/dashboard/settings`, // Redirect to settings to change password
+      redirectTo: `${location.origin}/auth/confirm?next=/dashboard/settings`, 
     });
 
     if (error) {
