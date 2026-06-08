@@ -20,6 +20,7 @@ function InquiryFormContent() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [hpValue, setHpValue] = useState('');
   const [vendorInfo, setVendorInfo] = useState<any>(null);
 
   useEffect(() => {
@@ -63,6 +64,7 @@ function InquiryFormContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
+          _hp: hpValue,
           ...formData
         })
       });
@@ -125,6 +127,16 @@ function InquiryFormContent() {
           )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Honeypot Spam Protection */}
+            <input 
+              type="text" 
+              name="website_url" 
+              style={{ display: 'none', visibility: 'hidden', opacity: 0, position: 'absolute', left: '-9999px' }} 
+              tabIndex={-1} 
+              autoComplete="off" 
+              value={hpValue} 
+              onChange={(e) => setHpValue(e.target.value)} 
+            />
             <div>
               <label className="label">Full Name *</label>
               <input required name="name" value={formData.name} onChange={handleChange} type="text" className="input" placeholder="Jane Doe" />

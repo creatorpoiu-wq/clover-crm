@@ -32,6 +32,7 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [hpValue, setHpValue] = useState('');
 
   // Resolve payment methods: use custom ones if defined, else defaults
   const rawMethods: any[] = funnelSettings?.paymentMethods?.length > 0
@@ -73,6 +74,7 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
         signature,
         totalAmount: total,
         depositAmount: deposit,
+        _hp: hpValue,
       };
 
       const res = await fetch('/api/public-booking/submit', {
@@ -179,6 +181,16 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
           </div>
 
           <form onSubmit={handlePay}>
+            {/* Honeypot Spam Protection */}
+            <input 
+              type="text" 
+              name="website_url_payment" 
+              style={{ display: 'none', visibility: 'hidden', opacity: 0, position: 'absolute', left: '-9999px' }} 
+              tabIndex={-1} 
+              autoComplete="off" 
+              value={hpValue} 
+              onChange={(e) => setHpValue(e.target.value)} 
+            />
             {/* Card form — only for methods with no custom details (defaults to card) */}
             {isCardMethod ? (
               <div className="animate-fade-in">

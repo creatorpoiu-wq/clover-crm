@@ -27,10 +27,18 @@ export async function POST(req: NextRequest) {
       referral,
       // Custom Answers
       customAnswers,
+      // Honeypot
+      _hp,
     } = payload;
 
     if (!userId || !name || !email || !sessionType) {
       return NextResponse.json({ success: false, error: 'Missing required fields (name, email, sessionType)' }, { status: 400 });
+    }
+
+    // Honeypot check - silently ignore spam
+    if (_hp) {
+      console.log('Spam trapped via honeypot (Portrait Inquiry)');
+      return NextResponse.json({ success: true, inquiryId: -1, contactId: -1 });
     }
 
     // 1. Create or find Contact

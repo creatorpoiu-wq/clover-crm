@@ -13,7 +13,13 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceClient();
     const payload = await req.json();
-    const { userId, contractId, questionnaire, pkg, addons, signature, totalAmount, depositAmount } = payload;
+    const { userId, contractId, questionnaire, pkg, addons, signature, totalAmount, depositAmount, _hp } = payload;
+
+    // Honeypot check - silently ignore spam
+    if (_hp) {
+      console.log('Spam trapped via honeypot (Public Booking)');
+      return NextResponse.json({ success: true });
+    }
 
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Missing userId' }, { status: 400 });
