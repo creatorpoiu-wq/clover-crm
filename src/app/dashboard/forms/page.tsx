@@ -240,12 +240,16 @@ export default function FormsDashboard() {
         if (data.index === dropIndex || dropIndex === undefined) return;
         const draggedItem = newFields[data.index];
         newFields.splice(data.index, 1);
-        newFields.splice(dropIndex, 0, draggedItem);
+        
+        // Adjust drop index because the array length just changed!
+        const adjustedDropIndex = dropIndex > data.index ? dropIndex - 1 : dropIndex;
+        newFields.splice(adjustedDropIndex, 0, draggedItem);
+        
         setEditingForm({ ...editingForm, fields: newFields });
         
         // Update selection index if moving the selected item
         if (selectedFieldIdx === data.index) {
-          setSelectedFieldIdx(dropIndex);
+          setSelectedFieldIdx(adjustedDropIndex);
         }
       }
     } catch (err) {
@@ -353,6 +357,7 @@ export default function FormsDashboard() {
             <div 
               style={{ flex: 1, backgroundColor: 'var(--muted-bg)', padding: '2rem', overflowY: 'auto' }}
               onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
               onDrop={(e) => handleDropCanvas(e)}
             >
               <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: 'white', borderRadius: 12, border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', padding: '2.5rem' }}>
@@ -396,6 +401,7 @@ export default function FormsDashboard() {
                         draggable
                         onDragStart={(e) => handleDragStartCanvas(e, idx)}
                         onDragOver={handleDragOver}
+                        onDragEnter={handleDragOver}
                         onDrop={(e) => { e.stopPropagation(); handleDropCanvas(e, idx); }}
                         onDragEnd={() => setDraggedIdx(null)}
                         onClick={(e) => { e.stopPropagation(); setSelectedFieldIdx(idx); setActiveTab('settings'); }}
