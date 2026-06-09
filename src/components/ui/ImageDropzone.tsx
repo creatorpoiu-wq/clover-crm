@@ -52,8 +52,16 @@ export default function ImageDropzone({
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
+          // If converting to JPEG, fill with white first to avoid black backgrounds on transparent pixels
+          const outputType = (file.type === 'image/png' || file.type === 'image/webp' || file.type === 'image/svg+xml') ? file.type : 'image/jpeg';
+          
+          if (outputType === 'image/jpeg') {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+          }
+          
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          const compressedBase64 = canvas.toDataURL(outputType, quality);
           onChange(compressedBase64);
         }
         setIsProcessing(false);
