@@ -104,6 +104,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, packages: packages || [] });
     }
 
+    // ── Inquiry Details ──────────────────────────────────────────────────────
+    if (type === 'inquiry_details' && searchParams.get('inquiryId')) {
+      const inquiryId = searchParams.get('inquiryId');
+      const { data: inquiry, error } = await supabase
+        .from('Inquiries')
+        .select('Inquiry_ID, Contacts ( Name )')
+        .eq('Inquiry_ID', inquiryId)
+        .single();
+        
+      if (error) throw error;
+      
+      const contactName = inquiry?.Contacts?.Name || '';
+      return NextResponse.json({ success: true, inquiryDetails: { contactName } });
+    }
+
     // ── Portrait Settings ────────────────────────────────────────────────────
     if (type === 'portrait_settings') {
       function safeJSON(val: any, fallback: any) {

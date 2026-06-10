@@ -5,6 +5,7 @@ import SignaturePad from 'signature_pad';
 interface PortraitContractProps {
   userId: string;
   inquiryId: string;
+  contactName: string;
   selectedDate: string | null;
   selectedTime: string | null;
   signature: string;
@@ -16,7 +17,7 @@ interface PortraitContractProps {
 }
 
 export default function PortraitContract({
-  selectedDate, selectedTime, signature, setSignature, onNext, onBack, themeColor, vendorInfo
+  selectedDate, selectedTime, signature, setSignature, onNext, onBack, themeColor, vendorInfo, contactName
 }: PortraitContractProps) {
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigPadRef = useRef<SignaturePad | null>(null);
@@ -97,7 +98,7 @@ export default function PortraitContract({
   const replaceVars = (text: string) => {
     if (!text) return '';
     return text
-      .replace(/\[Client Name\]|\{Client Name\}/gi, "Client") // Name is not collected until step 3 in Portrait funnel
+      .replace(/\[Client Name\]|\{Client Name\}/gi, contactName || "Client")
       .replace(/\[Date\]|\{Date\}|\[Event Date\]|\{Event Date\}/gi, formattedDate)
       .replace(/\[Time\]|\{Time\}/gi, selectedTime || 'TBD')
       .replace(/\[Today's Date\]|\{Today's Date\}/gi, new Date().toLocaleDateString());
@@ -150,10 +151,16 @@ export default function PortraitContract({
         )}
       </div>
 
-      <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div style={{ marginTop: '2.5rem', paddingTop: '2.5rem', borderTop: '1px solid #e2e8f0' }}>
+        <label style={{ display: 'block', fontSize: '1.125rem', fontWeight: 800, color: '#0f172a', marginBottom: '1.5rem' }}>
           Digital Signature <span style={{ color: '#ef4444' }}>*</span>
-        </h3>
+        </label>
+
+        {contactName && (
+          <div style={{ marginBottom: '1rem', fontSize: '1rem', color: '#475569', fontWeight: 600 }}>
+            Signing on behalf of: <span style={{ color: '#0f172a', fontWeight: 800 }}>{contactName}</span>
+          </div>
+        )}
         
         {error && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#dc2626', fontSize: '0.875rem', fontWeight: 700, backgroundColor: '#fef2f2', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
@@ -161,7 +168,7 @@ export default function PortraitContract({
           </div>
         )}
 
-        <div style={{ border: '2px solid #e2e8f0', borderRadius: '1rem', backgroundColor: 'white', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ backgroundColor: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '1rem', padding: '2rem', textAlign: 'center', position: 'relative' }}>
           {signature && !showSigPad ? (
              <div style={{ padding: '1rem', position: 'relative' }}>
                <img src={signature} alt="Signature" style={{ height: '10rem', margin: '0 auto', display: 'block' }} />

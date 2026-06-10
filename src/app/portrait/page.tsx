@@ -83,12 +83,16 @@ function PortraitBookingContent() {
   };
 
   const handleNext = () => {
-    if (step === 1 && !formData.sessionType) {
+    if (step === 1 && (!formData.name || !formData.email)) {
+      alert("Please fill in your name and email to continue.");
+      return;
+    }
+    if (step === 2 && !formData.sessionType) {
       alert("Please select a session type to continue.");
       return;
     }
-    // Simple validation for required custom questions in step 2 (assuming they are in step 2)
-    if (step === 2 && vendorInfo?.customQuestions) {
+    // Simple validation for required custom questions in step 3
+    if (step === 3 && vendorInfo?.customQuestions) {
         const requiredQuestions = vendorInfo.customQuestions.filter((q: any) => q.required);
         const missing = requiredQuestions.find((q: any) => !formData.customAnswers[q.label]);
         if (missing) {
@@ -108,7 +112,7 @@ function PortraitBookingContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.sessionType) {
-      alert('Please fill in your name and email.');
+      alert('Please fill in your name, email, and session type.');
       return;
     }
 
@@ -197,17 +201,54 @@ function PortraitBookingContent() {
           
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <h2 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.025em', marginBottom: '1rem', lineHeight: 1.1 }}>
-              {step === 1 ? headline : step === 2 ? "Tell us about the session." : "Let's get your details."}
+              {step === 1 ? "Let's get your details." : step === 2 ? headline : "Tell us about the session."}
             </h2>
             <p style={{ fontSize: '1.125rem', color: '#64748b' }}>
-              {step === 1 ? subheadline : step === 2 ? "We'd love to know what you have in mind." : "Just a few more details so we can reach you."}
+              {step === 1 ? "Just a few details so we can reach you." : step === 2 ? subheadline : "We'd love to know what you have in mind."}
             </p>
           </div>
 
           <div className="glass-panel" style={{ backgroundColor: 'white', padding: '2.5rem', borderRadius: '1.5rem', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9' }}>
             
-            {/* STEP 1: Session Type */}
+            {/* STEP 1: Client Info */}
             {step === 1 && (
+              <form className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Full Name *</label>
+                    <input required name="name" value={formData.name} onChange={handleChange} type="text" className="input-field" placeholder="Jane Doe" style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
+                  </div>
+                  <div style={{ gridColumn: '1' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Email Address *</label>
+                    <input required name="email" value={formData.email} onChange={handleChange} type="email" className="input-field" placeholder="jane@example.com" style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
+                  </div>
+                  <div style={{ gridColumn: '2' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Phone Number</label>
+                    <input name="phone" value={formData.phone} onChange={handleChange} type="tel" className="input-field" placeholder="(555) 123-4567" style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Tell us more about your vision</label>
+                  <textarea 
+                    name="message" 
+                    value={formData.message} 
+                    onChange={handleChange} 
+                    className="input-field" 
+                    placeholder="Any specific ideas, props, or vibes you're going for?"
+                    style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', minHeight: '120px', resize: 'vertical' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>How did you hear about us?</label>
+                  <input name="referral" value={formData.referral} onChange={handleChange} type="text" className="input-field" placeholder="Google, Instagram, Friend..." style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
+                </div>
+              </form>
+            )}
+
+            {/* STEP 2: Session Type */}
+            {step === 2 && (
               <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <label style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>What kind of session are you looking for?</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
@@ -268,9 +309,9 @@ function PortraitBookingContent() {
               </div>
             )}
 
-            {/* STEP 2: Session Details */}
-            {step === 2 && (
-              <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* STEP 3: Session Details */}
+            {step === 3 && (
+              <form onSubmit={handleSubmit} className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     <Calendar size={16} /> Preferred Dates
@@ -368,43 +409,6 @@ function PortraitBookingContent() {
                         )}
                     </div>
                 ))}
-              </div>
-            )}
-
-            {/* STEP 3: Client Info */}
-            {step === 3 && (
-              <form onSubmit={handleSubmit} className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Full Name *</label>
-                    <input required name="name" value={formData.name} onChange={handleChange} type="text" className="input-field" placeholder="Jane Doe" style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
-                  </div>
-                  <div style={{ gridColumn: window.innerWidth < 640 ? '1 / -1' : '1' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Email Address *</label>
-                    <input required name="email" value={formData.email} onChange={handleChange} type="email" className="input-field" placeholder="jane@example.com" style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
-                  </div>
-                  <div style={{ gridColumn: window.innerWidth < 640 ? '1 / -1' : '2' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Phone Number</label>
-                    <input name="phone" value={formData.phone} onChange={handleChange} type="tel" className="input-field" placeholder="(555) 123-4567" style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>Tell us more about your vision</label>
-                  <textarea 
-                    name="message" 
-                    value={formData.message} 
-                    onChange={handleChange} 
-                    className="input-field" 
-                    placeholder="Any specific ideas, props, or vibes you're going for?"
-                    style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', minHeight: '120px', resize: 'vertical' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', display: 'block' }}>How did you hear about us?</label>
-                  <input name="referral" value={formData.referral} onChange={handleChange} type="text" className="input-field" placeholder="Google, Instagram, Friend..." style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem' }} />
-                </div>
               </form>
             )}
 

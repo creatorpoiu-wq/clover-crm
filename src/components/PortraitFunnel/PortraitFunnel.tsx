@@ -11,6 +11,7 @@ export default function PortraitFunnel() {
   const [loading, setLoading] = useState(true);
   const [vendorInfo, setVendorInfo] = useState<any>(null);
   const [bookedDates, setBookedDates] = useState<string[]>([]);
+  const [contactName, setContactName] = useState<string>('');
   const searchParams = useSearchParams();
   
   const userId = searchParams.get('userId');
@@ -52,7 +53,12 @@ export default function PortraitFunnel() {
       .then(data => { if (data.success) setBookedDates(data.bookedDates); })
       .catch(() => {});
 
-    Promise.all([fetchVendorInfo, fetchAvailability]).finally(() => setLoading(false));
+    const fetchInquiryDetails = fetch(`/api/public-booking?userId=${userId}&type=inquiry_details&inquiryId=${inquiryId}`)
+      .then(res => res.json())
+      .then(data => { if (data.success) setContactName(data.inquiryDetails.contactName); })
+      .catch(() => {});
+
+    Promise.all([fetchVendorInfo, fetchAvailability, fetchInquiryDetails]).finally(() => setLoading(false));
   }, [userId, inquiryId]);
 
   if (!userId || !inquiryId) {
@@ -136,6 +142,7 @@ export default function PortraitFunnel() {
           <PortraitContract 
             userId={userId}
             inquiryId={inquiryId}
+            contactName={contactName}
             selectedDate={selectedDate}
             selectedTime={selectedTime}
             signature={signature}

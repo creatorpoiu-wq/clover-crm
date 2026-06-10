@@ -19,6 +19,7 @@ interface InquiryData {
   Status_Flag: string;
   Package_ID?: number | null;
   Event_Date?: string | null;
+  Questionnaire_Data?: any;
 }
 
 const STAGES = [
@@ -349,6 +350,36 @@ export default function PipelinePage() {
                     </div>
                   </div>
                 </div>
+
+                {selectedInquiry.Questionnaire_Data && Object.keys(selectedInquiry.Questionnaire_Data).length > 0 && (
+                  <div style={{ backgroundColor: "#f8fafc", padding: "1.5rem", borderRadius: "1rem", border: "1px solid #f1f5f9" }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <Briefcase size={18} color="var(--primary)" /> Questionnaire Answers
+                    </h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                      {Object.entries(selectedInquiry.Questionnaire_Data).map(([key, value]) => {
+                        if (key === 'customAnswers') {
+                          return Object.entries(value as object).map(([q, a]) => (
+                            <div key={q}>
+                              <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>{q}</div>
+                              <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{String(a) || "N/A"}</div>
+                            </div>
+                          ));
+                        }
+                        if (value && typeof value === 'string' && value.trim() !== '') {
+                          const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                          return (
+                            <div key={key}>
+                              <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>{displayKey}</div>
+                              <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{value}</div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: "flex", gap: "1rem" }}>
                   <a href={`mailto:${selectedInquiry.Email}`} className="btn btn-outline" style={{ flex: 1, padding: "0.75rem", borderRadius: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}><Mail size={16} /> Email</a>

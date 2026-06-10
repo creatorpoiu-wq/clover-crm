@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
         Event_Date,
         Pipeline_Stage,
         Estimated_Value,
+        Questionnaire_Data,
         Contacts!inner ( Name, Email, Phone, Lead_Source, Package_ID ),
         Communications ( Last_Contact_Date, Last_Contact_By, Proposal_Link )
       `)
@@ -66,6 +67,7 @@ export async function GET(req: NextRequest) {
         Last_Contact_Date: latestComm?.Last_Contact_Date || null,
         Last_Contact_By: latestComm?.Last_Contact_By || null,
         Proposal_Link: latestComm?.Proposal_Link || null,
+        Questionnaire_Data: inq.Questionnaire_Data || null,
       };
 
       return {
