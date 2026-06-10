@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
         .update({
           Status: 'Signed',
           Signed_Date: today,
-          Client_Signature: signature
+          Client_Signature: signature,
+          Contract_Text: contractHtml || undefined
         })
         .eq('Contract_ID', contractId);
 
@@ -186,6 +187,25 @@ export async function POST(req: NextRequest) {
                            <div style="font-size: 16px; line-height: 1.6;">${parsedBody}</div>
                            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
                            <p style="font-size: 12px; color: #9ca3af; text-align: center;">Sent securely via ${companyName} CRM</p>
+                         </div>`
+                });
+
+                // Notify the CRM Owner (Vendor)
+                await transporter.sendMail({
+                  from: `"${companyName} CRM" <${config.Email_User}>`,
+                  to: config.Email_User,
+                  subject: `New Booking/Signed Proposal: ${contactRow.Name}`,
+                  html: `<div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; color: #333;">
+                           <h2 style="color: #0d9488; margin-top: 0;">New Booking Received!</h2>
+                           <p style="font-size: 16px;">Great news! <strong>${contactRow.Name}</strong> just completed their booking proposal.</p>
+                           <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
+                             <p style="margin: 0 0 8px;"><strong>Service:</strong> ${serviceType}</p>
+                             <p style="margin: 0 0 8px;"><strong>Total Value:</strong> $${totalAmount}</p>
+                             <p style="margin: 0;"><strong>Date:</strong> ${eventDate || 'Not specified'}</p>
+                           </div>
+                           <p>The client has successfully signed the contract. You can view their full questionnaire answers and the signed contract in your CRM dashboard.</p>
+                           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+                           <p style="font-size: 12px; color: #9ca3af; text-align: center;">${companyName} CRM Notifications</p>
                          </div>`
                 });
               }
