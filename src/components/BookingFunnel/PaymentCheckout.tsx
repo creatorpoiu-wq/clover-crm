@@ -7,6 +7,7 @@ interface Props {
   pkg: any;
   addons: any[];
   signature: string;
+  contractHtml: string;
   onBack: () => void;
   funnelSettings: any;
 }
@@ -27,7 +28,7 @@ function PaymentIcon({ iconId }: { iconId: string }) {
 
 import { useSearchParams } from 'next/navigation';
 
-export default function PaymentCheckout({ questionnaire, pkg, addons, signature, onBack, funnelSettings }: Props) {
+export default function PaymentCheckout({ questionnaire, pkg, addons, signature, contractHtml, onBack, funnelSettings }: Props) {
   const searchParams = useSearchParams();
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -72,6 +73,7 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
         pkg,
         addons,
         signature,
+        contractHtml,
         totalAmount: total,
         depositAmount: deposit,
         _hp: hpValue,

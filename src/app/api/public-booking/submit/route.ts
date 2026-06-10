@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceClient();
     const payload = await req.json();
-    const { userId, contractId, questionnaire, pkg, addons, signature, totalAmount, depositAmount, _hp } = payload;
+    const { userId, contractId, questionnaire, pkg, addons, signature, contractHtml, totalAmount, depositAmount, _hp } = payload;
 
     // Honeypot check - silently ignore spam
     if (_hp) {
@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
           user_id: userId,
           Inquiry_ID: finalInquiryId,
           Contract_Title: `${serviceType} Agreement`,
+          Contract_Text: contractHtml || '',
           Status: 'Signed',
           Signed_Date: today,
           Client_Signature: signature,

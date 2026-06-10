@@ -10,12 +10,13 @@ interface Props {
   addons: any[];
   signature: string;
   setSignature: (v: string) => void;
+  setContractHtml: (html: string) => void;
   onNext: () => void;
   onBack: () => void;
   funnelSettings: any;
 }
 
-export default function DigitalContract({ questionnaire, pkg, addons, signature, setSignature, onNext, onBack, funnelSettings }: Props) {
+export default function DigitalContract({ questionnaire, pkg, addons, signature, setSignature, setContractHtml, onNext, onBack, funnelSettings }: Props) {
   
   const [template, setTemplate] = useState<any>(null);
   const [variables, setVariables] = useState<string[]>([]);
@@ -328,7 +329,10 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
       <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: 24, marginTop: 20 }}>
         <button onClick={onBack} style={{ background: 'transparent', color: '#6b7280', padding: '16px 24px', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Back</button>
         <button 
-          onClick={onNext}
+          onClick={() => {
+            setContractHtml(getProcessedHtml());
+            onNext();
+          }}
           disabled={signature.trim().length < 3}
           style={{
             background: signature.trim().length < 3 ? '#e5e7eb' : '#0d9488',

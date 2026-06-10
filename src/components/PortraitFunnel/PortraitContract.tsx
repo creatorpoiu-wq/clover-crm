@@ -10,6 +10,7 @@ interface PortraitContractProps {
   selectedTime: string | null;
   signature: string;
   setSignature: (sig: string) => void;
+  setContractHtml: (html: string) => void;
   onNext: () => void;
   onBack: () => void;
   themeColor: string;
@@ -17,7 +18,7 @@ interface PortraitContractProps {
 }
 
 export default function PortraitContract({
-  selectedDate, selectedTime, signature, setSignature, onNext, onBack, themeColor, vendorInfo, contactName
+  selectedDate, selectedTime, signature, setSignature, setContractHtml, onNext, onBack, themeColor, vendorInfo, contactName
 }: PortraitContractProps) {
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigPadRef = useRef<SignaturePad | null>(null);
@@ -89,6 +90,7 @@ export default function PortraitContract({
       setError('Please provide your signature to proceed.');
       return;
     }
+    setContractHtml(getProcessedHtml());
     onNext();
   };
 
@@ -102,6 +104,16 @@ export default function PortraitContract({
       .replace(/\[Date\]|\{Date\}|\[Event Date\]|\{Event Date\}/gi, formattedDate)
       .replace(/\[Time\]|\{Time\}/gi, selectedTime || 'TBD')
       .replace(/\[Today's Date\]|\{Today's Date\}/gi, new Date().toLocaleDateString());
+  };
+
+  const getProcessedHtml = () => {
+    if (template) return replaceVars(template.Content);
+    return `
+      <h3 style="font-weight: 700; color: #1e293b; font-size: 1rem; margin-bottom: 1rem">1. Scope of Work</h3>
+      <p style="margin-bottom: 1rem">Photographer agrees to provide portrait photography services on ${formattedDate} at ${selectedTime}.</p>
+      <h3 style="font-weight: 700; color: #1e293b; font-size: 1rem; margin-bottom: 1rem">2. Retainer and Payment</h3>
+      <p style="margin-bottom: 1rem">A non-refundable retainer is required to secure the session date.</p>
+    `;
   };
 
   const stepInfo = vendorInfo?.steps?.[1];

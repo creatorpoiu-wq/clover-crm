@@ -7,6 +7,7 @@ interface RetainerCheckoutProps {
   selectedDate: string | null;
   selectedTime: string | null;
   signature: string;
+  contractHtml: string;
   onBack: () => void;
   themeColor: string;
   vendorInfo: any;
@@ -14,7 +15,7 @@ interface RetainerCheckoutProps {
 }
 
 export default function RetainerCheckout({
-  userId, inquiryId, selectedDate, selectedTime, signature, onBack, themeColor, vendorInfo, selectedPackageName
+  userId, inquiryId, selectedDate, selectedTime, signature, contractHtml, onBack, themeColor, vendorInfo, selectedPackageName
 }: RetainerCheckoutProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -71,6 +72,7 @@ export default function RetainerCheckout({
           pkg: selectedPackage ? { Name: selectedPackage.name, Price: packageTotal } : { Name: 'Portrait Session', Price: packageTotal || retainerAmount },
           addons: [],
           signature,
+          contractHtml,
           totalAmount: packageTotal || retainerAmount,
           depositAmount: retainerAmount
         })

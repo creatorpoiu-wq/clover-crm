@@ -21,6 +21,7 @@ export default function BookingFunnel() {
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [questionnaireData, setQuestionnaireData] = useState<Record<string, any>>({});
   const [signature, setSignature] = useState('');
+  const [contractHtml, setContractHtml] = useState('');
 
   useEffect(() => {
     const userId = searchParams.get('userId');
@@ -148,6 +149,7 @@ export default function BookingFunnel() {
                 addons={selectedAddons} 
                 signature={signature}
                 setSignature={setSignature}
+                setContractHtml={setContractHtml}
                 onNext={handleNext} 
                 onBack={handleBack}
                 funnelSettings={funnelSettings}
@@ -160,6 +162,7 @@ export default function BookingFunnel() {
                 pkg={selectedPackage} 
                 addons={selectedAddons} 
                 signature={signature}
+                contractHtml={contractHtml}
                 onBack={handleBack}
                 funnelSettings={funnelSettings}
               />

@@ -21,6 +21,7 @@ export default function PortraitFunnel() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [signature, setSignature] = useState('');
+  const [contractHtml, setContractHtml] = useState('');
 
   useEffect(() => {
     if (!userId || !inquiryId) {
@@ -147,6 +148,7 @@ export default function PortraitFunnel() {
             selectedTime={selectedTime}
             signature={signature}
             setSignature={setSignature}
+            setContractHtml={setContractHtml}
             onNext={() => setCurrentStep(3)}
             onBack={() => setCurrentStep(1)}
             themeColor={themeColor}
@@ -161,6 +163,7 @@ export default function PortraitFunnel() {
             selectedDate={selectedDate}
             selectedTime={selectedTime}
             signature={signature}
+            contractHtml={contractHtml}
             onBack={() => setCurrentStep(2)}
             themeColor={themeColor}
             vendorInfo={vendorInfo}
