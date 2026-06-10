@@ -268,6 +268,12 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
           </h4>
           <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>By drawing your signature below, you acknowledge that you have read, understand, and agree to the terms outlined in this agreement.</p>
           
+          {clientName !== '[Client Name]' && (
+            <div style={{ marginBottom: '1rem', fontSize: '1rem', color: '#475569', fontWeight: 600 }}>
+              Signing on behalf of: <span style={{ color: '#0f172a', fontWeight: 800 }}>{clientName}</span>
+            </div>
+          )}
+          
           {signature && signature.startsWith('data:image') ? (
             <div>
               <div style={{ border: '2px solid #e5e7eb', borderRadius: 8, background: '#fff', padding: 8, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -9,10 +9,11 @@ interface Props {
   selectedAddons: any[];
   setSelectedAddons: React.Dispatch<React.SetStateAction<any[]>>;
   onNext: () => void;
+  onBack: () => void;
   funnelSettings: any;
 }
 
-export default function PackageSelection({ packages, selectedPackage, setSelectedPackage, selectedAddons, setSelectedAddons, onNext, funnelSettings }: Props) {
+export default function PackageSelection({ packages, selectedPackage, setSelectedPackage, selectedAddons, setSelectedAddons, onNext, onBack, funnelSettings }: Props) {
   
   // Use custom addons from funnel settings, fall back to defaults if empty
   const addons = funnelSettings?.addons?.length > 0
@@ -133,7 +134,8 @@ export default function PackageSelection({ packages, selectedPackage, setSelecte
       )}
 
       {/* Footer Navigation */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: 24 }}>
+        <button onClick={onBack} style={{ background: 'transparent', color: '#6b7280', padding: '16px 24px', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Back</button>
         <button 
           onClick={onNext}
           disabled={!selectedPackage}

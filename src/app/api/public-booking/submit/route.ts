@@ -58,11 +58,14 @@ export async function POST(req: NextRequest) {
 
       finalInquiryId = contractData?.Inquiry_ID;
 
-      // 3. Update Inquiry Pipeline Stage
+      // 3. Update Inquiry Pipeline Stage and Questionnaire Data
       if (finalInquiryId) {
         await supabase
           .from('Inquiries')
-          .update({ Pipeline_Stage: 'Contract Signed' })
+          .update({ 
+            Pipeline_Stage: 'Contract Signed',
+            Questionnaire_Data: questionnaire
+          })
           .eq('Inquiry_ID', finalInquiryId);
       }
 
@@ -91,7 +94,8 @@ export async function POST(req: NextRequest) {
           Service_Type: serviceType,
           Event_Date: eventDate,
           Estimated_Value: totalAmount,
-          Pipeline_Stage: 'Contract Signed'
+          Pipeline_Stage: 'Contract Signed',
+          Questionnaire_Data: questionnaire
         })
         .select()
         .single();

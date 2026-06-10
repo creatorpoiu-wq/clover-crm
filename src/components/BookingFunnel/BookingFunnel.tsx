@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import ClientInfo from './ClientInfo';
 import PackageSelection from './PackageSelection';
 import EventQuestionnaire from './EventQuestionnaire';
 import DigitalContract from './DigitalContract';
@@ -47,10 +48,10 @@ export default function BookingFunnel() {
     Promise.all([pkgFetch, settingsFetch]).finally(() => setLoading(false));
   }, [searchParams]);
 
-  const steps = ['Packages', 'Questionnaire', 'Contract', 'Payment'];
+  const steps = ['Client Info', 'Packages', 'Questionnaire', 'Contract', 'Payment'];
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setCurrentStep(s => s + 1);
     }
@@ -109,6 +110,15 @@ export default function BookingFunnel() {
         ) : (
           <>
             {currentStep === 1 && (
+              <ClientInfo 
+                data={questionnaireData} 
+                setData={setQuestionnaireData} 
+                onNext={handleNext} 
+                funnelSettings={funnelSettings}
+              />
+            )}
+
+            {currentStep === 2 && (
               <PackageSelection 
                 packages={packages} 
                 selectedPackage={selectedPackage} 
@@ -116,11 +126,12 @@ export default function BookingFunnel() {
                 selectedAddons={selectedAddons} 
                 setSelectedAddons={setSelectedAddons} 
                 onNext={handleNext}
+                onBack={handleBack}
                 funnelSettings={funnelSettings}
               />
             )}
             
-            {currentStep === 2 && (
+            {currentStep === 3 && (
               <EventQuestionnaire 
                 data={questionnaireData} 
                 setData={setQuestionnaireData} 
@@ -130,7 +141,7 @@ export default function BookingFunnel() {
               />
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <DigitalContract 
                 questionnaire={questionnaireData} 
                 pkg={selectedPackage} 
@@ -143,7 +154,7 @@ export default function BookingFunnel() {
               />
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 5 && (
               <PaymentCheckout 
                 questionnaire={questionnaireData} 
                 pkg={selectedPackage} 
