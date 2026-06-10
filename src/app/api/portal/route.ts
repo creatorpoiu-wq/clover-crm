@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
         Estimated_Value,
         Questionnaire_Data,
         Deliverable_Milestones,
-        Contacts!inner ( Name, Email, Phone )
+        Contacts ( Name, Email, Phone )
       `)
       .eq('Inquiry_ID', inquiryId)
       .single();
@@ -95,9 +95,9 @@ export async function GET(req: NextRequest) {
           brandColor: config?.Brand_Color || '#0f172a'
         },
         client: {
-          name: (inquiry as any).Contacts?.Name,
-          email: (inquiry as any).Contacts?.Email,
-          phone: (inquiry as any).Contacts?.Phone,
+          name: Array.isArray((inquiry as any).Contacts) ? (inquiry as any).Contacts[0]?.Name : (inquiry as any).Contacts?.Name,
+          email: Array.isArray((inquiry as any).Contacts) ? (inquiry as any).Contacts[0]?.Email : (inquiry as any).Contacts?.Email,
+          phone: Array.isArray((inquiry as any).Contacts) ? (inquiry as any).Contacts[0]?.Phone : (inquiry as any).Contacts?.Phone,
         },
         event: {
           serviceType: inquiry.Service_Type,
