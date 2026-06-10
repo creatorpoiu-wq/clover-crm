@@ -115,7 +115,8 @@ export async function GET(req: NextRequest) {
         
       if (error) throw error;
       
-      const contactName = inquiry?.Contacts?.Name || '';
+      const contacts = inquiry?.Contacts;
+      const contactName = Array.isArray(contacts) ? (contacts[0] as any)?.Name : (contacts as any)?.Name || '';
       return NextResponse.json({ success: true, inquiryDetails: { contactName } });
     }
 
