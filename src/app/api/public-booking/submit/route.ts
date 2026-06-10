@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
           Status: 'Signed',
           Signed_Date: today,
           Client_Signature: signature,
-          Contract_Text: contractHtml || undefined
+          Contract_Text: contractHtml || undefined,
+          Type: 'Contract'
         })
         .eq('Contract_ID', contractId);
 
