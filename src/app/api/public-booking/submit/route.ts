@@ -60,15 +60,30 @@ export async function POST(req: NextRequest) {
 
       finalInquiryId = contractData?.Inquiry_ID;
 
-      // 3. Update Inquiry Pipeline Stage and Questionnaire Data
+      // 3. Update Inquiry Pipeline Stage, Event Date, and Questionnaire Data
       if (finalInquiryId) {
+        // Fetch Inquiry to get Contact_ID
+        const { data: inq } = await supabase.from('Inquiries').select('Contact_ID').eq('Inquiry_ID', finalInquiryId).single();
+        
         await supabase
           .from('Inquiries')
           .update({ 
             Pipeline_Stage: 'Contract Signed',
+            Event_Date: eventDate || undefined,
             Questionnaire_Data: questionnaire
           })
           .eq('Inquiry_ID', finalInquiryId);
+
+        if (inq?.Contact_ID) {
+          await supabase
+            .from('Contacts')
+            .update({
+              Name: clientName,
+              Email: clientEmail,
+              Phone: phone || undefined
+            })
+            .eq('Contact_ID', inq.Contact_ID);
+        }
       }
 
     } else {

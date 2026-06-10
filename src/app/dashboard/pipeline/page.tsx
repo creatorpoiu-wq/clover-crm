@@ -366,16 +366,17 @@ export default function PipelinePage() {
                             </div>
                           ));
                         }
-                        if (value && typeof value === 'string' && value.trim() !== '') {
-                          const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                          return (
-                            <div key={key}>
-                              <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>{displayKey}</div>
-                              <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{value}</div>
-                            </div>
-                          );
-                        }
-                        return null;
+                        
+                        // Skip empty values or boolean false
+                        if (!value || value === false) return null;
+                        
+                        const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        return (
+                          <div key={key}>
+                            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>{displayKey}</div>
+                            <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{String(value)}</div>
+                          </div>
+                        );
                       })}
                     </div>
                   </div>
