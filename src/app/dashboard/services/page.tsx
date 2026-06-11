@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Trash2, Edit3, Camera, Video, Clock, MapPin, Globe, Lock, Copy, Check, ChevronRight, X, Link, Calendar, Package as PackageIcon, Users } from 'lucide-react';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -428,22 +429,19 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* ── SIDE-BY-SIDE MANAGEMENT PANEL ─────────────────── */}
-      {activePanel && (
-        <div style={{ 
-          width: '480px', 
-          flexShrink: 0,
-          backgroundColor: 'white', 
-          border: '1px solid #e2e8f0',
-          borderRadius: '0.875rem',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)', 
-          display: 'flex', 
-          flexDirection: 'column',
-          position: 'sticky',
-          top: 'calc(56px + 2rem)',
-          height: 'calc(100vh - 56px - 4rem)',
-          overflow: 'hidden'
-        }}>
+      {/* ── OVERLAY MANAGEMENT PANEL (Drawer) ─────────────────── */}
+      {activePanel && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end', animation: 'fadeIn 0.2s ease-out' }}>
+          <div style={{ 
+            width: '100%', 
+            maxWidth: '480px',
+            backgroundColor: 'white', 
+            boxShadow: '-10px 0 40px rgba(0, 0, 0, 0.15)', 
+            display: 'flex', 
+            flexDirection: 'column',
+            height: '100%',
+            animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}>
           {/* Panel header */}
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <div>
@@ -683,7 +681,7 @@ export default function ServicesPage() {
             )}
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* ── SESSION FORM MODAL ── */}
       {showSessionForm && (
