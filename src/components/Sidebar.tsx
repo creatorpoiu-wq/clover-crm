@@ -82,7 +82,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { 
       name: "Booking", icon: Package,
       subItems: [
-        { name: "Packages & Sessions", href: "/dashboard/packages" },
+        { name: "Services", href: "/dashboard/services" },
         { name: "Portrait Funnel Settings", href: "/dashboard/portrait-settings" },
         { name: "Wedding Funnel Settings", href: "/dashboard/booking" },
         { name: "Questionnaire Builder", href: "/dashboard/questionnaire" },
