@@ -13,10 +13,43 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get('slug');
+    const businessSlug = searchParams.get('businessSlug');
     const publicUserId = searchParams.get('userId');
 
-    // Public fetch by slug (for booking page)
-    if (slug) {
+    // Public fetch by businessSlug and slug (for booking page)
+    if (slug && businessSlug) {
+      const supabase = getServiceClient();
+      
+      // 1. Find user_id from businessSlug
+      const { data: configData, error: configError } = await supabase
+        .from('AppConfig')
+        .select('user_id')
+        .eq('Business_Slug', businessSlug)
+        .limit(1);
+
+      if (configError || !configData || configData.length === 0) {
+        return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
+      }
+      
+      const targetUserId = configData[0].user_id;
+
+      // 2. Fetch the session for that user
+      const { data, error } = await supabase
+        .from('Sessions')
+        .select('*, Session_Time_Slots(*), Packages(*)')
+        .eq('Slug', slug)
+        .eq('user_id', targetUserId)
+        .eq('Is_Public', true)
+        .limit(1);
+
+      if (error) return NextResponse.json({ success: false, error: error.message }, { status: 404 });
+      if (!data || data.length === 0) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+      
+      return NextResponse.json({ success: true, session: data[0] });
+    }
+
+    // Public fetch by legacy slug fallback (if needed, though links will be updated)
+    if (slug && !businessSlug) {
       const supabase = getServiceClient();
       const { data, error } = await supabase
         .from('Sessions')

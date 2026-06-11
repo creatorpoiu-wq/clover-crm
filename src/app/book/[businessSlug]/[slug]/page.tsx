@@ -46,7 +46,7 @@ function generateTimeOptions(slots: TimeSlot[], dayOfWeek: number): string[] {
   return times;
 }
 
-export default function BookSessionPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function BookSessionPage({ params }: { params: Promise<{ businessSlug: string, slug: string }> }) {
   const resolvedParams = React.use(params);
   
   const [session, setSession] = useState<Session | null>(null);
@@ -62,7 +62,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/sessions?slug=${resolvedParams.slug}`)
+    fetch(`/api/sessions?businessSlug=${resolvedParams.businessSlug}&slug=${resolvedParams.slug}`)
       .then(r => r.json())
       .then(d => {
         if (d.success && d.session) {

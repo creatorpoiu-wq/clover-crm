@@ -15,6 +15,7 @@ function SettingsInner() {
   const [phone, setPhone] = useState("");
   const [timeZone, setTimeZone] = useState("(GMT-05:00) America, Jamaica");
   const [dateFormat, setDateFormat] = useState("dd/mm/yyyy");
+  const [businessSlug, setBusinessSlug] = useState("");
 
   const [hasToken, setHasToken] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -86,6 +87,7 @@ function SettingsInner() {
           setTwilioSid(data.config.twilioSid || "");
           setTwilioAuthToken(data.config.twilioAuthToken || "");
           setTwilioPhone(data.config.twilioPhone || "");
+          setBusinessSlug(data.config.businessSlug || "");
         }
       })
       .finally(() => setLoading(false));
@@ -114,7 +116,8 @@ function SettingsInner() {
           brandColor,
           twilioSid,
           twilioAuthToken,
-          twilioPhone
+          twilioPhone,
+          businessSlug
         })
       });
       if (res.ok) setMessage({ type: "success", text: "Settings saved successfully!" });
@@ -348,6 +351,18 @@ function SettingsInner() {
             
             <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Business name</div>
             <input type="text" style={inputStyle} value={companyName} onChange={e => setCompanyName(e.target.value)} />
+            
+            <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>
+              Business Slug
+              <div style={{ fontSize: "0.75rem", fontWeight: 400, marginTop: "0.25rem" }}>Used in booking links. e.g. /book/<strong>your-slug</strong>/...</div>
+            </div>
+            <input 
+              type="text" 
+              style={inputStyle} 
+              value={businessSlug} 
+              onChange={e => setBusinessSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} 
+              placeholder="e.g. acme-corp"
+            />
             
             <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>First name</div>
             <input type="text" style={inputStyle} value={firstName} onChange={e => setFirstName(e.target.value)} />

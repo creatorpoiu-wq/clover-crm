@@ -41,6 +41,7 @@ export async function GET() {
         twilioSid: config.Twilio_Account_SID || '',
         twilioAuthToken: config.Twilio_Auth_Token || '',
         twilioPhone: config.Twilio_Phone_Number || '',
+        businessSlug: config.Business_Slug || '',
       }
     });
   } catch (error: any) {
@@ -52,7 +53,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, emailUser, emailPass, businessLogo, businessAddress, brandColor, twilioSid, twilioAuthToken, twilioPhone } = await req.json();
+    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, emailUser, emailPass, businessLogo, businessAddress, brandColor, twilioSid, twilioAuthToken, twilioPhone, businessSlug } = await req.json();
     
     // Check if the user has an AppConfig row
     const { data: userAuth } = await supabase.auth.getUser();
@@ -76,7 +77,8 @@ export async function POST(req: NextRequest) {
       Brand_Color: brandColor,
       Twilio_Account_SID: twilioSid,
       Twilio_Auth_Token: twilioAuthToken,
-      Twilio_Phone_Number: twilioPhone
+      Twilio_Phone_Number: twilioPhone,
+      Business_Slug: businessSlug
     };
 
     if (emailPass && emailPass.trim() !== '') {

@@ -66,6 +66,7 @@ export default function ServicesPage() {
   const [activePanel, setActivePanel] = useState<Session | null>(null);
   const [panelTab, setPanelTab] = useState<'general' | 'availability' | 'packages' | 'bookings'>('general');
   const [copied, setCopied] = useState(false);
+  const [businessSlug, setBusinessSlug] = useState<string>('');
 
   // Session form
   const [showSessionForm, setShowSessionForm] = useState(false);
@@ -88,6 +89,13 @@ export default function ServicesPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    // Fetch settings to get business slug
+    const settingsRes = await fetch('/api/settings');
+    const settingsData = await settingsRes.json();
+    if (settingsData.success && settingsData.config?.businessSlug) {
+      setBusinessSlug(settingsData.config.businessSlug);
+    }
+
     const res = await fetch('/api/sessions');
     const data = await res.json();
     if (data.success) {
@@ -128,7 +136,8 @@ export default function ServicesPage() {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   const copyLink = (slug: string) => {
-    navigator.clipboard.writeText(`${baseUrl}/book/${slug}`);
+    const finalBusinessSlug = businessSlug || 'unconfigured-business';
+    navigator.clipboard.writeText(`${baseUrl}/book/${finalBusinessSlug}/${slug}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
