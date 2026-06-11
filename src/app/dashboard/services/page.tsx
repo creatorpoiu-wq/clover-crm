@@ -426,9 +426,22 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* ── SLIDE-OUT MANAGEMENT PANEL ─────────────────── */}
+      {/* ── SIDE-BY-SIDE MANAGEMENT PANEL ─────────────────── */}
       {activePanel && (
-        <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '480px', backgroundColor: 'white', boxShadow: '-4px 0 24px rgba(0,0,0,0.12)', zIndex: 500, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ 
+          width: '480px', 
+          flexShrink: 0,
+          backgroundColor: 'white', 
+          border: '1px solid #e2e8f0',
+          borderRadius: '0.875rem',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)', 
+          display: 'flex', 
+          flexDirection: 'column',
+          position: 'sticky',
+          top: 'calc(56px + 2rem)',
+          height: 'calc(100vh - 56px - 4rem)',
+          overflow: 'hidden'
+        }}>
           {/* Panel header */}
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <div>
