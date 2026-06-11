@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserPlus, Plus, MessageSquare, Users, Edit2, Trash2, Save, X, Search } from "lucide-react";
+import { UserPlus, Plus, MessageSquare, Users, Edit2, Trash2, Save, X, Search, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { DatePicker } from "@/components/ui/DatePicker";
+import NewContactInquiryForm from "@/components/NewContactInquiryForm";
 
 interface InquiryOption {
   Inquiry_ID: number;
@@ -44,14 +46,9 @@ export default function ContactsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<Contact>>({});
 
-  // New Contact State
-  const [newContact, setNewContact] = useState({
-    name: "", email: "", phone: "", leadSource: "Instagram",
-    serviceType: "Wedding Photography", eventDate: "", estimatedValue: ""
-  });
-  const [newContactLoading, setNewContactLoading] = useState(false);
-  const [newContactSuccess, setNewContactSuccess] = useState(false);
-
+  const [showNewContactModal, setShowNewContactModal] = useState(false);
+  const [showCreateDropdown, setShowCreateDropdown] = useState(false);
+  
   // Communication form state
   const [commInquiryId, setCommInquiryId] = useState("");
   const [commDate, setCommDate] = useState(new Date().toISOString().slice(0, 16));
@@ -150,30 +147,6 @@ export default function ContactsPage() {
     }
   };
 
-  const handleNewContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setNewContactLoading(true);
-    setNewContactSuccess(false);
-    try {
-      const res = await fetch("/api/booking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newContact)
-      });
-      if (res.ok) {
-        setNewContactSuccess(true);
-        setTimeout(() => setNewContactSuccess(false), 3000);
-        setNewContact({ name: "", email: "", phone: "", leadSource: "Instagram", serviceType: "Wedding Photography", eventDate: "", estimatedValue: "" });
-        fetchContacts();
-        fetchInquiries();
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setNewContactLoading(false);
-    }
-  };
-
   // --- Contact Directory Actions ---
 
   const startEdit = (c: Contact) => {
@@ -248,12 +221,6 @@ export default function ContactsPage() {
             <Users size={18} /> Directory
           </button>
           <button 
-            onClick={() => setActiveTab("contact")}
-            style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "contact" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "contact" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", whiteSpace: "nowrap" }}
-          >
-            <UserPlus size={18} /> New Contact + Inquiry
-          </button>
-          <button 
             onClick={() => setActiveTab("communication")}
             style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "communication" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "communication" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", whiteSpace: "nowrap" }}
           >
@@ -268,16 +235,56 @@ export default function ContactsPage() {
             <div className="animate-fade-in">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
                 <h2 className="section-header" style={{ marginBottom: 0, borderBottom: "none", paddingBottom: 0 }}>All Contacts</h2>
-                <div style={{ position: "relative", width: "300px" }}>
-                  <Search size={16} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }} />
-                  <input 
-                    type="text" 
-                    className="input" 
-                    placeholder="Search name or email..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ paddingLeft: "2.5rem", margin: 0, fontSize: "0.875rem" }}
-                  />
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ position: "relative", width: "300px" }}>
+                    <Search size={16} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }} />
+                    <input 
+                      type="text" 
+                      className="input" 
+                      placeholder="Search name or email..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      style={{ paddingLeft: "2.5rem", margin: 0, fontSize: "0.875rem" }}
+                    />
+                  </div>
+
+                  <div style={{ position: "relative", display: "inline-flex", borderRadius: "0.5rem", overflow: "visible" }}>
+                    <button 
+                      onClick={() => setShowNewContactModal(true)}
+                      style={{ padding: "0.5rem 1rem", background: "#111827", color: "#fff", fontWeight: 600, fontSize: "0.875rem", border: "1px solid #111827", borderRadius: "0.5rem 0 0 0.5rem", cursor: "pointer" }}
+                    >
+                      Create new
+                    </button>
+                    <button 
+                      onClick={() => setShowCreateDropdown(!showCreateDropdown)}
+                      style={{ padding: "0.5rem", background: "#1f2937", color: "#fff", border: "1px solid #111827", borderLeft: "1px solid #374151", borderRadius: "0 0.5rem 0.5rem 0", cursor: "pointer" }}
+                    >
+                      <ChevronDown size={16} />
+                    </button>
+                    
+                    {showCreateDropdown && (
+                      <div style={{ position: "absolute", top: "100%", right: 0, marginTop: "0.5rem", width: "260px", background: "#fff", border: "1px solid #e5e7eb", borderRadius: "0.5rem", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", zIndex: 100 }}>
+                        <div style={{ padding: "0.75rem 1rem", fontSize: "0.75rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase" }}>Create manually</div>
+                        <button onClick={() => { setShowNewContactModal(true); setShowCreateDropdown(false); }} style={{ width: "100%", textAlign: "left", padding: "0.5rem 1rem", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", color: "#374151" }} onMouseOver={e => e.currentTarget.style.background = "#f3f4f6"} onMouseOut={e => e.currentTarget.style.background = "transparent"}>
+                          <UserPlus size={16} /> New contact
+                        </button>
+                        <button onClick={() => { alert('Not implemented yet'); setShowCreateDropdown(false); }} style={{ width: "100%", textAlign: "left", padding: "0.5rem 1rem", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", color: "#374151" }} onMouseOver={e => e.currentTarget.style.background = "#f3f4f6"} onMouseOut={e => e.currentTarget.style.background = "transparent"}>
+                          <Users size={16} /> New organization
+                        </button>
+                        <div style={{ height: "1px", background: "#e5e7eb", margin: "0.5rem 0" }} />
+                        <div style={{ padding: "0.75rem 1rem", fontSize: "0.75rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase" }}>Import contacts</div>
+                        <button onClick={() => { alert('Not implemented yet'); setShowCreateDropdown(false); }} style={{ width: "100%", textAlign: "left", padding: "0.5rem 1rem", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", color: "#374151" }} onMouseOver={e => e.currentTarget.style.background = "#f3f4f6"} onMouseOut={e => e.currentTarget.style.background = "transparent"}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                          Import from Google <span style={{ marginLeft: "auto", background: "#f3f4f6", padding: "2px 6px", borderRadius: "10px", fontSize: "0.65rem" }}>Best</span>
+                        </button>
+                        <button onClick={() => { alert('Not implemented yet'); setShowCreateDropdown(false); }} style={{ width: "100%", textAlign: "left", padding: "0.5rem 1rem", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", color: "#374151" }} onMouseOver={e => e.currentTarget.style.background = "#f3f4f6"} onMouseOut={e => e.currentTarget.style.background = "transparent"}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                          Import spreadsheet
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -380,68 +387,6 @@ export default function ContactsPage() {
                   </table>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* ADD CONTACT TAB */}
-          {activeTab === "contact" && (
-            <div className="animate-fade-in" style={{ maxWidth: "800px" }}>
-              <form onSubmit={handleNewContactSubmit}>
-                <h2 className="section-header">Contact Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Full Name *</label>
-                    <input type="text" required className="input" style={{ textAlign: "left", letterSpacing: "normal" }} placeholder="e.g. Jordan Smith" value={newContact.name} onChange={e => setNewContact({...newContact, name: e.target.value})} />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Email</label>
-                    <input type="email" className="input" style={{ textAlign: "left", letterSpacing: "normal" }} placeholder="jordan@example.com" value={newContact.email} onChange={e => setNewContact({...newContact, email: e.target.value})} />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Phone</label>
-                    <input type="tel" className="input" style={{ textAlign: "left", letterSpacing: "normal" }} placeholder="555-0101" value={newContact.phone} onChange={e => setNewContact({...newContact, phone: e.target.value})} />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Lead Source</label>
-                    <select className="input" style={{ textAlign: "left", letterSpacing: "normal" }} value={newContact.leadSource} onChange={e => setNewContact({...newContact, leadSource: e.target.value})}>
-                      <option value="Instagram">Instagram</option>
-                      <option value="Referral">Referral</option>
-                      <option value="Website">Website</option>
-                      <option value="Google">Google</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-
-                <h2 className="section-header">Inquiry Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Service Type</label>
-                    <select className="input" style={{ textAlign: "left", letterSpacing: "normal" }} value={newContact.serviceType} onChange={e => setNewContact({...newContact, serviceType: e.target.value})}>
-                      <option value="Wedding Photography">Wedding Photography</option>
-                      <option value="Portrait Session">Portrait Session</option>
-                      <option value="Commercial">Commercial / Branding</option>
-                      <option value="Videography">Videography</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Event Date</label>
-                    <DatePicker className="input" style={{ textAlign: "left", letterSpacing: "normal" }} value={newContact.eventDate} onChange={val => setNewContact({...newContact, eventDate: val})} />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Estimated Value ($)</label>
-                    <input type="number" step="0.01" className="input" style={{ textAlign: "left", letterSpacing: "normal" }} placeholder="0.00" value={newContact.estimatedValue} onChange={e => setNewContact({...newContact, estimatedValue: e.target.value})} />
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem" }}>
-                  {newContactSuccess && <span style={{ color: "var(--status-green-fg)", fontWeight: 600 }}>Successfully saved!</span>}
-                  <button type="submit" disabled={newContactLoading} className="btn btn-primary" style={{ width: "auto" }}>
-                    <Plus size={18} /> {newContactLoading ? "Saving..." : "Save Contact & Inquiry"}
-                  </button>
-                </div>
-              </form>
             </div>
           )}
 
@@ -552,6 +497,30 @@ export default function ContactsPage() {
           )}
         </div>
       </div>
+
+      {showNewContactModal && typeof window !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5vh 16px' }}
+          onClick={() => setShowNewContactModal(false)}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 28, width: '100%', maxWidth: 700, display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>Create New Contact</h2>
+              </div>
+              <button onClick={() => setShowNewContactModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}><X size={18} /></button>
+            </div>
+            <NewContactInquiryForm 
+              onSuccess={() => { 
+                setShowNewContactModal(false); 
+                fetchContacts(); 
+                fetchInquiries(); 
+              }} 
+              onCancel={() => setShowNewContactModal(false)} 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
