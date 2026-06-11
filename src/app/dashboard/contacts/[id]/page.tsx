@@ -71,6 +71,13 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   const [editForm, setEditForm] = useState<Partial<Contact>>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  const [showLogCommModal, setShowLogCommModal] = useState(false);
+  const [commInquiryId, setCommInquiryId] = useState("");
+  const [commDate, setCommDate] = useState(new Date().toISOString().slice(0, 16));
+  const [commBy, setCommBy] = useState("Me");
+  const [commMessage, setCommMessage] = useState("");
+  const [commLoading, setCommLoading] = useState(false);
+
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
 
@@ -324,6 +331,40 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
       setIsSaving(false);
     }
   };
+
+  
+  const handleLogComm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commInquiryId) {
+       alert("Please select an inquiry");
+       return;
+    }
+    setCommLoading(true);
+    try {
+      const res = await fetch("/api/communications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inquiryId: parseInt(commInquiryId),
+          contactDate: commDate.replace("T", " ") + ":00",
+          contactBy: commBy,
+          message: commMessage
+        })
+      });
+      if (res.ok) {
+        setShowLogCommModal(false);
+        setCommMessage("");
+        fetchContactData();
+      } else {
+        alert("Failed to log communication.");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCommLoading(false);
+    }
+  };
+
 
   const handleCreateSession = async () => {
     setIsSaving(true);
@@ -754,7 +795,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', border: '1px solid #f0efe9' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Communication History</h2>
-            <button onClick={() => setIsNoteModalOpen(true)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Log Manual Note</button>
+            <button onClick={() => setShowLogCommModal(true)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Log Communication</button>
           </div>
           {communications.length > 0 ? (
             <div className="space-y-4">

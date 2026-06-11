@@ -49,18 +49,7 @@ export default function ContactsPage() {
   const [showNewContactModal, setShowNewContactModal] = useState(false);
   const [showCreateDropdown, setShowCreateDropdown] = useState(false);
   
-  // Communication form state
-  const [commInquiryId, setCommInquiryId] = useState("");
-  const [commDate, setCommDate] = useState(new Date().toISOString().slice(0, 16));
-  const [commBy, setCommBy] = useState("Me");
-  const [commMessage, setCommMessage] = useState("");
-  const [commLoading, setCommLoading] = useState(false);
-  const [commSuccess, setCommSuccess] = useState(false);
-  
-  // History State
-  const [commHistory, setCommHistory] = useState<Communication[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-  
+    
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -91,20 +80,6 @@ export default function ContactsPage() {
       });
   };
 
-  useEffect(() => {
-    if (commInquiryId) {
-      setLoadingHistory(true);
-      fetch(`/api/communications?inquiryId=${commInquiryId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) setCommHistory(data.communications || []);
-        })
-        .finally(() => setLoadingHistory(false));
-    } else {
-      setCommHistory([]);
-    }
-  }, [commInquiryId, commSuccess]);
-
   const fetchContacts = () => {
     setLoadingContacts(true);
     fetch("/api/contacts")
@@ -117,36 +92,7 @@ export default function ContactsPage() {
       .finally(() => setLoadingContacts(false));
   };
 
-  const handleLogComm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCommLoading(true);
-    setCommSuccess(false);
-    
-    try {
-      const res = await fetch("/api/communications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inquiryId: parseInt(commInquiryId),
-          contactDate: commDate.replace("T", " ") + ":00",
-          contactBy: commBy,
-          message: commMessage
-        })
-      });
-
-      if (res.ok) {
-        setCommSuccess(true);
-        setTimeout(() => setCommSuccess(false), 3000);
-        setCommInquiryId("");
-        setCommMessage("");
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCommLoading(false);
-    }
-  };
-
+  
   // --- Contact Directory Actions ---
 
   const startEdit = (c: Contact) => {
@@ -220,12 +166,7 @@ export default function ContactsPage() {
           >
             <Users size={18} /> Directory
           </button>
-          <button 
-            onClick={() => setActiveTab("communication")}
-            style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "communication" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "communication" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", whiteSpace: "nowrap" }}
-          >
-            <MessageSquare size={18} /> Log Communication
-          </button>
+          
         </div>
 
         <div style={{ padding: "2rem" }}>
@@ -390,111 +331,7 @@ export default function ContactsPage() {
             </div>
           )}
 
-          {/* LOG COMMUNICATION TAB */}
-          {activeTab === "communication" && (
-            <div className="animate-fade-in grid grid-cols-1 md:grid-cols-2" style={{ gap: "4rem" }}>
-              <div style={{ padding: "1.5rem", backgroundColor: "var(--background)", borderRadius: "0.75rem", border: "1px solid var(--border)" }}>
-                <h2 className="section-header">Log New Interaction</h2>
-                <form onSubmit={handleLogComm} className="space-y-6">
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Select Inquiry *</label>
-                    <select 
-                      className="input" 
-                      style={{ textAlign: "left", letterSpacing: "normal" }}
-                      value={commInquiryId}
-                      onChange={(e) => setCommInquiryId(e.target.value)}
-                      required
-                    >
-                      <option value="">-- Choose an active inquiry --</option>
-                      {inquiries.map((inq) => (
-                        <option key={inq.Inquiry_ID} value={inq.Inquiry_ID}>
-                          {inq.Contact_Name} ({inq.Service_Type})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Date & Time of Contact *</label>
-                    <input 
-                      type="datetime-local" 
-                      className="input" 
-                      style={{ textAlign: "left", letterSpacing: "normal" }}
-                      value={commDate}
-                      onChange={(e) => setCommDate(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>Who initiated contact? *</label>
-                    <select 
-                      className="input" 
-                      style={{ textAlign: "left", letterSpacing: "normal" }}
-                      value={commBy}
-                      onChange={(e) => setCommBy(e.target.value)}
-                      required
-                    >
-                      <option value="Me">Me (I reached out to them)</option>
-                      <option value="Client">Client (They reached out to me)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Message / Notes</label>
-                    <textarea 
-                      className="input" 
-                      style={{ textAlign: "left", letterSpacing: "normal", minHeight: "100px", resize: "vertical" }} 
-                      placeholder="Record what was discussed or sent..." 
-                      value={commMessage}
-                      onChange={(e) => setCommMessage(e.target.value)}
-                    />
-                  </div>
-
-                  <button className="btn btn-primary" type="submit" disabled={commLoading}>
-                    <Plus size={18} /> {commLoading ? "Saving..." : "Log Communication"}
-                  </button>
-
-                  {commSuccess && (
-                    <div style={{ marginTop: "1rem", padding: "1rem", backgroundColor: "var(--status-green)", color: "var(--status-green-fg)", borderRadius: "0.5rem", fontWeight: 600, fontSize: "0.875rem" }}>
-                      Communication logged successfully!
-                    </div>
-                  )}
-                </form>
-              </div>
-
-              {/* HISTORY SECTION */}
-              <div style={{ padding: "1.5rem", backgroundColor: "var(--background)", borderRadius: "0.75rem", border: "1px solid var(--border)" }}>
-                <h2 className="section-header">Activity Log</h2>
-                {!commInquiryId ? (
-                  <div className="empty-state" style={{ padding: "2rem" }}>Select an inquiry to view its communication history.</div>
-                ) : loadingHistory ? (
-                  <div style={{ padding: "1rem", color: "var(--muted)" }}>Loading history...</div>
-                ) : commHistory.length === 0 ? (
-                  <div className="empty-state" style={{ padding: "2rem" }}>No communications logged for this inquiry yet.</div>
-                ) : (
-                  <div className="space-y-4">
-                    {commHistory.map(comm => {
-                      const dateObj = new Date(comm.Last_Contact_Date + "Z");
-                      return (
-                        <div key={comm.Communication_ID} style={{ padding: "1.25rem", borderRadius: "0.5rem", backgroundColor: "var(--muted-bg)", border: "1px solid var(--border)", position: "relative" }}>
-                          <div style={{ position: "absolute", top: "1.25rem", right: "1.25rem", padding: "0.25rem 0.5rem", borderRadius: "1rem", fontSize: "0.75rem", fontWeight: 700, backgroundColor: comm.Last_Contact_By === "Me" ? "var(--primary)" : "var(--status-blue-fg)", color: "white" }}>
-                            {comm.Last_Contact_By === "Me" ? "Sent" : "Received"}
-                          </div>
-                          <div style={{ fontWeight: 800, marginBottom: "0.25rem" }}>
-                            {dateObj.toLocaleDateString('en-GB')} at {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                          <div style={{ fontSize: "0.875rem", color: "var(--foreground)", whiteSpace: "pre-wrap", marginTop: "0.75rem" }}>
-                            {comm.Message || <span style={{ fontStyle: "italic", color: "var(--muted)" }}>No message recorded</span>}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          
         </div>
       </div>
 
