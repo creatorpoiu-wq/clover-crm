@@ -40,6 +40,7 @@ const defaultSessionForm = {
   serviceType: 'Photography',
   sessionType: '',
   slug: '',
+  slugDirty: false,
   description: '',
   coverImage: '',
   durationMinutes: 60,
@@ -143,6 +144,7 @@ export default function ServicesPage() {
       serviceType: s.Service_Type,
       sessionType: s.Session_Type,
       slug: s.Slug || '',
+      slugDirty: true,
       description: s.Description || '',
       coverImage: s.Cover_Image || '',
       durationMinutes: s.Duration_Minutes || 60,
@@ -701,13 +703,13 @@ export default function ServicesPage() {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Session Name *</label>
-                  <input value={sessionForm.sessionType} onChange={e => { const v = e.target.value; setSessionForm(p => ({ ...p, sessionType: v, slug: p.slug || v.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })); }} className="input" style={{ width: '100%' }} placeholder="e.g. Portrait Session, Family Session" required />
+                  <input value={sessionForm.sessionType} onChange={e => { const v = e.target.value; setSessionForm(p => ({ ...p, sessionType: v, slug: p.slugDirty ? p.slug : v.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })); }} className="input" style={{ width: '100%' }} placeholder="e.g. Portrait Session, Family Session" required />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Booking URL Slug *</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.875rem', backgroundColor: '#f8fafc' }}>
                     <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>/book/</span>
-                    <input value={sessionForm.slug} onChange={e => setSessionForm(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }))} style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, fontSize: '0.875rem' }} placeholder="portrait-session" required />
+                    <input value={sessionForm.slug} onChange={e => setSessionForm(p => ({ ...p, slugDirty: true, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }))} style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, fontSize: '0.875rem' }} placeholder="portrait-session" required />
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
