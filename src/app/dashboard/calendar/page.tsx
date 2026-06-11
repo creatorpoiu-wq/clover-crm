@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar as CalendarIcon, Bell, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, Bell, Trash2, ChevronLeft, ChevronRight, Settings, X } from "lucide-react";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { formatDate } from "@/lib/formatDate";
+import BlockTimeModal from "@/components/BlockTimeModal";
+import { createPortal } from "react-dom";
 
 interface EventData {
   Inquiry_ID: number;
@@ -24,9 +26,19 @@ interface ReminderData {
   Channel: string;
 }
 
+interface BlockedDate {
+  Block_ID: number;
+  Start_Date: string;
+  End_Date: string;
+  Is_All_Day: boolean;
+  Start_Time?: string;
+  End_Time?: string;
+}
+
 export default function CalendarPage() {
   const [events, setEvents] = useState<EventData[]>([]);
   const [reminders, setReminders] = useState<ReminderData[]>([]);
+  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -35,10 +47,12 @@ export default function CalendarPage() {
   // Current month state
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Add Reminder Modal State
+  // Modals
   const [showAddReminder, setShowAddReminder] = useState(false);
   const [newReminder, setNewReminder] = useState({ inquiryId: '', dueDate: '', notes: '', channel: 'Email' });
   const [addingReminder, setAddingReminder] = useState(false);
+  
+  const [showBlockTimeModal, setShowBlockTimeModal] = useState(false);
 
   const fetchCalendarData = () => {
     setLoading(true);
@@ -48,6 +62,7 @@ export default function CalendarPage() {
         if (data.success) {
           setEvents(data.events || []);
           setReminders(data.reminders || []);
+          setBlockedDates(data.blockedDates || []);
         }
       })
       .catch((err) => console.error(err))
@@ -125,12 +140,24 @@ export default function CalendarPage() {
     }
   };
 
+  const handleDeleteBlock = async (blockId: number) => {
+    if (!confirm("Are you sure you want to unblock this date?")) return;
+    try {
+      const res = await fetch(`/api/blocked-dates?id=${blockId}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchCalendarData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const getEventColors = (stage: string) => {
-    if (stage === "Booked") return { bg: "#dcfce7", text: "#15803d", border: "#bbf7d0" };
-    if (stage === "Proposal Drafted" || stage === "Proposal Sent") return { bg: "#fef3c7", text: "#b45309", border: "#fde68a" };
-    if (stage === "Negotiation/Revision") return { bg: "#f3e8ff", text: "#6b21a8", border: "#e9d5ff" };
-    if (stage === "New Inquiry" || stage === "Discovery/Consultation") return { bg: "#dbeafe", text: "#1e40af", border: "#bfdbfe" };
-    return { bg: "#f3f4f6", text: "#374151", border: "#e5e7eb" };
+    if (stage === "Booked") return { bg: "#e0e7ff", text: "#4338ca", border: "transparent" };
+    if (stage === "Proposal Drafted" || stage === "Proposal Sent") return { bg: "#fce7f3", text: "#be185d", border: "transparent" };
+    if (stage === "Negotiation/Revision") return { bg: "#f3e8ff", text: "#6b21a8", border: "transparent" };
+    if (stage === "New Inquiry" || stage === "Discovery/Consultation") return { bg: "#ccfbf1", text: "#0f766e", border: "transparent" };
+    return { bg: "#f3f4f6", text: "#374151", border: "transparent" };
   };
 
   if (loading) {
@@ -145,10 +172,11 @@ export default function CalendarPage() {
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+  const setToday = () => setCurrentDate(new Date());
 
   // Generate calendar cells
   const cells = [];
@@ -159,12 +187,64 @@ export default function CalendarPage() {
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const dayEvents = events.filter((e) => e.Event_Date === dateStr);
+    const dayBlocks = blockedDates.filter((b) => dateStr >= b.Start_Date && dateStr <= b.End_Date);
     const isToday = dateStr === new Date().toISOString().split("T")[0];
 
+    // If there is any full day block, we might want to color the whole cell or just add a big pill. Let's add a solid gray pill.
+    const isCellCompletelyBlocked = dayBlocks.some(b => b.Is_All_Day);
+
     cells.push(
-      <div key={`day-${d}`} className={`cal-cell ${isToday ? "today" : ""}`} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <div className="cal-day-num" style={{ fontWeight: isToday ? 800 : 600, color: isToday ? "var(--primary)" : "inherit", marginBottom: "0.5rem" }}>{d}</div>
+      <div 
+        key={`day-${d}`} 
+        className={`cal-cell ${isToday ? "today" : ""}`} 
+        style={{ 
+          display: "flex", 
+          flexDirection: "column", 
+          height: "100%", 
+          backgroundColor: isCellCompletelyBlocked ? "#f1f5f9" : "transparent" // Light solid gray background for blocked dates
+        }}
+      >
+        <div className="cal-day-num" style={{ 
+            fontWeight: 600, 
+            fontSize: '0.9rem',
+            color: isToday ? "var(--primary)" : "#333", 
+            marginBottom: "0.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: isToday ? "24px" : "auto",
+            height: isToday ? "24px" : "auto",
+            backgroundColor: isToday ? "#e2e8f0" : "transparent",
+            borderRadius: isToday ? "50%" : "0"
+          }}>
+          {d}
+        </div>
         <div className="cal-events-container" style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: 1 }}>
+          {/* Render Blocked Date Pills */}
+          {dayBlocks.map((b, idx) => (
+            <div
+              key={`block-${idx}`}
+              className="cal-event"
+              title="Blocked Time"
+              style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                backgroundColor: "#cbd5e1", color: "#334155", border: `1px solid transparent`,
+                padding: "0.25rem 0.5rem", borderRadius: "0.25rem", fontSize: "0.75rem", fontWeight: 600
+              }}
+            >
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {b.Is_All_Day ? "Blocked" : `Blocked ${b.Start_Time} - ${b.End_Time}`}
+              </span>
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleDeleteBlock(b.Block_ID); }}
+                style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", padding: 0 }}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+
+          {/* Render Normal Events */}
           {dayEvents.map((ev, idx) => {
             const colors = getEventColors(ev.Pipeline_Stage);
             return (
@@ -218,59 +298,95 @@ export default function CalendarPage() {
     .sort((a, b) => new Date(a.Event_Date).getTime() - new Date(b.Event_Date).getTime());
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="page-title" style={{ marginBottom: '0.25rem' }}>Calendar & Reminders</h1>
-          <p className="page-subtitle" style={{ margin: 0 }}>Track your upcoming events and follow-ups.</p>
+    <div className="animate-fade-in" style={{ padding: "0 1rem" }}>
+      
+      {/* Calendar Header / Actions */}
+      <div className="flex justify-between items-center mb-6 pt-4">
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+            {monthNames[month]} {year}
+          </h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <button onClick={prevMonth} style={{ padding: "0.25rem", color: "#64748b", background: "none", border: "none", cursor: "pointer" }}><ChevronLeft size={20} /></button>
+            <button onClick={nextMonth} style={{ padding: "0.25rem", color: "#64748b", background: "none", border: "none", cursor: "pointer" }}><ChevronRight size={20} /></button>
+          </div>
+          <button 
+            onClick={setToday}
+            style={{ 
+              padding: "0.35rem 1rem", 
+              border: "1px solid #e2e8f0", 
+              borderRadius: "0.5rem", 
+              fontSize: "0.875rem", 
+              fontWeight: 600, 
+              color: "#334155", 
+              backgroundColor: "white",
+              cursor: "pointer",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+            }}>
+            Today
+          </button>
         </div>
-        <button 
-          onClick={handleSyncGoogleCalendar} 
-          disabled={syncing}
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.35rem', 
-            padding: '0.35rem 0.75rem', 
-            fontSize: '0.75rem', 
-            fontWeight: 600,
-            color: 'var(--muted)',
-            border: '1px solid var(--border)',
-            borderRadius: '9999px',
-            backgroundColor: 'transparent',
-            cursor: syncing ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s ease-in-out'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.color = 'var(--foreground)'; e.currentTarget.style.borderColor = 'var(--muted)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-        >
-          <CalendarIcon size={12} />
-          {syncing ? 'Syncing...' : 'Sync to Google'}
-        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <button 
+            onClick={() => setShowBlockTimeModal(true)} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.35rem', 
+              padding: '0.5rem 1rem', 
+              fontSize: '0.875rem', 
+              fontWeight: 600,
+              color: '#334155',
+              border: '1px solid #e2e8f0',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+            }}
+          >
+            Block Out Time
+          </button>
+          <button 
+            onClick={handleSyncGoogleCalendar} 
+            disabled={syncing}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.35rem', 
+              padding: '0.5rem 1rem', 
+              fontSize: '0.875rem', 
+              fontWeight: 600,
+              color: 'var(--muted)',
+              border: '1px solid var(--border)',
+              borderRadius: '0.5rem',
+              backgroundColor: 'transparent',
+              cursor: syncing ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <CalendarIcon size={16} />
+            {syncing ? 'Syncing...' : 'Sync to Google'}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {/* Calendar Section */}
-        <div className="lg:col-span-2">
-          <div className="glass-panel overflow-hidden">
-            <div className="cal-header flex justify-between items-center p-4 bg-[var(--primary)] text-white">
-              <button onClick={prevMonth} className="p-2 hover:bg-white/20 rounded-md transition-colors">&larr;</button>
-              <h2 className="text-xl font-bold">{monthNames[month]} {year}</h2>
-              <button onClick={nextMonth} className="p-2 hover:bg-white/20 rounded-md transition-colors">&rarr;</button>
-            </div>
+        {/* Calendar Grid Section */}
+        <div className="lg:col-span-3">
+          <div style={{ backgroundColor: "white", borderRadius: "0.75rem", border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
             
-            <div className="cal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #e2e8f0', backgroundColor: "#f8fafc" }}>
               {dayNames.map(d => (
-                <div key={d} className="p-2 text-center text-sm font-bold text-[var(--muted)] border-b border-[var(--border)] border-r last:border-r-0">
+                <div key={d} style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', borderRight: '1px solid #e2e8f0' }}>
                   {d}
                 </div>
               ))}
             </div>
             
-            <div className="cal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
               {cells.map((cell, i) => (
-                <div key={i} style={{ minHeight: '100px', padding: '0.5rem', borderRight: '1px solid var(--border)', borderBottom: '1px solid var(--border)', backgroundColor: cell.props.className?.includes('empty') ? 'rgba(0,0,0,0.02)' : 'transparent' }}>
+                <div key={i} style={{ minHeight: '120px', padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', backgroundColor: cell.props.style?.backgroundColor || (cell.props.className?.includes('empty') ? '#f8fafc' : 'white') }}>
                     {cell.props.children}
                 </div>
               ))}
@@ -281,26 +397,23 @@ export default function CalendarPage() {
         {/* Sidebar Column */}
         <div className="space-y-6">
           {/* Upcoming Events Section */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "0.75rem", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
             <div className="flex items-center gap-2 section-header mb-4" style={{ marginBottom: '1rem' }}>
-              <CalendarIcon size={20} className="text-[var(--primary)]" />
-              <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Upcoming (Next 4 Mos)</h2>
+              <CalendarIcon size={18} className="text-[var(--primary)]" />
+              <h2 style={{ fontSize: '1.05rem', margin: 0, fontWeight: 700, color: "#0f172a" }}>Upcoming (Next 4 Mos)</h2>
             </div>
             
-            <div className="space-y-3" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+            <div className="space-y-3" style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '0.5rem' }}>
               {upcomingEvents.length > 0 ? (
                 upcomingEvents.map((ev, idx) => {
                   const colors = getEventColors(ev.Pipeline_Stage);
                   return (
-                    <div key={idx} className="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                    <div key={idx} className="p-3 rounded-lg border border-[var(--border)] bg-[#f8fafc]">
                       <div className="flex justify-between items-start mb-1">
-                        <span className="text-sm font-bold">{formatDate(ev.Event_Date)}</span>
-                        <span style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', backgroundColor: colors.bg, color: colors.text, fontWeight: 700 }}>
-                          {ev.Pipeline_Stage}
-                        </span>
+                        <span className="text-sm font-bold text-[#334155]">{formatDate(ev.Event_Date)}</span>
                       </div>
-                      <div className="font-bold text-[0.95rem] mb-1">{ev.Contact_Name}</div>
-                      <div className="text-xs text-[var(--muted)]">{ev.Service_Type}</div>
+                      <div className="font-bold text-[0.95rem] mb-1 text-[#0f172a]">{ev.Contact_Name}</div>
+                      <div className="text-xs text-[#64748b]">{ev.Service_Type}</div>
                     </div>
                   );
                 })
@@ -311,13 +424,13 @@ export default function CalendarPage() {
           </div>
 
           {/* Reminders Section */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "0.75rem", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2 section-header" style={{ marginBottom: 0 }}>
-                <Bell size={20} className="text-[var(--primary)]" />
-                <h2>Active Reminders</h2>
+                <Bell size={18} className="text-[var(--primary)]" />
+                <h2 style={{ fontSize: '1.05rem', margin: 0, fontWeight: 700, color: "#0f172a" }}>Active Reminders</h2>
               </div>
-              <button className="btn btn-primary" onClick={() => setShowAddReminder(true)} style={{ width: 'auto', padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+              <button onClick={() => setShowAddReminder(true)} style={{ background: "none", border: "none", color: "var(--primary)", fontSize: "0.8rem", fontWeight: 700, cursor: "pointer" }}>
                 + Add
               </button>
             </div>
@@ -325,32 +438,31 @@ export default function CalendarPage() {
             <div className="space-y-4">
               {reminders.length > 0 ? (
                 reminders.map((rem) => (
-                  <div key={rem.Reminder_ID} className="p-4 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                  <div key={rem.Reminder_ID} className="p-3 rounded-lg border border-[#e2e8f0] bg-[#f8fafc]">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="badge badge-orange">{rem.Reminder_Type}</span>
-                        <span className="badge" style={{ background: 'var(--muted-bg)', color: 'var(--muted)', fontSize: '0.7rem' }}>{rem.Channel}</span>
+                        <span className="badge badge-orange" style={{ fontSize: "0.65rem" }}>{rem.Reminder_Type}</span>
+                        <span className="badge" style={{ background: '#e2e8f0', color: '#475569', fontSize: '0.65rem' }}>{rem.Channel}</span>
                       </div>
-                      <span className="text-sm font-bold">{formatDate(rem.Due_Date)}</span>
                     </div>
-                    <div className="font-bold text-lg mb-1">{rem.Contact_Name}</div>
-                    <div className="text-sm text-[var(--muted)] mb-3">{rem.Notes}</div>
-                    <button className="btn btn-outline" onClick={() => handleToggleReminder(rem.Reminder_ID, rem.Is_Completed)} style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
+                    <div className="font-bold text-[0.9rem] mb-1 text-[#0f172a]">{rem.Contact_Name}</div>
+                    <div className="text-sm text-[#475569] mb-3">{rem.Notes}</div>
+                    <button className="btn btn-outline" onClick={() => handleToggleReminder(rem.Reminder_ID, rem.Is_Completed)} style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', width: '100%', borderColor: "#cbd5e1", color: "#475569" }}>
                       Mark Completed
                     </button>
                   </div>
                 ))
               ) : (
-                <div className="empty-state">No active reminders.</div>
+                <div className="empty-state" style={{ fontSize: "0.85rem" }}>No active reminders.</div>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {showAddReminder && (
-        <div className="modal-backdrop">
-          <div className="modal-content" style={{ maxWidth: 400 }}>
+      {showAddReminder && typeof window !== 'undefined' && createPortal(
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ backgroundColor: "white", padding: "2rem", borderRadius: "0.5rem", width: "100%", maxWidth: "400px" }}>
             <h2 className="text-xl font-bold mb-4">Add Reminder</h2>
             <form onSubmit={handleAddReminder} className="space-y-4">
               <div>
@@ -406,7 +518,18 @@ export default function CalendarPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {showBlockTimeModal && typeof window !== 'undefined' && createPortal(
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <BlockTimeModal 
+            onSuccess={() => { setShowBlockTimeModal(false); fetchCalendarData(); }} 
+            onCancel={() => setShowBlockTimeModal(false)} 
+          />
+        </div>,
+        document.body
       )}
 
     </div>

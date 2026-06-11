@@ -71,6 +71,22 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    // 3. Fetch explicit Blocked Dates
+    const { data: rawBlocked, error: blockedError } = await supabase
+      .from('Blocked_Dates')
+      .select('Start_Date, End_Date')
+      .eq('user_id', userId);
+
+    if (blockedError && blockedError.code !== '42P01') {
+      console.error('Error fetching Blocked_Dates:', blockedError);
+    } else if (rawBlocked) {
+      rawBlocked.forEach(block => {
+        // Simple logic to add Start_Date and End_Date, can be expanded to full ranges later
+        if (block.Start_Date) blockedDatesSet.add(block.Start_Date);
+        if (block.End_Date) blockedDatesSet.add(block.End_Date);
+      });
+    }
+
     const blockedDates = Array.from(blockedDatesSet);
 
     return NextResponse.json({ success: true, blockedDates });

@@ -55,10 +55,20 @@ export async function GET() {
       Channel: rem.Channel
     }));
 
+    const { data: rawBlockedDates, error: blockedDatesError } = await supabase
+      .from('Blocked_Dates')
+      .select('*')
+      .order('Start_Date', { ascending: true });
+
+    if (blockedDatesError && blockedDatesError.code !== '42P01') {
+      throw blockedDatesError;
+    }
+
     return NextResponse.json({
       success: true,
       events,
-      reminders
+      reminders,
+      blockedDates: rawBlockedDates || []
     });
   } catch (error: any) {
     console.error('Calendar API Error:', error);
