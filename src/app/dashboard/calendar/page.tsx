@@ -207,6 +207,16 @@ export default function CalendarPage() {
     );
   }
 
+  // Filter events for the next 4 months
+  const todayStr = new Date().toISOString().split('T')[0];
+  const next4MonthsDate = new Date();
+  next4MonthsDate.setMonth(next4MonthsDate.getMonth() + 4);
+  const next4MonthsStr = next4MonthsDate.toISOString().split('T')[0];
+
+  const upcomingEvents = events
+    .filter(ev => ev.Event_Date >= todayStr && ev.Event_Date <= next4MonthsStr)
+    .sort((a, b) => new Date(a.Event_Date).getTime() - new Date(b.Event_Date).getTime());
+
   return (
     <div className="animate-fade-in">
       <div className="flex justify-between items-center mb-6">
@@ -268,8 +278,39 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Reminders Section */}
-        <div>
+        {/* Sidebar Column */}
+        <div className="space-y-6">
+          {/* Upcoming Events Section */}
+          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+            <div className="flex items-center gap-2 section-header mb-4" style={{ marginBottom: '1rem' }}>
+              <CalendarIcon size={20} className="text-[var(--primary)]" />
+              <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Upcoming (Next 4 Mos)</h2>
+            </div>
+            
+            <div className="space-y-3" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map((ev, idx) => {
+                  const colors = getEventColors(ev.Pipeline_Stage);
+                  return (
+                    <div key={idx} className="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-sm font-bold">{formatDate(ev.Event_Date)}</span>
+                        <span style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', backgroundColor: colors.bg, color: colors.text, fontWeight: 700 }}>
+                          {ev.Pipeline_Stage}
+                        </span>
+                      </div>
+                      <div className="font-bold text-[0.95rem] mb-1">{ev.Contact_Name}</div>
+                      <div className="text-xs text-[var(--muted)]">{ev.Service_Type}</div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="empty-state text-sm py-4">No upcoming events in the next 4 months.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Reminders Section */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2 section-header" style={{ marginBottom: 0 }}>

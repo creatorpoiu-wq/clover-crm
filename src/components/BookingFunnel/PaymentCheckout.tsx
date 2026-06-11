@@ -33,6 +33,7 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [hpValue, setHpValue] = useState('');
 
   // Resolve payment methods: use custom ones if defined, else defaults
@@ -91,8 +92,10 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
       }
 
       setSuccess(true);
+      setErrorMsg('');
     } catch (err: any) {
-      alert(err.message || 'An error occurred while submitting your booking.');
+      setErrorMsg(err.message || 'An error occurred while submitting your booking.');
+      window.scrollTo(0, 0);
     } finally {
       setIsProcessing(false);
     }
@@ -157,6 +160,12 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
             </div>
           </div>
         </div>
+
+        {errorMsg && (
+          <div style={{ background: '#fef2f2', color: '#b91c1c', padding: 16, borderRadius: 8, border: '1px solid #f87171', marginBottom: 24, fontSize: 14, fontWeight: 500 }}>
+            <span style={{ fontWeight: 800 }}>Error:</span> {errorMsg}
+          </div>
+        )}
 
         {/* Right: Payment Gateway */}
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 32, boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>

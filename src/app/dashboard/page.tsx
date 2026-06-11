@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Target, Users, AlertCircle, Folder, FileText, CheckSquare, Calendar, DollarSign, FileSignature } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import DashboardModals from "@/components/DashboardModals";
 
 interface DashboardData {
   activeCount: number;
@@ -16,6 +17,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [companyName, setCompanyName] = useState("");
+  const [activeModal, setActiveModal] = useState<"project" | "invoice" | "contract" | "contact" | "questionnaire" | "quote" | "session" | null>(null);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -128,39 +130,41 @@ export default function DashboardPage() {
            <div className="glass-panel" style={{ padding: "2rem", height: 'fit-content', marginBottom: "2rem" }}>
              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem', fontWeight: 500, marginBottom: '1.5rem', color: '#0f172a' }}>Create New</h2>
              <div className="grid grid-cols-2 gap-4">
-               <a href="/dashboard/pipeline" className="action-tile">
+               <button onClick={() => setActiveModal("project")} className="action-tile cursor-pointer border-none text-left bg-transparent">
                  <Folder size={20} strokeWidth={1.5} />
                  <span>Project</span>
-               </a>
-               <a href="/dashboard/finance" className="action-tile">
+               </button>
+               <button onClick={() => setActiveModal("invoice")} className="action-tile cursor-pointer border-none text-left bg-transparent">
                  <DollarSign size={20} strokeWidth={1.5} />
                  <span>Invoice</span>
-               </a>
-               <a href="/dashboard/finance" className="action-tile">
+               </button>
+               <button onClick={() => setActiveModal("contract")} className="action-tile cursor-pointer border-none text-left bg-transparent">
                  <FileSignature size={20} strokeWidth={1.5} />
                  <span>Contract</span>
-               </a>
-               <a href="/dashboard/contacts?new=true" className="action-tile">
+               </button>
+               <button onClick={() => setActiveModal("contact")} className="action-tile cursor-pointer border-none text-left bg-transparent">
                  <Users size={20} strokeWidth={1.5} />
                  <span>Contact</span>
-               </a>
-               <a href="/dashboard/questionnaire" className="action-tile">
+               </button>
+               <button onClick={() => setActiveModal("questionnaire")} className="action-tile cursor-pointer border-none text-left bg-transparent">
                  <CheckSquare size={20} strokeWidth={1.5} />
                  <span>Questionnaire</span>
-               </a>
-               <a href="/dashboard/finance" className="action-tile">
+               </button>
+               <button onClick={() => setActiveModal("quote")} className="action-tile cursor-pointer border-none text-left bg-transparent">
                  <FileText size={20} strokeWidth={1.5} />
                  <span>Quote</span>
-               </a>
-               <a href="/dashboard/calendar" className="action-tile">
+               </button>
+               <button onClick={() => setActiveModal("session")} className="action-tile cursor-pointer border-none text-left bg-transparent">
                  <Calendar size={20} strokeWidth={1.5} />
                  <span>Session</span>
-               </a>
+               </button>
              </div>
            </div>
         </div>
 
       </div>
+
+      <DashboardModals modalType={activeModal} onClose={() => { setActiveModal(null); window.location.reload(); }} />
     </div>
   );
 }
