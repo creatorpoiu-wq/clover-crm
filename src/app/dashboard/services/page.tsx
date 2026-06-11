@@ -459,7 +459,7 @@ export default function ServicesPage() {
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               {activePanel.Slug && (
-                <a href={`/book/${activePanel.Slug}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
+                <a href={`/book/${businessSlug || 'unconfigured-business'}/${activePanel.Slug}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
                   <Link size={13} /> View Page
                 </a>
               )}
@@ -495,7 +495,7 @@ export default function ServicesPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.8rem', backgroundColor: '#f8fafc', borderRadius: '0.4rem', border: '1px solid #e2e8f0' }}>
                     <Globe size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
                     <span style={{ fontSize: '0.82rem', color: '#475569', flex: 1, wordBreak: 'break-all' }}>
-                      {baseUrl}/book/{activePanel.Slug || '(no slug set)'}
+                      {baseUrl}/book/{businessSlug || 'unconfigured-business'}/{activePanel.Slug || '(no slug set)'}
                     </span>
                     {activePanel.Slug && (
                       <button onClick={() => copyLink(activePanel.Slug)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', flexShrink: 0 }}>
@@ -694,7 +694,7 @@ export default function ServicesPage() {
 
       {/* ── SESSION FORM MODAL ── */}
       {showSessionForm && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', width: '100%', maxWidth: '520px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{sessionForm.id ? 'Edit Session' : 'New Session'}</h2>
@@ -715,7 +715,7 @@ export default function ServicesPage() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Booking URL Slug *</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.875rem', backgroundColor: '#f8fafc' }}>
-                    <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>/book/</span>
+                    <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>/book/{businessSlug || 'unconfigured-business'}/</span>
                     <input value={sessionForm.slug} onChange={e => setSessionForm(p => ({ ...p, slugDirty: true, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }))} style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, fontSize: '0.875rem' }} placeholder="portrait-session" required />
                   </div>
                 </div>
@@ -755,7 +755,7 @@ export default function ServicesPage() {
 
       {/* ── PACKAGE FORM MODAL ── */}
       {showPackageForm && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', width: '100%', maxWidth: '480px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{packageForm.id ? 'Edit Package' : 'New Package'}</h2>
