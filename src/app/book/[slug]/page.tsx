@@ -46,7 +46,9 @@ function generateTimeOptions(slots: TimeSlot[], dayOfWeek: number): string[] {
   return times;
 }
 
-export default function BookSessionPage({ params }: { params: { slug: string } }) {
+export default function BookSessionPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = React.use(params);
+  
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -60,7 +62,7 @@ export default function BookSessionPage({ params }: { params: { slug: string } }
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/sessions?slug=${params.slug}`)
+    fetch(`/api/sessions?slug=${resolvedParams.slug}`)
       .then(r => r.json())
       .then(d => {
         if (d.success && d.session) {
@@ -75,7 +77,7 @@ export default function BookSessionPage({ params }: { params: { slug: string } }
         setLoading(false);
       })
       .catch(() => { setNotFound(true); setLoading(false); });
-  }, [params.slug]);
+  }, [resolvedParams.slug]);
 
   const isDayAvailable = (date: Date) => {
     const dayOfWeek = date.getDay();
