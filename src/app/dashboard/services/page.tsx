@@ -155,30 +155,39 @@ export default function ServicesPage() {
   const saveSession = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingSession(true);
-    const isEdit = sessionForm.id !== 0;
-    const res = await fetch('/api/sessions', {
-      method: isEdit ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: sessionForm.id,
-        serviceType: sessionForm.serviceType,
-        sessionType: sessionForm.sessionType,
-        slug: sessionForm.slug || sessionForm.sessionType.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-        description: sessionForm.description,
-        coverImage: sessionForm.coverImage,
-        durationMinutes: sessionForm.durationMinutes,
-        location: sessionForm.location,
-        isPublic: sessionForm.isPublic
-      })
-    });
-    if (res.ok) {
-      setShowSessionForm(false);
-      setSessionForm({ ...defaultSessionForm });
-      setSelectedService(sessionForm.serviceType);
-      fetchData();
+    try {
+      const isEdit = sessionForm.id !== 0;
+      const res = await fetch('/api/sessions', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: sessionForm.id,
+          serviceType: sessionForm.serviceType,
+          sessionType: sessionForm.sessionType,
+          slug: sessionForm.slug || sessionForm.sessionType.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+          description: sessionForm.description,
+          coverImage: sessionForm.coverImage,
+          durationMinutes: sessionForm.durationMinutes,
+          location: sessionForm.location,
+          isPublic: sessionForm.isPublic
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setShowSessionForm(false);
+        setSessionForm({ ...defaultSessionForm });
+        setSelectedService(sessionForm.serviceType);
+        fetchData();
+      } else {
+        alert(`Failed to save session: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSavingSession(false);
     }
-    setSavingSession(false);
   };
+
 
   const deleteSession = async (id: number) => {
     const key = `sess-${id}`;
