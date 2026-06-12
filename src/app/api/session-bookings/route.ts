@@ -162,6 +162,65 @@ export async function PATCH(req: NextRequest) {
       .eq('user_id', user.id);
 
     if (error) throw error;
+
+    if (status === 'Approved') {
+      const { data: booking } = await supabase
+        .from('Session_Bookings')
+        .select('*, Sessions(Service_Type)')
+        .eq('Booking_ID', bookingId)
+        .single();
+
+      if (booking) {
+        let contactId;
+        const { data: existingContact } = await supabase
+          .from('Contacts')
+          .select('Contact_ID')
+          .eq('Email', booking.Client_Email)
+          .eq('user_id', user.id)
+          .single();
+
+        if (existingContact) {
+          contactId = existingContact.Contact_ID;
+        } else {
+          const { data: newContact, error: contactErr } = await supabase
+            .from('Contacts')
+            .insert({
+              user_id: user.id,
+              Name: booking.Client_Name,
+              Email: booking.Client_Email,
+              Phone: booking.Client_Phone || '',
+              Lead_Source: 'Online Booking'
+            })
+            .select()
+            .single();
+
+          if (!contactErr && newContact) contactId = newContact.Contact_ID;
+        }
+
+        if (contactId) {
+          const { data: existingInq } = await supabase
+            .from('Inquiries')
+            .select('Inquiry_ID')
+            .eq('Contact_ID', contactId)
+            .eq('Event_Date', booking.Booked_Date)
+            .single();
+
+          if (!existingInq) {
+            await supabase
+              .from('Inquiries')
+              .insert({
+                user_id: user.id,
+                Contact_ID: contactId,
+                Service_Type: booking.Sessions?.Service_Type || 'Session',
+                Event_Date: booking.Booked_Date,
+                Pipeline_Stage: 'Booked',
+                Estimated_Value: 0
+              });
+          }
+        }
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Session Bookings PATCH error:', error);
