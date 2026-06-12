@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Trash2, Edit3, Camera, Video, Clock, MapPin, Globe, Lock, Copy, Check, ChevronRight, X, Link, Calendar, Package as PackageIcon, Users } from 'lucide-react';
 
@@ -67,6 +67,7 @@ export default function ServicesPage() {
   const [panelTab, setPanelTab] = useState<'general' | 'availability' | 'packages' | 'bookings'>('general');
   const [copied, setCopied] = useState(false);
   const [businessSlug, setBusinessSlug] = useState<string>('');
+  const [mainTab, setMainTab] = useState<'sessions' | 'packages'>('sessions');
 
   // Session form
   const [showSessionForm, setShowSessionForm] = useState(false);
@@ -132,6 +133,16 @@ export default function ServicesPage() {
 
   const serviceTypes = [...new Set(sessions.map(s => s.Service_Type))];
   const filteredSessions = sessions.filter(s => s.Service_Type === selectedService);
+
+  const allPackages = useMemo(() => {
+    const pkgs: any[] = [];
+    sessions.forEach(s => {
+      if (s.Packages) {
+        s.Packages.forEach(p => pkgs.push({ ...p, sessionName: s.Session_Type, sessionId: s.Session_ID }));
+      }
+    });
+    return pkgs.sort((a, b) => b.Package_ID - a.Package_ID);
+  }, [sessions]);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -292,15 +303,42 @@ export default function ServicesPage() {
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Services</h1>
           <p style={{ color: '#64748b', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>Manage your service offerings, sessions, and public booking pages.</p>
         </div>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {mainTab === 'packages' && (
+            <button
+              onClick={() => { setPackageForm({ ...defaultPackageForm }); setShowPackageForm(true); }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'white', color: '#334155', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+            >
+              <Plus size={16} /> New Package
+            </button>
+          )}
+          <button
+            onClick={() => openNewSession(selectedService || 'Photography')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.5rem', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+          >
+            <Plus size={16} /> New Session
+          </button>
+        </div>
+      </div>
+
+      {/* Main Tabs */}
+      <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
         <button
-          onClick={() => openNewSession(selectedService || 'Photography')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.5rem', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+          onClick={() => setMainTab('sessions')}
+          style={{ padding: '0.75rem 0', background: 'none', border: 'none', borderBottom: mainTab === 'sessions' ? '2px solid var(--primary)' : '2px solid transparent', color: mainTab === 'sessions' ? 'var(--primary)' : '#64748b', fontWeight: mainTab === 'sessions' ? 700 : 500, fontSize: '0.95rem', cursor: 'pointer' }}
         >
-          <Plus size={16} /> New Session
+          Sessions
+        </button>
+        <button
+          onClick={() => setMainTab('packages')}
+          style={{ padding: '0.75rem 0', background: 'none', border: 'none', borderBottom: mainTab === 'packages' ? '2px solid var(--primary)' : '2px solid transparent', color: mainTab === 'packages' ? 'var(--primary)' : '#64748b', fontWeight: mainTab === 'packages' ? 700 : 500, fontSize: '0.95rem', cursor: 'pointer' }}
+        >
+          Packages
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+      {mainTab === 'sessions' && (
+        <div style={{ display: 'flex', gap: '1.5rem', flex: 1, minHeight: 0 }}>
 
         {/* Left: Service Categories */}
         <div style={{ width: '220px', flexShrink: 0 }}>
@@ -437,6 +475,53 @@ export default function ServicesPage() {
           )}
         </div>
       </div>
+      )}
+
+      {mainTab === 'packages' && (
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '0.5rem' }}>
+          {allPackages.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', backgroundColor: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
+              <PackageIcon size={48} style={{ color: '#cbd5e1', marginBottom: '1rem' }} />
+              <h3 style={{ margin: 0, color: '#334155', fontWeight: 700 }}>No packages yet</h3>
+              <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem' }}>Create pricing packages to attach to your sessions.</p>
+              <button onClick={() => { setPackageForm({ ...defaultPackageForm }); setShowPackageForm(true); }} style={{ marginTop: '1rem', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>
+                Add Package
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+              {allPackages.map(pkg => {
+                let items: string[] = [];
+                try { items = JSON.parse(pkg.Items || '[]'); } catch { items = (pkg.Items || '').split('\n').filter(Boolean); }
+                return (
+                  <div key={pkg.Package_ID} style={{ backgroundColor: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>{pkg.sessionName}</div>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{pkg.Name}</h3>
+                        <div style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1.25rem', marginTop: '0.25rem' }}>${pkg.Price}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.3rem' }}>
+                        <button onClick={() => { setPackageForm({ id: pkg.Package_ID, sessionId: pkg.sessionId, name: pkg.Name, duration: pkg.Duration, items: items.join('\n'), description: pkg.Description, price: pkg.Price }); setShowPackageForm(true); }} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.375rem', color: '#64748b', cursor: 'pointer', padding: '0.35rem' }}><Edit3 size={14} /></button>
+                        <button onClick={() => deletePackage(pkg.Package_ID)} style={{ background: confirmDelete === `pkg-${pkg.Package_ID}` ? '#dc2626' : '#f8fafc', border: confirmDelete === `pkg-${pkg.Package_ID}` ? 'none' : '1px solid #e2e8f0', color: confirmDelete === `pkg-${pkg.Package_ID}` ? 'white' : '#64748b', cursor: 'pointer', padding: '0.35rem', borderRadius: '0.375rem' }}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    {pkg.Duration && <div style={{ fontSize: '0.8rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={12} /> {pkg.Duration}</div>}
+                    {pkg.Description && <p style={{ margin: 0, fontSize: '0.85rem', color: '#475569', lineHeight: 1.5 }}>{pkg.Description}</p>}
+                    {items.length > 0 && (
+                      <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.8rem', color: '#475569', lineHeight: 1.6 }}>
+                        {items.map((item, i) => <li key={i}>{item}</li>)}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── OVERLAY MANAGEMENT PANEL (Drawer) ─────────────────── */}
       {activePanel && typeof document !== 'undefined' && createPortal(
@@ -763,6 +848,13 @@ export default function ServicesPage() {
             </div>
             <form onSubmit={savePackage}>
               <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Session *</label>
+                  <select value={packageForm.sessionId || ''} onChange={e => setPackageForm(p => ({ ...p, sessionId: parseInt(e.target.value) }))} className="input" style={{ width: '100%', padding: '0.6rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', backgroundColor: 'white' }} required>
+                    <option value="" disabled>Select a session</option>
+                    {sessions.map(s => <option key={s.Session_ID} value={s.Session_ID}>{s.Session_Type} ({s.Service_Type})</option>)}
+                  </select>
+                </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Package Name *</label>
                   <input value={packageForm.name} onChange={e => setPackageForm(p => ({ ...p, name: e.target.value }))} className="input" style={{ width: '100%' }} placeholder="e.g. Essential, Premium, Deluxe" required />
