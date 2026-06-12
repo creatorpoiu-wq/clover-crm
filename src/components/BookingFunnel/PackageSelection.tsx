@@ -16,13 +16,8 @@ interface Props {
 export default function PackageSelection({ packages, selectedPackage, setSelectedPackage, selectedAddons, setSelectedAddons, onNext, onBack, funnelSettings }: Props) {
   
   // Use custom addons from funnel settings, fall back to defaults if empty
-  const addons = funnelSettings?.addons?.length > 0
-    ? funnelSettings.addons
-    : [
-        { id: 'a1', name: 'Drone Footage', price: 300, desc: 'Aerial shots of your venue and couples portraits.' },
-        { id: 'a2', name: 'Expedited Delivery', price: 500, desc: 'Receive your final gallery and films within 7 days.' },
-        { id: 'a3', name: 'Raw Footage on Hard Drive', price: 250, desc: 'All unedited video clips provided on a physical drive.' }
-      ];
+  const addons = funnelSettings?.addons || [];
+
 
   const step = funnelSettings?.steps?.[0];
   const title = step?.title || 'Choose Your Experience';
