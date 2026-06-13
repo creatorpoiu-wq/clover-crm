@@ -14,6 +14,8 @@ export async function GET() {
       { data: newComms },
       { data: signedContracts },
       { data: paidInvoices },
+      { data: newBookings },
+      { data: newInquiries },
     ] = await Promise.all([
       // New contacts
       supabase
@@ -50,6 +52,24 @@ export async function GET() {
         .select('Invoice_ID, Invoice_Title, Status, Total_Amount, created_at')
         .eq('user_id', user.id)
         .in('Status', ['Paid', 'Partial Paid'])
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(10),
+
+      // New Session Bookings
+      supabase
+        .from('Session_Bookings')
+        .select('Booking_ID, Client_Name, created_at, Sessions(Session_Type)')
+        .eq('user_id', user.id)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(10),
+
+      // New Inquiries
+      supabase
+        .from('Inquiries')
+        .select('Inquiry_ID, Session_Type, created_at, Contacts(Name)')
+        .eq('user_id', user.id)
         .gte('created_at', since)
         .order('created_at', { ascending: false })
         .limit(10),
@@ -118,6 +138,34 @@ export async function GET() {
         time: inv.created_at,
         href: `/dashboard/finance`,
         icon: 'dollar',
+      });
+    }
+
+    // New Bookings
+    for (const b of newBookings || []) {
+      const sessionType = (b.Sessions as any)?.Session_Type || (Array.isArray(b.Sessions) ? (b.Sessions as any)[0]?.Session_Type : 'Session');
+      notifications.push({
+        id: `booking-${b.Booking_ID}`,
+        type: 'booking',
+        title: 'New Booking Request',
+        subtitle: `${b.Client_Name} requested a ${sessionType}`,
+        time: b.created_at,
+        href: `/dashboard/booking`,
+        icon: 'calendar',
+      });
+    }
+
+    // New Inquiries
+    for (const inq of newInquiries || []) {
+      const contactName = (inq.Contacts as any)?.Name || (Array.isArray(inq.Contacts) ? (inq.Contacts as any)[0]?.Name : 'Someone');
+      notifications.push({
+        id: `inquiry-${inq.Inquiry_ID}`,
+        type: 'inquiry',
+        title: 'New Inquiry',
+        subtitle: `${contactName} inquired about ${inq.Session_Type || 'services'}`,
+        time: inq.created_at,
+        href: `/dashboard/portrait-settings`, // Direct to inquiries page
+        icon: 'mail',
       });
     }
 

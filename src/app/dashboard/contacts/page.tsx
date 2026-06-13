@@ -23,6 +23,7 @@ interface Contact {
   Package_Name?: string | null;
   Company?: string;
   Address?: string;
+  Status?: string;
 }
 
 interface Communication {
@@ -41,6 +42,7 @@ export default function ContactsPage() {
   const [packages, setPackages] = useState<any[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   
   // Edit State
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -110,7 +112,8 @@ export default function ContactsPage() {
         leadSource: editForm.Lead_Source,
         packageId: editForm.Package_ID,
         company: editForm.Company,
-        address: editForm.Address
+        address: editForm.Address,
+        status: editForm.Status
       };
       const res = await fetch("/api/contacts", {
         method: "PUT",
@@ -148,10 +151,11 @@ export default function ContactsPage() {
     }
   };
 
-  const filteredContacts = contacts.filter(c => 
-    c.Name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (c.Email && c.Email.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredContacts = contacts.filter(c => {
+    const matchesSearch = c.Name.toLowerCase().includes(searchQuery.toLowerCase()) || (c.Email && c.Email.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesStatus = statusFilter === "All" || c.Status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="animate-fade-in">
@@ -189,6 +193,17 @@ export default function ContactsPage() {
                       style={{ paddingLeft: "2.5rem", margin: 0, fontSize: "0.875rem" }}
                     />
                   </div>
+                  
+                  <select 
+                    className="input" 
+                    value={statusFilter} 
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{ margin: 0, fontSize: "0.875rem", width: "120px" }}
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Lead">Leads</option>
+                    <option value="Client">Clients</option>
+                  </select>
 
                   <div className="relative inline-flex rounded-lg shrink-0 w-full sm:w-auto justify-end">
                     <button 
@@ -237,6 +252,7 @@ export default function ContactsPage() {
                     <thead>
                       <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)", fontSize: "0.75rem", textTransform: "uppercase" }}>
                         <th style={{ padding: "1rem 0.5rem" }}>Name</th>
+                        <th style={{ padding: "1rem 0.5rem" }}>Status</th>
                         <th style={{ padding: "1rem 0.5rem" }}>Email</th>
                         <th style={{ padding: "1rem 0.5rem" }}>Phone</th>
                         <th style={{ padding: "1rem 0.5rem" }}>Lead Source</th>
@@ -253,6 +269,18 @@ export default function ContactsPage() {
                               {isEditing ? (
                                 <input type="text" className="input" value={editForm.Name || ""} onChange={e => setEditForm({...editForm, Name: e.target.value})} style={{ padding: "0.5rem", fontSize: "0.875rem" }} />
                               ) : <Link href={`/dashboard/contacts/${c.Contact_ID}`} style={{ color: "#4da685", textDecoration: "none" }} className="hover:underline">{c.Name}</Link>}
+                            </td>
+                            <td style={{ padding: "1rem 0.5rem" }}>
+                              {isEditing ? (
+                                <select className="input" value={editForm.Status || "Lead"} onChange={e => setEditForm({...editForm, Status: e.target.value})} style={{ padding: "0.5rem", fontSize: "0.875rem" }}>
+                                  <option value="Lead">Lead</option>
+                                  <option value="Client">Client</option>
+                                </select>
+                              ) : (
+                                <span style={{ display:'inline-block', padding:'2px 8px', background: c.Status === 'Client' ? 'var(--status-green)' : 'var(--status-gray)', color: c.Status === 'Client' ? 'var(--status-green-fg)' : 'var(--status-gray-fg)', borderRadius:12, fontSize:'0.75rem', fontWeight:600 }}>
+                                  {c.Status || 'Lead'}
+                                </span>
+                              )}
                             </td>
                             <td style={{ padding: "1rem 0.5rem" }}>
                               {isEditing ? (
@@ -297,7 +325,7 @@ export default function ContactsPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <button onClick={() => startEdit({ Contact_ID: c.Contact_ID, Name: c.Name, Email: c.Email, Phone: c.Phone, Lead_Source: c.Lead_Source, Package_ID: c.Package_ID })} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto" }} title="Edit"><Edit2 size={16} /></button>
+                                    <button onClick={() => startEdit({ Contact_ID: c.Contact_ID, Name: c.Name, Email: c.Email, Phone: c.Phone, Lead_Source: c.Lead_Source, Package_ID: c.Package_ID, Status: c.Status })} className="btn btn-outline" style={{ padding: "0.5rem", width: "auto" }} title="Edit"><Edit2 size={16} /></button>
                                     <button 
                                       onClick={() => deleteContact(c.Contact_ID)} 
                                       className="btn btn-outline" 

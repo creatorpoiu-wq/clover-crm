@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, X, User, Mail, FileText, DollarSign, CheckCircle, ClipboardList } from "lucide-react";
+import { Bell, X, User, Mail, FileText, DollarSign, CheckCircle, ClipboardList, Calendar } from "lucide-react";
 import Link from "next/link";
 
 function timeAgo(dateStr: string) {
@@ -21,6 +21,7 @@ const iconMap: Record<string, React.ReactNode> = {
   form:    <ClipboardList size={15} />,
   check:   <CheckCircle size={15} />,
   dollar:  <DollarSign size={15} />,
+  calendar: <Calendar size={15} />,
 };
 
 const colorMap: Record<string, string> = {
@@ -30,6 +31,8 @@ const colorMap: Record<string, string> = {
   contract: "#0f766e",
   proposal: "#0f766e",
   payment:  "#16a34a",
+  booking:  "#f59e0b",
+  inquiry:  "#ec4899",
 };
 
 export default function NotificationBell() {

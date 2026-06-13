@@ -96,6 +96,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    if (action === 'update_template') {
+      const { id, name, content } = body;
+      const { error } = await supabase
+        .from('Invoice_Templates')
+        .update({ Name: name, Content: content })
+        .eq('Template_ID', id);
+
+      if (error) throw error;
+      return NextResponse.json({ success: true });
+    }
+
     // ── Send Invoice Email ───────────────────────────────────────────
     if (action === 'send_invoice') {
       const { title, content, lineItems, clientName, clientEmail, dueDate, draftId, emailHeader, emailFooter, themeColor, paymentMethods, businessLogo, businessAddress } = body;

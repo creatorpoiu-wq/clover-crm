@@ -80,7 +80,9 @@ export async function POST(req: NextRequest) {
             .update({
               Name: clientName,
               Email: clientEmail,
-              Phone: phone || undefined
+              Phone: phone || undefined,
+              Package_ID: pkg?.Package_ID || pkg?.id || null,
+              Status: 'Client'
             })
             .eq('Contact_ID', inq.Contact_ID);
         }
@@ -96,7 +98,9 @@ export async function POST(req: NextRequest) {
           Name: clientName,
           Email: clientEmail,
           Phone: phone,
-          Lead_Source: 'Booking Funnel'
+          Lead_Source: 'Booking Funnel',
+          Package_ID: pkg?.Package_ID || pkg?.id || null,
+          Status: 'Client'
         })
         .select()
         .single();
@@ -112,7 +116,8 @@ export async function POST(req: NextRequest) {
           Event_Date: eventDate,
           Estimated_Value: totalAmount,
           Pipeline_Stage: 'Contract Signed',
-          Questionnaire_Data: questionnaire
+          Questionnaire_Data: questionnaire,
+          Package_ID: pkg?.Package_ID || pkg?.id || null
         })
         .select()
         .single();

@@ -65,3 +65,22 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { id, name, content } = await req.json();
+    if (!id || !name || !content) return NextResponse.json({ success: false, error: 'Missing fields' }, { status: 400 });
+
+    const { error } = await supabase
+      .from('Contract_Templates')
+      .update({ Name: name.trim(), Content: content })
+      .eq('Template_ID', id);
+
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Contract Templates PUT error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

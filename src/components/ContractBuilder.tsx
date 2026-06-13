@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft, Edit3, MoreHorizontal, ChevronDown, Plus, Save, FolderOpen,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough as StrikeIcon,
@@ -271,13 +272,19 @@ const Toggle = ({ on, onToggle }: { on: boolean; onToggle: () => void }) => (
 // ─── Main Component ───────────────────────────────────────────────────────────
 interface ContractBuilderProps {
   onClose: () => void;
-  onSave: (htmlContent: string) => void;
+  onSave: (htmlContent: string, title?: string) => void;
   onDraftSaved?: () => void;
   initialClient?: { Contact_ID: number; Name: string; Email: string };
-  documentType?: "Contract" | "Proposal";
+  documentType?: "Contract" | "Proposal" | "Invoice";
+  isTemplateMode?: boolean;
+  initialTitle?: string;
+  initialContent?: string;
 }
 
-export default function ContractBuilder({ onClose, onSave, onDraftSaved, initialClient, documentType = "Contract" }: ContractBuilderProps) {
+export default function ContractBuilder({ onClose, onSave, onDraftSaved, initialClient, documentType = "Contract", isTemplateMode, initialTitle, initialContent }: ContractBuilderProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const [expiryOn, setExpiryOn] = useState(false);
   const [remindersOn, setRemindersOn] = useState(false);
   const [showContactPicker, setShowContactPicker] = useState(false);
@@ -287,7 +294,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   const [draftId, setDraftId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [contractTitle, setContractTitle] = useState(`Sample Client ${documentType}`);
+  const [contractTitle, setContractTitle] = useState(initialTitle || `Sample Client ${documentType}`);
   const [editingTitle, setEditingTitle] = useState(false);
   const [statusBadge, setStatusBadge] = useState<'Draft' | 'Sent'>('Draft');
   const [companyName, setCompanyName] = useState('');
@@ -511,8 +518,8 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
       InputNode,
       CheckboxNode,
     ],
-    content: `
-      <h1 style="text-align:center;font-size:2rem;font-weight:800;margin-bottom:1rem;color:#111827;">${documentType === 'Proposal' ? 'Project Proposal' : 'Photography Services Agreement'}</h1>
+    content: initialContent || `
+      <h1 style="text-align:center;font-size:2rem;font-weight:800;margin-bottom:1rem;color:#111827;">${documentType === 'Proposal' ? 'Project Proposal' : documentType === 'Invoice' ? 'Invoice' : 'Photography Services Agreement'}</h1>
       <p style="text-align:center;color:#6b7280;margin-bottom:1.5rem;">Effective Date: <span data-variable="true" label="Effective Date"></span></p>
       <hr style="border:none;border-top:2px solid #e5e7eb;margin:1.5rem 0;"/>
       <p style="margin-bottom:1rem;line-height:1.7;color:#374151;">This Photography Services Agreement (the "Agreement") is entered into by and between <span data-variable="true" label="Client Name"></span> ("Client") and <span data-variable="true" label="Photographer Name"></span> ("Photographer").</p>
@@ -532,7 +539,9 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
     },
   });
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
       display: 'flex', flexDirection: 'column',
@@ -584,8 +593,16 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {/* Load Template */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {isTemplateMode ? (
+            <button onClick={() => { if (editor) onSave(editor.getHTML(), contractTitle); }} style={{
+              padding: '8px 20px', background: '#0d9488', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 700,
+            }}>
+              Save Template
+            </button>
+          ) : (
+            <>
+            {/* Load Template */}
           <button onClick={() => setShowLoadTemplate(true)} style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '7px 14px', border: '1px solid #e5e7eb', borderRadius: 6,
@@ -656,6 +673,8 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           >
             {isSending ? 'Sending…' : `Send ${documentType}`}
           </button>
+          </>
+          )}
         </div>
       </div>
 
@@ -905,6 +924,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
           onClose={() => setShowLoadTemplate(false)}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

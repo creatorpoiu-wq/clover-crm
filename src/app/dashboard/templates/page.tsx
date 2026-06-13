@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Copy, Check, Edit2, Save, Trash2, Plus, X, Send, LayoutGrid, List as ListIcon, MoreVertical, FileText, FileSignature, Mail } from "lucide-react";
+import { Copy, Check, Edit2, Save, Trash2, Plus, X, Send, LayoutGrid, List as ListIcon, MoreVertical, FileText, FileSignature, Mail, Download } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { PRE_DESIGNED_TEMPLATES, PreDesignedTemplate } from './libraryData';
+import ContractBuilder from "@/components/ContractBuilder";
 
 interface EmailTemplate {
   Template_ID: number;
@@ -44,6 +46,11 @@ export default function TemplatesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{title: string, subject: string, body: string}>({title: "", subject: "", body: ""});
 
+  // Document Editor Modal State (Contracts & Invoices)
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [docType, setDocType] = useState<'contract' | 'invoice'>('contract');
+  const [docForm, setDocForm] = useState<{ id: number|null, name: string, content: string }>({ id: null, name: '', content: '' });
+
   // Send Email State
   const [showSendModal, setShowSendModal] = useState(false);
   const [sendFormData, setSendFormData] = useState({ contactId: '', templateId: '' });
@@ -51,6 +58,10 @@ export default function TemplatesPage() {
 
   // Kebab Menu State
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Library Modal State
+  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
+  const [importingId, setImportingId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -170,6 +181,56 @@ export default function TemplatesPage() {
     }
   };
 
+  // Document Actions
+  const openNewDocModal = (type: 'contract' | 'invoice') => {
+    setShowCreateDropdown(false);
+    setDocType(type);
+    setDocForm({ id: null, name: `New ${type === 'contract' ? 'Contract' : 'Invoice'} Template`, content: '' });
+    setIsDocumentModalOpen(true);
+  };
+
+  const openEditDocModal = (tmpl: any, type: 'contract' | 'invoice') => {
+    setDocType(type);
+    setDocForm({ id: tmpl.Template_ID, name: tmpl.Name, content: tmpl.Content });
+    setIsDocumentModalOpen(true);
+  };
+
+  const saveDocumentTemplate = async (content: string, title?: string) => {
+    const finalTitle = title || docForm.name || "Untitled Template";
+    if (!content) {
+      showToast("Please provide content for the template.", "error");
+      return;
+    }
+    try {
+      let res;
+      if (docType === 'contract') {
+        res = await fetch("/api/contract-templates", {
+          method: docForm.id ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: docForm.id, name: finalTitle, content })
+        });
+      } else {
+        res = await fetch("/api/invoice-actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: docForm.id ? 'update_template' : 'save_template', id: docForm.id, name: finalTitle, content })
+        });
+      }
+
+      if (res?.ok) {
+        setIsDocumentModalOpen(false);
+        if (docType === 'contract') fetchContractTemplates();
+        else fetchInvoiceTemplates();
+        showToast(`Template ${docForm.id ? 'updated' : 'created'} successfully!`, 'success');
+      } else {
+        showToast("Failed to save.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to save.", "error");
+    }
+  };
+
   // Delete Actions
   const handleDelete = async (id: number, type: 'email'|'contract'|'invoice') => {
     if (confirmDeleteId !== id) {
@@ -199,6 +260,48 @@ export default function TemplatesPage() {
     } catch (err) {
       console.error(err);
       showToast("Failed to delete.", "error");
+    }
+  };
+
+  // Library Actions
+  const importTemplate = async (tmpl: PreDesignedTemplate) => {
+    setImportingId(tmpl.id);
+    try {
+      let res;
+      if (tmpl.type === 'email') {
+        res = await fetch("/api/templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: tmpl.title, subject: tmpl.subject, body: tmpl.body })
+        });
+      } else if (tmpl.type === 'contract') {
+        res = await fetch("/api/contract-templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: tmpl.title, content: tmpl.content })
+        });
+      } else if (tmpl.type === 'invoice') {
+        res = await fetch("/api/invoice-actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: 'save_template', name: tmpl.title, content: tmpl.content })
+        });
+      }
+
+      if (res?.ok) {
+        if (tmpl.type === 'email') fetchTemplates();
+        else if (tmpl.type === 'contract') fetchContractTemplates();
+        else if (tmpl.type === 'invoice') fetchInvoiceTemplates();
+        showToast(`Template "${tmpl.title}" imported successfully!`, 'success');
+        setIsLibraryModalOpen(false);
+      } else {
+        showToast("Failed to import.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to import.", "error");
+    } finally {
+      setImportingId(null);
     }
   };
 
@@ -295,9 +398,15 @@ export default function TemplatesPage() {
               <ListIcon size={18} />
             </button>
           </div>
-
-          <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button 
+              onClick={() => setIsLibraryModalOpen(true)}
+              style={{ background: 'white', color: '#0f172a', padding: '0.6rem 1.25rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+            >
+              <Download size={16} /> Import from Library
+            </button>
+            <div style={{ position: 'relative' }}>
+              <button 
               onClick={() => setShowCreateDropdown(!showCreateDropdown)}
               style={{ background: '#0f172a', color: 'white', padding: '0.6rem 1.25rem', border: 'none', borderRadius: '0.5rem', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
             >
@@ -306,10 +415,11 @@ export default function TemplatesPage() {
             {showCreateDropdown && (
               <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', width: '200px', zIndex: 50, overflow: 'hidden' }}>
                 <button onClick={openNewEmailModal} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={16}/> Email Template</button>
-                <button onClick={() => router.push('/dashboard/pipeline')} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileSignature size={16}/> Contract Template</button>
-                <button onClick={() => router.push('/dashboard/finance')} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileText size={16}/> Invoice Template</button>
+                <button onClick={() => openNewDocModal('contract')} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileSignature size={16}/> Contract Template</button>
+                <button onClick={() => openNewDocModal('invoice')} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileText size={16}/> Invoice Template</button>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
@@ -324,9 +434,9 @@ export default function TemplatesPage() {
           {filteredItems.map(item => {
             const uid = `${item.type}-${item.id}`;
             return (
-              <div key={uid} style={{ background: 'white', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', transition: 'transform 0.2s, box-shadow 0.2s', position: 'relative' }} className="hover:shadow-lg hover:-translate-y-1">
+              <div key={uid} style={{ background: 'white', borderRadius: '0.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', transition: 'transform 0.2s, box-shadow 0.2s', position: 'relative' }} className="hover:shadow-lg hover:-translate-y-1">
                 {/* Thumbnail */}
-                <div style={{ height: '180px', width: '100%', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
+                <div style={{ height: '180px', width: '100%', overflow: 'hidden', backgroundColor: '#f1f5f9', borderRadius: '0.5rem 0.5rem 0 0' }}>
                   <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 
@@ -353,6 +463,12 @@ export default function TemplatesPage() {
                           <button onClick={() => { setActiveMenuId(null); openEditEmailModal(item.original); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Edit</button>
                           <button onClick={() => copyToClipboard(`Subject: ${item.original.Subject}\n\n${item.original.Body}`, item.id)} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Copy Body</button>
                         </>
+                      )}
+                      {item.type === 'contract' && (
+                        <button onClick={() => { setActiveMenuId(null); openEditDocModal(item.original, 'contract'); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Edit</button>
+                      )}
+                      {item.type === 'invoice' && (
+                        <button onClick={() => { setActiveMenuId(null); openEditDocModal(item.original, 'invoice'); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Edit</button>
                       )}
                       <button 
                         onClick={() => handleDelete(item.id, item.type)} 
@@ -393,6 +509,12 @@ export default function TemplatesPage() {
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                        {item.type === 'email' && (
                           <button onClick={() => openEditEmailModal(item.original)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                       )}
+                       {item.type === 'contract' && (
+                          <button onClick={() => openEditDocModal(item.original, 'contract')} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                       )}
+                       {item.type === 'invoice' && (
+                          <button onClick={() => openEditDocModal(item.original, 'invoice')} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
                        )}
                        <button onClick={() => handleDelete(item.id, item.type)} style={{ background: 'none', border: 'none', color: confirmDeleteId === item.id ? '#ef4444' : '#64748b', cursor: 'pointer' }}>
                           <Trash2 size={16} />
@@ -517,6 +639,63 @@ export default function TemplatesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Contract/Invoice Builder (replaces Document Editor Modal) */}
+      {isDocumentModalOpen && (
+        <ContractBuilder
+          documentType={docType === 'contract' ? 'Contract' : 'Invoice'}
+          isTemplateMode={true}
+          initialTitle={docForm.name}
+          initialContent={docForm.content}
+          onClose={() => setIsDocumentModalOpen(false)}
+          onSave={(htmlContent, title) => saveDocumentTemplate(htmlContent, title)}
+        />
+      )}
+
+      {/* Template Library Modal */}
+      {isLibraryModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#f8fafc', width: '100%', maxWidth: '1000px', borderRadius: '1rem', display: 'flex', flexDirection: 'column', maxHeight: '90vh', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '1rem 1rem 0 0' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>Template Library</h2>
+                <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>Discover and import professionally designed templates.</p>
+              </div>
+              <button onClick={() => setIsLibraryModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={24} /></button>
+            </div>
+            
+            <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                {PRE_DESIGNED_TEMPLATES.map(tmpl => (
+                  <div key={tmpl.id} style={{ background: 'white', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ height: '140px', width: '100%', backgroundColor: '#f1f5f9' }}>
+                      <img src={tmpl.image} alt={tmpl.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                    <div style={{ padding: '1.25rem', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>{tmpl.title}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 500, marginBottom: '1rem' }}>
+                          {tmpl.type === 'email' && <Mail size={14} />}
+                          {tmpl.type === 'contract' && <FileSignature size={14} />}
+                          {tmpl.type === 'invoice' && <FileText size={14} />}
+                          {tmpl.subtitle}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => importTemplate(tmpl)}
+                        disabled={importingId === tmpl.id}
+                        style={{ width: '100%', padding: '0.6rem', background: '#0f172a', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: importingId === tmpl.id ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        {importingId === tmpl.id ? 'Importing...' : <><Download size={16} /> Import</>}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

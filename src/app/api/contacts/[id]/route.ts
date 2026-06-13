@@ -89,7 +89,8 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
         Phone: updates.Phone,
         Company: updates.Company,
         Address: updates.Address,
-        Notes: updates.Notes
+        Notes: updates.Notes,
+        Status: updates.Status
       })
       .eq('Contact_ID', id);
 

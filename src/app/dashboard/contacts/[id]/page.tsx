@@ -19,6 +19,7 @@ interface Contact {
   Company?: string;
   Address?: string;
   Notes?: string;
+  Status?: string;
 }
 
 interface Inquiry {
@@ -406,8 +407,8 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           <h1 style={{ fontSize: '1.75rem', fontWeight: 600, color: '#0f172a', margin: 0, textTransform: 'lowercase' }}>
             {contact.Name}
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#e8f5f0', color: '#4da685', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            CLIENT <ChevronDown size={14} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: contact.Status === 'Client' ? 'var(--status-green)' : 'var(--status-gray)', color: contact.Status === 'Client' ? 'var(--status-green-fg)' : 'var(--status-gray-fg)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {contact.Status || 'LEAD'}
           </div>
         </div>
 
@@ -578,6 +579,16 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                 <input type="email" value={editForm.Email || ''} onChange={e => setEditForm({ ...editForm, Email: e.target.value })} style={{ width: '100%', padding: '0.25rem 0.5rem', border: '1px solid #f0efe9', borderRadius: '4px' }} />
               ) : (
                 <div style={{ color: '#0f172a' }}>{contact.Email || '-'}</div>
+              )}
+
+              <div style={{ color: '#a0a0a0', display: 'flex', alignItems: 'center' }}>Status</div>
+              {isEditingInfo ? (
+                <select value={editForm.Status || 'Lead'} onChange={e => setEditForm({ ...editForm, Status: e.target.value })} style={{ width: '100%', padding: '0.25rem 0.5rem', border: '1px solid #f0efe9', borderRadius: '4px' }}>
+                  <option value="Lead">Lead</option>
+                  <option value="Client">Client</option>
+                </select>
+              ) : (
+                <div style={{ color: '#0f172a' }}>{contact.Status || 'Lead'}</div>
               )}
 
               <div style={{ color: '#a0a0a0', display: 'flex', alignItems: 'center' }}>Phone</div>

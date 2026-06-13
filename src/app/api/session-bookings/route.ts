@@ -185,6 +185,11 @@ export async function PATCH(req: NextRequest) {
 
         if (existingContact) {
           contactId = existingContact.Contact_ID;
+          let updatePayload: any = { Status: 'Client' };
+          if (booking.Package_ID) {
+            updatePayload.Package_ID = booking.Package_ID;
+          }
+          await supabase.from('Contacts').update(updatePayload).eq('Contact_ID', contactId);
         } else {
           const { data: newContact, error: contactErr } = await supabase
             .from('Contacts')
@@ -193,7 +198,9 @@ export async function PATCH(req: NextRequest) {
               Name: booking.Client_Name,
               Email: booking.Client_Email,
               Phone: booking.Client_Phone || '',
-              Lead_Source: 'Online Booking'
+              Lead_Source: 'Online Booking',
+              Package_ID: booking.Package_ID || null,
+              Status: 'Client'
             })
             .select()
             .single();
@@ -218,8 +225,14 @@ export async function PATCH(req: NextRequest) {
                 Service_Type: booking.Sessions?.Service_Type || 'Session',
                 Event_Date: booking.Booked_Date,
                 Pipeline_Stage: 'Booked',
-                Estimated_Value: 0
+                Estimated_Value: booking.Amount_Paid || 0,
+                Package_ID: booking.Package_ID || null
               });
+          } else if (booking.Package_ID) {
+            await supabase
+              .from('Inquiries')
+              .update({ Package_ID: booking.Package_ID })
+              .eq('Inquiry_ID', existingInq.Inquiry_ID);
           }
         }
       }
