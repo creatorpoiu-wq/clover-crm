@@ -144,7 +144,7 @@ export async function GET() {
         title: 'New Booking Request',
         subtitle: `${b.Client_Name} — ${sessionType}`,
         time: b.Created_At,
-        href: `/dashboard/booking`,
+        href: `/dashboard/bookings?bookingId=${b.Booking_ID}`,
         icon: 'calendar',
       });
     }
