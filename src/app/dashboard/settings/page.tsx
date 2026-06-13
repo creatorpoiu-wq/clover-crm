@@ -394,6 +394,7 @@ function SettingsInner() {
                 value={businessLogo} 
                 onChange={setBusinessLogo} 
                 aspectRatio="auto"
+                thumbnailMode={true}
               />
             </div>
 

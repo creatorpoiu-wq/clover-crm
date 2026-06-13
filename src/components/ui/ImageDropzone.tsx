@@ -9,6 +9,7 @@ interface ImageDropzoneProps {
   quality?: number;
   aspectRatio?: 'auto' | 'square' | 'video';
   className?: string;
+  thumbnailMode?: boolean;
 }
 
 export default function ImageDropzone({
@@ -18,7 +19,8 @@ export default function ImageDropzone({
   maxDimension = 1200,
   quality = 0.8,
   aspectRatio = 'auto',
-  className = ""
+  className = "",
+  thumbnailMode = false
 }: ImageDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -109,6 +111,43 @@ export default function ImageDropzone({
     video: { aspectRatio: '16 / 9' },
     auto: {}
   };
+
+  // Thumbnail mode: compact horizontal row with small preview
+  if (thumbnailMode && value) {
+    return (
+      <div className={className}>
+        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.875rem', color: 'var(--foreground)' }}>
+          {label}
+        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', border: '1px solid var(--border)', borderRadius: '0.75rem', background: 'var(--background)' }}>
+          <img
+            src={value}
+            alt="Logo preview"
+            style={{ width: '64px', height: '64px', objectFit: 'contain', borderRadius: '0.5rem', background: 'var(--muted-bg)', padding: '4px', flexShrink: 0 }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.875rem', color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Logo uploaded</p>
+            <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>Click Replace to change it</p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+              style={{ padding: '0.4rem 0.85rem', border: '1px solid var(--border)', borderRadius: '0.5rem', background: 'var(--background)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <ImageIcon size={13} /> Replace
+            </button>
+            <button
+              onClick={removeImage}
+              style={{ padding: '0.4rem 0.6rem', border: '1px solid #fecaca', borderRadius: '0.5rem', background: '#fff1f1', cursor: 'pointer', color: '#ef4444', display: 'flex', alignItems: 'center' }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+        <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
