@@ -147,7 +147,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     if (!selectedPackage) return;
     if (session?.Contract_Template) {
       setStep('contract');
-    } else if (selectedPackage.Price > 0 || session?.Price > 0) {
+    } else if (selectedPackage.Price > 0 || (session?.Price && session.Price > 0)) {
       setStep('payment');
     } else {
       handleSubmit();
