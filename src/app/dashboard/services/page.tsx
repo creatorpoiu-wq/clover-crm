@@ -32,6 +32,8 @@ interface Session {
   Duration_Minutes: number;
   Location: string;
   Is_Public: boolean;
+  Price: number;
+  Contract_Template: string;
   Session_Time_Slots: TimeSlot[];
   Packages: Package[];
 }
@@ -46,7 +48,9 @@ const defaultSessionForm = {
   coverImage: '',
   durationMinutes: 60,
   location: '',
-  isPublic: true
+  isPublic: true,
+  price: 0,
+  contractTemplate: ''
 };
 
 const defaultPackageForm = {
@@ -170,7 +174,9 @@ export default function ServicesPage() {
       coverImage: s.Cover_Image || '',
       durationMinutes: s.Duration_Minutes || 60,
       location: s.Location || '',
-      isPublic: s.Is_Public !== false
+      isPublic: s.Is_Public !== false,
+      price: s.Price || 0,
+      contractTemplate: s.Contract_Template || ''
     });
     setShowSessionForm(true);
   };
@@ -192,7 +198,9 @@ export default function ServicesPage() {
           coverImage: sessionForm.coverImage,
           durationMinutes: sessionForm.durationMinutes,
           location: sessionForm.location,
-          isPublic: sessionForm.isPublic
+          isPublic: sessionForm.isPublic,
+          price: sessionForm.price,
+          contractTemplate: sessionForm.contractTemplate
         })
       });
       const data = await res.json();
@@ -814,9 +822,21 @@ export default function ServicesPage() {
                     <input value={sessionForm.location} onChange={e => setSessionForm(p => ({ ...p, location: e.target.value }))} className="input" style={{ width: '100%' }} placeholder="e.g. On Location, Studio" />
                   </div>
                 </div>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Flat Price ($)</label>
+                    <input type="number" value={sessionForm.price} onChange={e => setSessionForm(p => ({ ...p, price: parseFloat(e.target.value) }))} className="input" style={{ width: '100%' }} placeholder="0" min={0} step="0.01" />
+                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Used if no packages are attached</span>
+                  </div>
+                </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Description</label>
                   <textarea value={sessionForm.description} onChange={e => setSessionForm(p => ({ ...p, description: e.target.value }))} className="input" style={{ width: '100%', minHeight: '80px', resize: 'vertical' }} placeholder="Describe what this session includes..." />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Contract Template (HTML/Text)</label>
+                  <textarea value={sessionForm.contractTemplate} onChange={e => setSessionForm(p => ({ ...p, contractTemplate: e.target.value }))} className="input" style={{ width: '100%', minHeight: '120px', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.8rem' }} placeholder="Enter the contract template..." />
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Available variables: [CLIENT_NAME], [DATE], [TIME], [PACKAGE_NAME], [PRICE]</span>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Cover Image URL</label>

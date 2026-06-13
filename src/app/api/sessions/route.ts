@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { serviceType, sessionType, slug, description, coverImage, durationMinutes, location, isPublic } = body;
+    const { serviceType, sessionType, slug, description, coverImage, durationMinutes, location, isPublic, price, contractTemplate } = body;
 
     if (!serviceType || !sessionType) {
       return NextResponse.json({ success: false, error: 'Service type and session type are required.' }, { status: 400 });
@@ -120,7 +120,9 @@ export async function POST(req: NextRequest) {
         Cover_Image: coverImage || '',
         Duration_Minutes: durationMinutes || 60,
         Location: location || '',
-        Is_Public: isPublic !== false
+        Is_Public: isPublic !== false,
+        Price: price || 0,
+        Contract_Template: contractTemplate || ''
       })
       .select()
       .single();
@@ -140,7 +142,7 @@ export async function PUT(req: NextRequest) {
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { id, serviceType, sessionType, slug, description, coverImage, durationMinutes, location, isPublic } = body;
+    const { id, serviceType, sessionType, slug, description, coverImage, durationMinutes, location, isPublic, price, contractTemplate } = body;
 
     if (!id) return NextResponse.json({ success: false, error: 'Missing session ID' }, { status: 400 });
 
@@ -154,7 +156,9 @@ export async function PUT(req: NextRequest) {
         Cover_Image: coverImage,
         Duration_Minutes: durationMinutes,
         Location: location,
-        Is_Public: isPublic
+        Is_Public: isPublic,
+        Price: price,
+        Contract_Template: contractTemplate
       })
       .eq('Session_ID', id)
       .eq('user_id', user.id);

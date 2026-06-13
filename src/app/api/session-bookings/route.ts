@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { sessionId, userId, clientName, clientEmail, clientPhone, bookedDate, bookedTime, notes } = body;
+    const { sessionId, userId, clientName, clientEmail, clientPhone, bookedDate, bookedTime, notes, packageId, contractHtml, signature, amountPaid } = body;
 
     if (!sessionId || !userId || !clientName || !clientEmail || !bookedDate || !bookedTime) {
       return NextResponse.json({ success: false, error: 'Missing required fields.' }, { status: 400 });
@@ -62,6 +62,10 @@ export async function POST(req: NextRequest) {
         Booked_Date: bookedDate,
         Booked_Time: bookedTime,
         Notes: notes || '',
+        Package_ID: packageId || null,
+        Contract_HTML: contractHtml || null,
+        Signature: signature || null,
+        Amount_Paid: amountPaid || 0,
         Status: 'Pending'
       })
       .select('*, Sessions(Session_Type, Service_Type)')
