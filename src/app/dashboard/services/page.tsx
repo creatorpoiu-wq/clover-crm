@@ -65,6 +65,7 @@ const defaultPackageForm = {
 
 export default function ServicesPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [contractTemplates, setContractTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<string>('');
   const [activePanel, setActivePanel] = useState<Session | null>(null);
@@ -108,6 +109,12 @@ export default function ServicesPage() {
       if (!selectedService && data.sessions?.length > 0) {
         setSelectedService(data.sessions[0].Service_Type);
       }
+    }
+
+    const contractRes = await fetch('/api/contract-templates');
+    const contractData = await contractRes.json();
+    if (contractData.success) {
+      setContractTemplates(contractData.templates);
     }
     if (showLoading) setLoading(false);
   };
@@ -834,9 +841,38 @@ export default function ServicesPage() {
                   <textarea value={sessionForm.description} onChange={e => setSessionForm(p => ({ ...p, description: e.target.value }))} className="input" style={{ width: '100%', minHeight: '80px', resize: 'vertical' }} placeholder="Describe what this session includes..." />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Contract Template (HTML/Text)</label>
-                  <textarea value={sessionForm.contractTemplate} onChange={e => setSessionForm(p => ({ ...p, contractTemplate: e.target.value }))} className="input" style={{ width: '100%', minHeight: '120px', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.8rem' }} placeholder="Enter the contract template..." />
-                  <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Available variables: [CLIENT_NAME], [DATE], [TIME], [PACKAGE_NAME], [PRICE]</span>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Contract Template</label>
+                  <select
+                    className="input"
+                    style={{ width: '100%' }}
+                    value={
+                      contractTemplates.find(t => t.Content === sessionForm.contractTemplate)
+                        ? String(contractTemplates.find(t => t.Content === sessionForm.contractTemplate)!.Template_ID)
+                        : sessionForm.contractTemplate ? 'custom' : ''
+                    }
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setSessionForm(p => ({ ...p, contractTemplate: '' }));
+                      } else if (val === 'custom') {
+                        // DO NOTHING, keep legacy
+                      } else {
+                        const tmpl = contractTemplates.find(t => String(t.Template_ID) === val);
+                        if (tmpl) {
+                          setSessionForm(p => ({ ...p, contractTemplate: tmpl.Content }));
+                        }
+                      }
+                    }}
+                  >
+                    <option value="">-- No Contract --</option>
+                    {contractTemplates.map(t => (
+                      <option key={t.Template_ID} value={String(t.Template_ID)}>{t.Name}</option>
+                    ))}
+                    {!contractTemplates.find(t => t.Content === sessionForm.contractTemplate) && sessionForm.contractTemplate && (
+                      <option value="custom">Custom HTML (Legacy)</option>
+                    )}
+                  </select>
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginTop: '0.4rem' }}>Select a contract created in the Pipeline Builder.</span>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Cover Image URL</label>
