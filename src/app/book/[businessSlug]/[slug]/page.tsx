@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CreditCard, PenTool, Building2, Smartphone, Lock } from 'lucide-react';
 import SignaturePad from 'signature_pad';
+import PaymentInstruction from '@/components/PaymentInstruction';
 
 interface TimeSlot {
   Slot_ID: number;
@@ -644,7 +645,9 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                       Please send your payment using the details below. Include your name in the reference.
                     </p>
                     {activeMethod?.details?.split('\n').map((line: string, i: number) => (
-                      <div key={i} style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600, marginBottom: '0.25rem' }}>{line}</div>
+                      <div key={i} style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600, marginBottom: '0.25rem' }}>
+                        <PaymentInstruction text={line} color="#0f172a" />
+                      </div>
                     ))}
                   </div>
                 )}

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { Lock, CreditCard, Building2, Smartphone, CheckCircle } from 'lucide-react';
+import PaymentInstruction from '@/components/PaymentInstruction';
 
 interface Props {
   questionnaire: any;
@@ -234,7 +235,9 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
                   Please send your deposit using the details below. Include your name and event date in the reference.
                 </p>
                 {activeMethod?.details?.split('\n').map((line: string, i: number) => (
-                  <div key={i} style={{ fontSize: 14, color: '#111827', fontWeight: 600, marginBottom: 4 }}>{line}</div>
+                  <div key={i} style={{ fontSize: 14, color: '#111827', fontWeight: 600, marginBottom: 4 }}>
+                    <PaymentInstruction text={line} color="#111827" />
+                  </div>
                 ))}
               </div>
             )}

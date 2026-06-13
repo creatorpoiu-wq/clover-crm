@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Edit3, Save, FolderOpen, Send, Plus, Trash2, Bold, Italic, AlignLeft, AlignCenter, AlignRight, List, Printer } from 'lucide-react';
+import { ArrowLeft, Edit3, Save, FolderOpen, Trash2, Plus, GripVertical, Settings, Send, LayoutTemplate, Palette, Building2, Eye, Download, Search, Check, Bold, Italic, AlignLeft, AlignCenter, AlignRight, List, Printer } from "lucide-react";
+import PaymentInstruction from '@/components/PaymentInstruction';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
@@ -530,7 +531,11 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
                     {paymentMethods.filter(m => m.enabled).map(m => (
                       <div key={m.id} style={{ background:'#f9fafb', padding:16, borderRadius:8, border:'1px solid #e5e7eb' }}>
                         <div style={{ fontSize:12, fontWeight:800, color:'#374151', marginBottom:4 }}>{m.name}</div>
-                        <div style={{ fontSize:13, color:'#6b7280', whiteSpace:'pre-wrap' }}>{m.details}</div>
+                        <div style={{ fontSize:13, color:'#6b7280' }}>
+                          {m.details?.split('\n').map((line, i) => (
+                            <div key={i}><PaymentInstruction text={line} color="#6b7280" /></div>
+                          ))}
+                        </div>
                         {m.qrCode && <img src={m.qrCode} alt={`${m.name} QR Code`} style={{ width: 80, height: 80, objectFit: 'contain', marginTop: 12, display: 'block', borderRadius: 4 }} />}
                         {m.paymentLink && <div style={{ marginTop: 12 }}><a href={m.paymentLink} target="_blank" rel="noreferrer" style={{ color: themeColor, textDecoration: 'underline', fontSize: 13, fontWeight: 700 }}>Pay via {m.name}</a></div>}
                       </div>
