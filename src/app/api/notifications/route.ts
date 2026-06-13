@@ -59,20 +59,14 @@ export async function GET() {
       // New Session Bookings
       supabase
         .from('Session_Bookings')
-        .select('Booking_ID, Client_Name, created_at, Sessions(Session_Type)')
+        .select('Booking_ID, Client_Name, Created_At, Sessions(Session_Type)')
         .eq('user_id', user.id)
-        .gte('created_at', since)
-        .order('created_at', { ascending: false })
+        .gte('Created_At', since)
+        .order('Created_At', { ascending: false })
         .limit(10),
 
-      // New Inquiries
-      supabase
-        .from('Inquiries')
-        .select('Inquiry_ID, Session_Type, created_at, Contacts(Name)')
-        .eq('user_id', user.id)
-        .gte('created_at', since)
-        .order('created_at', { ascending: false })
-        .limit(10),
+      // New Inquiries (Disabled due to lack of created_at column)
+      Promise.resolve({ data: [] as any[] }),
     ]);
 
     type Notification = {
@@ -148,8 +142,8 @@ export async function GET() {
         id: `booking-${b.Booking_ID}`,
         type: 'booking',
         title: 'New Booking Request',
-        subtitle: `${b.Client_Name} requested a ${sessionType}`,
-        time: b.created_at,
+        subtitle: `${b.Client_Name} — ${sessionType}`,
+        time: b.Created_At,
         href: `/dashboard/booking`,
         icon: 'calendar',
       });
