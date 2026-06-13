@@ -158,7 +158,7 @@ export default function ContactsPage() {
       <h1 className="page-title">Contacts</h1>
       <p className="page-subtitle">Manage your client directory, add leads, and log interactions.</p>
 
-      <div className="glass-panel" style={{ padding: "0" }}>
+      <div className="glass-panel p-0 overflow-hidden">
         <div style={{ display: "flex", borderBottom: "1px solid var(--border)", overflowX: "auto" }}>
           <button 
             onClick={() => setActiveTab("directory")}
@@ -169,17 +169,17 @@ export default function ContactsPage() {
           
         </div>
 
-        <div style={{ padding: "2rem" }}>
+        <div className="p-4 md:p-8">
           
           {/* DIRECTORY TAB */}
           {activeTab === "directory" && (
             <div className="animate-fade-in">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h2 className="section-header" style={{ marginBottom: 0, borderBottom: "none", paddingBottom: 0 }}>All Contacts</h2>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <h2 className="section-header !mb-0 !pb-0 !border-none">All Contacts</h2>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ position: "relative", width: "300px" }}>
-                    <Search size={16} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }} />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+                  <div className="relative w-full sm:w-[300px]">
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input 
                       type="text" 
                       className="input" 
@@ -190,7 +190,7 @@ export default function ContactsPage() {
                     />
                   </div>
 
-                  <div style={{ position: "relative", display: "inline-flex", borderRadius: "0.5rem", overflow: "visible" }}>
+                  <div className="relative inline-flex rounded-lg shrink-0 w-full sm:w-auto justify-end">
                     <button 
                       onClick={() => setShowNewContactModal(true)}
                       style={{ padding: "0.5rem 1rem", background: "#111827", color: "#fff", fontWeight: 600, fontSize: "0.875rem", border: "1px solid #111827", borderRadius: "0.5rem 0 0 0.5rem", cursor: "pointer" }}
@@ -232,8 +232,8 @@ export default function ContactsPage() {
               {loadingContacts ? (
                 <div style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>Loading contacts...</div>
               ) : (
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+                  <table className="w-full border-collapse text-left min-w-[800px]">
                     <thead>
                       <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)", fontSize: "0.75rem", textTransform: "uppercase" }}>
                         <th style={{ padding: "1rem 0.5rem" }}>Name</th>

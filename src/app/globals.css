@@ -986,3 +986,24 @@ button {
 [style*="border: 1px solid #e2e8f0"] {
   border: 1.5px solid #e2e8f0 !important;
 }
+
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end; /* Or flex-start to fill */
+  }
+  .modal-box, .modal-content {
+    max-width: 100%;
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

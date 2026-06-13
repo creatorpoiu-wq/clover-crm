@@ -453,7 +453,7 @@ export default function FinancePage() {
         </div>
       )}
 
-      <div className="glass-panel" style={{ padding: 0 }}>
+      <div className="glass-panel p-0 overflow-hidden">
         <div style={{ display: "flex", borderBottom: "1px solid var(--border)", overflowX: "auto" }}>
           <button onClick={() => setActiveTab("overview")} style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: activeTab === "overview" ? "2px solid var(--primary)" : "2px solid transparent", color: activeTab === "overview" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <PieChart size={18} /> Overview & Expenses
@@ -469,13 +469,13 @@ export default function FinancePage() {
           </button>
         </div>
 
-        <div style={{ padding: "2rem" }}>
+        <div className="p-4 md:p-8">
           
           {/* OVERVIEW & EXPENSES TAB */}
           {activeTab === "overview" && (
             <div className="animate-fade-in">
               {/* P&L Cards */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                 <div style={{ padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--border)", backgroundColor: "var(--background)" }}>
                   <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--muted)", marginBottom: "0.5rem" }}>Total Revenue (Paid)</div>
                   <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--primary)" }}>
@@ -500,9 +500,9 @@ export default function FinancePage() {
               </div>
 
               {/* Expenses List */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                <h3 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>Logged Expenses</h3>
-                <button onClick={() => setShowExpenseForm(true)} className="btn btn-outline" style={{ width: "auto", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                <h3 className="section-header !mb-0 !pb-0 !border-none">Logged Expenses</h3>
+                <button onClick={() => setShowExpenseForm(true)} className="btn btn-outline w-full md:w-auto flex items-center justify-center gap-2">
                   <Plus size={16} /> Log Expense
                 </button>
               </div>
@@ -538,9 +538,9 @@ export default function FinancePage() {
                 </form>
               )}
 
-              {loadingExpenses ? <div style={{ color: "var(--muted)" }}>Loading expenses...</div> : (
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+              {loadingExpenses ? <div className="text-slate-500">Loading expenses...</div> : (
+                <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+                  <table className="w-full border-collapse text-left min-w-[700px]">
                     <thead>
                       <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)", fontSize: "0.75rem", textTransform: "uppercase" }}>
                         <th style={{ padding: "1rem 0.5rem" }}>Date</th>
@@ -575,16 +575,16 @@ export default function FinancePage() {
           {/* INVOICES TAB */}
           {activeTab === "invoices" && (
             <div className="animate-fade-in">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h2 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>Client Invoices</h2>
-                <button onClick={() => setShowInvoiceBuilder(true)} className="btn btn-primary" style={{ width: "auto", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <h2 className="section-header !mb-0 !pb-0 !border-none">Client Invoices</h2>
+                <button onClick={() => setShowInvoiceBuilder(true)} className="btn btn-primary w-full md:w-auto flex items-center justify-center gap-2">
                   <Plus size={16} /> New Invoice
                 </button>
               </div>
 
-              {loadingInvoices ? <div style={{ color: "var(--muted)" }}>Loading...</div> : (
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+              {loadingInvoices ? <div className="text-slate-500">Loading...</div> : (
+                <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+                  <table className="w-full border-collapse text-left min-w-[800px]">
                     <thead>
                       <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)", fontSize: "0.75rem", textTransform: "uppercase" }}>
                         <th style={{ padding: "1rem 0.5rem" }}>Invoice #</th>
@@ -679,19 +679,19 @@ export default function FinancePage() {
           {/* CONTRACTS & PROPOSALS TAB */}
           {(activeTab === "contracts" || activeTab === "proposals") && (
             <div className="animate-fade-in">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h2 className="section-header" style={{ marginBottom: 0, border: "none", padding: 0 }}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <h2 className="section-header !mb-0 !pb-0 !border-none">
                   {activeTab === "contracts" ? "Legal Contracts" : "Proposals"}
                 </h2>
-                <button onClick={() => { setSelectedClient(null); setContactSearch(''); setBuilderType(activeTab === 'contracts' ? 'Contract' : 'Proposal'); setShowNewContractModal(true); }} className="btn btn-primary" style={{ width: "auto" }}>
+                <button onClick={() => { setSelectedClient(null); setContactSearch(''); setBuilderType(activeTab === 'contracts' ? 'Contract' : 'Proposal'); setShowNewContractModal(true); }} className="btn btn-primary w-full md:w-auto flex items-center justify-center gap-2">
                   <Plus size={18} /> {activeTab === "contracts" ? "Create Contract" : "Create Proposal"}
                 </button>
               </div>
 
 
-              {loadingContracts ? <div style={{ color: "var(--muted)" }}>Loading...</div> : (
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+              {loadingContracts ? <div className="text-slate-500">Loading...</div> : (
+                <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+                  <table className="w-full border-collapse text-left min-w-[800px]">
                     <thead>
                       <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)", fontSize: "0.75rem", textTransform: "uppercase" }}>
                         <th style={{ padding: "1rem 0.5rem" }}>Contract #</th>

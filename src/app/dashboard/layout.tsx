@@ -36,21 +36,7 @@ export default function DashboardLayout({
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
       {/* Top bar */}
-      <header style={{
-        position: "fixed",
-        top: 0,
-        left: 260,
-        right: 0,
-        height: 56,
-        backgroundColor: "var(--background)",
-        borderBottom: "1px solid var(--border)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        padding: "0 1.5rem",
-        zIndex: 40,
-        gap: "8px",
-      }}>
+      <header className="fixed top-0 right-0 h-14 bg-[var(--background)] border-b border-[var(--border)] flex items-center justify-end px-6 z-40 gap-2 left-0 lg:left-[260px] transition-all duration-300">
         <NotificationBell />
       </header>
 

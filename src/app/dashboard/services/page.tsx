@@ -311,25 +311,25 @@ export default function ServicesPage() {
   if (loading) return <div className="empty-state">Loading services...</div>;
 
   return (
-    <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="animate-fade-in h-full flex flex-col">
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Services</h1>
-          <p style={{ color: '#64748b', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>Manage your service offerings, sessions, and public booking pages.</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 m-0">Services</h1>
+          <p className="text-slate-500 mt-1 text-sm">Manage your service offerings, sessions, and public booking pages.</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
           {mainTab === 'packages' && (
             <button
               onClick={() => { setPackageForm({ ...defaultPackageForm }); setShowPackageForm(true); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'white', color: '#334155', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+              className="flex items-center gap-2 bg-white text-slate-700 border border-slate-200 rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer w-full md:w-auto justify-center"
             >
               <Plus size={16} /> New Package
             </button>
           )}
           <button
             onClick={() => openNewSession(selectedService || 'Photography')}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.5rem', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+            className="flex items-center gap-2 bg-[var(--primary)] text-white border-none rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer w-full md:w-auto justify-center"
           >
             <Plus size={16} /> New Session
           </button>
@@ -337,27 +337,27 @@ export default function ServicesPage() {
       </div>
 
       {/* Main Tabs */}
-      <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
+      <div className="flex gap-6 border-b border-slate-200 mb-6 overflow-x-auto whitespace-nowrap">
         <button
           onClick={() => setMainTab('sessions')}
-          style={{ padding: '0.75rem 0', background: 'none', border: 'none', borderBottom: mainTab === 'sessions' ? '2px solid var(--primary)' : '2px solid transparent', color: mainTab === 'sessions' ? 'var(--primary)' : '#64748b', fontWeight: mainTab === 'sessions' ? 700 : 500, fontSize: '0.95rem', cursor: 'pointer' }}
+          className={`pb-3 bg-transparent border-none cursor-pointer text-base ${mainTab === 'sessions' ? 'border-b-2 border-[var(--primary)] text-[var(--primary)] font-bold' : 'border-b-2 border-transparent text-slate-500 font-medium'}`}
         >
           Sessions
         </button>
         <button
           onClick={() => setMainTab('packages')}
-          style={{ padding: '0.75rem 0', background: 'none', border: 'none', borderBottom: mainTab === 'packages' ? '2px solid var(--primary)' : '2px solid transparent', color: mainTab === 'packages' ? 'var(--primary)' : '#64748b', fontWeight: mainTab === 'packages' ? 700 : 500, fontSize: '0.95rem', cursor: 'pointer' }}
+          className={`pb-3 bg-transparent border-none cursor-pointer text-base ${mainTab === 'packages' ? 'border-b-2 border-[var(--primary)] text-[var(--primary)] font-bold' : 'border-b-2 border-transparent text-slate-500 font-medium'}`}
         >
           Packages
         </button>
       </div>
 
       {mainTab === 'sessions' && (
-        <div style={{ display: 'flex', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+        <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
 
         {/* Left: Service Categories */}
-        <div style={{ width: '220px', flexShrink: 0 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+        <div className="w-full md:w-56 shrink-0">
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0' }}>
               <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Service Types</p>
             </div>
@@ -397,7 +397,7 @@ export default function ServicesPage() {
         </div>
 
         {/* Right: Sessions for selected service */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="flex-1 min-w-0">
           {!selectedService && sessions.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', backgroundColor: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
               <Camera size={48} style={{ color: '#cbd5e1', marginBottom: '1rem' }} />
@@ -408,7 +408,7 @@ export default function ServicesPage() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredSessions.map(session => (
                 <div
                   key={session.Session_ID}
@@ -493,9 +493,9 @@ export default function ServicesPage() {
       )}
 
       {mainTab === 'packages' && (
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '0.5rem' }}>
+        <div className="flex-1 min-h-0 overflow-y-auto pr-2">
           {allPackages.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', backgroundColor: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
+            <div className="flex flex-col items-center justify-center h-72 bg-white rounded-xl border border-slate-200">
               <PackageIcon size={48} style={{ color: '#cbd5e1', marginBottom: '1rem' }} />
               <h3 style={{ margin: 0, color: '#334155', fontWeight: 700 }}>No packages yet</h3>
               <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem' }}>Create pricing packages to attach to your sessions.</p>
@@ -504,7 +504,7 @@ export default function ServicesPage() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {allPackages.map(pkg => {
                 let items: string[] = [];
                 try { items = JSON.parse(pkg.Items || '[]'); } catch { items = (pkg.Items || '').split('\n').filter(Boolean); }
@@ -540,22 +540,13 @@ export default function ServicesPage() {
 
       {/* ── OVERLAY MANAGEMENT PANEL (Drawer) ─────────────────── */}
       {activePanel && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end', animation: 'fadeIn 0.2s ease-out' }}>
-          <div style={{ 
-            width: '100%', 
-            maxWidth: '480px',
-            backgroundColor: 'white', 
-            boxShadow: '-10px 0 40px rgba(0, 0, 0, 0.15)', 
-            display: 'flex', 
-            flexDirection: 'column',
-            height: '100%',
-            animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}>
+        <div className="fixed inset-0 bg-slate-900/45 z-[1000] flex justify-end animate-fade-in backdrop-blur-sm">
+          <div className="w-full max-w-[480px] bg-white shadow-[-10px_0_40px_rgba(0,0,0,0.15)] flex flex-col h-full animate-[slideInRight_0.25s_cubic-bezier(0.16,1,0.3,1)]">
           {/* Panel header */}
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+          <div className="p-5 border-b border-slate-200 flex justify-between items-center shrink-0">
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{activePanel.Session_Type}</h2>
-              <p style={{ margin: '0.15rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>{activePanel.Service_Type}</p>
+              <h2 className="m-0 text-lg font-bold text-slate-900">{activePanel.Session_Type}</h2>
+              <p className="m-0 mt-1 text-xs text-slate-500">{activePanel.Service_Type}</p>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               {activePanel.Slug && (
@@ -568,7 +559,7 @@ export default function ServicesPage() {
           </div>
 
           {/* Panel tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
+          <div className="flex border-b border-slate-200 shrink-0 overflow-x-auto whitespace-nowrap">
             {(['general', 'availability', 'packages', 'bookings'] as const).map(tab => (
               <button
                 key={tab}
@@ -581,7 +572,7 @@ export default function ServicesPage() {
           </div>
 
           {/* Panel body */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
+          <div className="flex-1 overflow-y-auto p-4 md:p-6">
 
             {/* ── GENERAL TAB ── */}
             {panelTab === 'general' && (

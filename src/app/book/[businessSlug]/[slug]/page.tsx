@@ -61,9 +61,12 @@ function generateTimeOptions(slots: TimeSlot[], dayOfWeek: number): string[] {
 }
 
 const DEFAULT_PAYMENT_METHODS = [
-  { id: 'card',  name: 'Credit Card',   icon: 'card',  details: '' },
-  { id: 'bank',  name: 'Bank Transfer', icon: 'bank',  details: 'Bank: Chase\nAccount: 123456789\nRouting: 987654321' },
-  { id: 'zelle', name: 'Zelle',         icon: 'zelle', details: 'payments@studio.com' },
+  { id: 'card',   name: 'Credit Card',   icon: 'card',   details: '' },
+  { id: 'bank',   name: 'Bank Transfer', icon: 'bank',   details: 'Bank: Chase\nAccount: 123456789\nRouting: 987654321' },
+  { id: 'zelle',  name: 'Zelle',         icon: 'zelle',  details: 'payments@studio.com' },
+  { id: 'paypal', name: 'PayPal',        icon: 'paypal', details: 'paypal.me/studio' },
+  { id: 'venmo',  name: 'Venmo',         icon: 'venmo',  details: 'venmo.com/studio' },
+  { id: 'square', name: 'Square',        icon: 'square', details: 'square.link/studio' },
 ];
 
 function PaymentIcon({ iconId }: { iconId: string }) {

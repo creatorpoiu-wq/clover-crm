@@ -49,7 +49,7 @@ export default function DashboardPage() {
   else if (hour < 18) greeting = "Good afternoon";
 
   return (
-    <div className="animate-fade-in" style={{ padding: '0 1rem' }}>
+    <div className="animate-fade-in px-4 md:px-8">
       <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.5rem', fontWeight: 500, color: '#0f172a', marginBottom: '0.25rem' }}>
         {greeting}{companyName ? `, ${companyName}` : ''}
       </h1>

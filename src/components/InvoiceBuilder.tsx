@@ -77,6 +77,8 @@ export default function InvoiceBuilder({ onClose, onDraftSaved, initialClient }:
     { id: 'cc', name: 'Credit Card', enabled: false, details: 'Pay online at: https://...' },
     { id: 'zelle', name: 'Zelle', enabled: false, details: 'zelle@example.com' },
     { id: 'paypal', name: 'PayPal', enabled: false, details: 'paypal.me/example' },
+    { id: 'venmo', name: 'Venmo', enabled: false, details: 'venmo.com/example' },
+    { id: 'square', name: 'Square', enabled: false, details: 'square.link/example' },
   ]);
 
   const [themeColor, setThemeColor] = useState('#1e40af');

@@ -132,30 +132,30 @@ export default function PipelinePage() {
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
 
   return (
-    <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column" }}>
+    <div className="animate-fade-in flex flex-col h-full">
       <div className="mb-6">
         <h1 className="page-title">Projects</h1>
         <p className="page-subtitle">Track and move deals through the pipeline.</p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem", paddingBottom: "2rem" }}>
+      <div className="flex flex-row overflow-x-auto gap-6 pb-8 snap-x snap-mandatory">
         {STAGES.map((stage) => {
           const stageInquiries = inquiries.filter((i) => i.Pipeline_Stage === stage);
           const stageTotal = stageInquiries.reduce((sum, i) => sum + (i.Estimated_Value || 0), 0);
           
           return (
-            <div key={stage} className="glass-panel flex-col" style={{ display: "flex", minHeight: "400px" }}>
-              <div style={{ padding: "1rem", borderBottom: "1px solid var(--border)", backgroundColor: "rgba(0,0,0,0.02)" }}>
-                <div style={{ fontSize: "0.875rem", fontWeight: 800, textTransform: "uppercase", color: "var(--muted)", marginBottom: "0.5rem" }}>
+            <div key={stage} className="glass-panel flex flex-col min-h-[400px] w-[85vw] sm:w-[320px] shrink-0 snap-center">
+              <div className="p-4 border-b border-slate-200 bg-slate-50/50 rounded-t-xl shrink-0">
+                <div className="text-sm font-extrabold uppercase text-slate-500 mb-2">
                   {stage}
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "1.25rem", fontWeight: 900 }}>{stageInquiries.length}</span>
-                  <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)" }}>{formatCurrency(stageTotal)}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-black text-slate-900">{stageInquiries.length}</span>
+                  <span className="text-sm font-bold text-[var(--primary)]">{formatCurrency(stageTotal)}</span>
                 </div>
               </div>
 
-              <div style={{ padding: "1rem", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-4">
                 {stageInquiries.length > 0 ? (
                   stageInquiries.map((inq) => (
                     <motion.div 
