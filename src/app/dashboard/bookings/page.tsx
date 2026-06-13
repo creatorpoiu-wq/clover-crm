@@ -78,31 +78,41 @@ function BookingsDashboardContent() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-slate-200 mb-6 overflow-x-auto pb-1">
-        {["All", "Pending", "Approved", "Declined"].map(tab => {
-          let count = stats.all;
-          if (tab === "Pending") count = stats.pending;
-          if (tab === "Approved") count = stats.confirmed;
-          if (tab === "Declined") count = stats.declined;
-
-          return (
-            <button
-              key={tab}
-              onClick={() => setStatusFilter(tab)}
-              className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
-                statusFilter === tab
-                  ? "border-emerald-500 text-emerald-700 bg-emerald-50/50"
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-              }`}
-            >
-              {tab === "Approved" ? "Confirmed" : tab}
-              <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === tab ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
+      {/* Tabs — pill segment control */}
+      <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl mb-6 w-fit border border-slate-200/70 shadow-sm">
+        {[
+          { id: "All",      label: "All",       count: stats.all,       dot: null },
+          { id: "Pending",  label: "Pending",   count: stats.pending,   dot: "bg-amber-400" },
+          { id: "Approved", label: "Confirmed", count: stats.confirmed, dot: "bg-emerald-400" },
+          { id: "Declined", label: "Declined",  count: stats.declined,  dot: "bg-red-400" },
+        ].map(({ id, label, count, dot }) => (
+          <button
+            key={id}
+            onClick={() => setStatusFilter(id)}
+            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+              statusFilter === id
+                ? "bg-white text-slate-900 shadow-md shadow-slate-200/70 border border-slate-200/60"
+                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+            }`}
+          >
+            {dot && (
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot} ${
+                statusFilter === id ? "opacity-100" : "opacity-60"
+              }`} />
+            )}
+            {label}
+            <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center leading-none transition-colors ${
+              statusFilter === id
+                ? id === "Pending"  ? "bg-amber-100 text-amber-700"
+                : id === "Approved" ? "bg-emerald-100 text-emerald-700"
+                : id === "Declined" ? "bg-red-100 text-red-700"
+                : "bg-slate-200 text-slate-700"
+                : "bg-slate-200/60 text-slate-500"
+            }`}>
+              {count}
+            </span>
+          </button>
+        ))}
       </div>
 
       {loading ? (
