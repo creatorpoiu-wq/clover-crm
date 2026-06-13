@@ -315,8 +315,8 @@ export default function ServicesPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 m-0">Services</h1>
-          <p className="text-slate-500 mt-1 text-sm">Manage your service offerings, sessions, and public booking pages.</p>
+          <h1 className="page-title">Services</h1>
+          <p className="page-subtitle">Manage your service offerings, sessions, and public booking pages.</p>
         </div>
         <div className="flex flex-wrap gap-3 w-full md:w-auto">
           {mainTab === 'packages' && (
@@ -330,28 +330,31 @@ export default function ServicesPage() {
           <button
             onClick={() => openNewSession(selectedService || 'Photography')}
             className="flex items-center gap-2 bg-[var(--primary)] text-white border-none rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer w-full md:w-auto justify-center"
+            style={{ backgroundColor: 'var(--primary)', color: 'white' }}
           >
             <Plus size={16} /> New Session
           </button>
         </div>
       </div>
 
-      {/* Main Tabs */}
-      <div className="flex gap-6 border-b border-slate-200 mb-6 overflow-x-auto whitespace-nowrap">
-        <button
-          onClick={() => setMainTab('sessions')}
-          className={`pb-3 bg-transparent border-none cursor-pointer text-base ${mainTab === 'sessions' ? 'border-b-2 border-[var(--primary)] text-[var(--primary)] font-bold' : 'border-b-2 border-transparent text-slate-500 font-medium'}`}
-        >
-          Sessions
-        </button>
-        <button
-          onClick={() => setMainTab('packages')}
-          className={`pb-3 bg-transparent border-none cursor-pointer text-base ${mainTab === 'packages' ? 'border-b-2 border-[var(--primary)] text-[var(--primary)] font-bold' : 'border-b-2 border-transparent text-slate-500 font-medium'}`}
-        >
-          Packages
-        </button>
-      </div>
+      <div className="glass-panel p-0 overflow-hidden flex flex-col flex-1 min-h-0">
+        {/* Main Tabs */}
+        <div style={{ display: "flex", borderBottom: "1px solid var(--border)", overflowX: "auto" }}>
+          <button
+            onClick={() => setMainTab('sessions')}
+            style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: mainTab === "sessions" ? "2px solid var(--primary)" : "2px solid transparent", color: mainTab === "sessions" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.95rem" }}
+          >
+            Sessions
+          </button>
+          <button
+            onClick={() => setMainTab('packages')}
+            style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: mainTab === "packages" ? "2px solid var(--primary)" : "2px solid transparent", color: mainTab === "packages" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.95rem" }}
+          >
+            Packages
+          </button>
+        </div>
 
+        <div style={{ padding: '2rem', flex: 1, overflowY: 'auto' }}>
       {mainTab === 'sessions' && (
         <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
 
@@ -537,8 +540,10 @@ export default function ServicesPage() {
           )}
         </div>
       )}
+      </div>
+      </div>
 
-      {/* ── OVERLAY MANAGEMENT PANEL (Drawer) ─────────────────── */}
+      {/* Slide-out Panel ── OVERLAY MANAGEMENT PANEL (Drawer) ─────────────────── */}
       {activePanel && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 bg-slate-900/45 z-[1000] flex justify-end animate-fade-in backdrop-blur-sm">
           <div className="w-full max-w-[480px] bg-white shadow-[-10px_0_40px_rgba(0,0,0,0.15)] flex flex-col h-full animate-[slideInRight_0.25s_cubic-bezier(0.16,1,0.3,1)]">
