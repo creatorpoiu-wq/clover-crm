@@ -793,7 +793,7 @@ export default function ServicesPage() {
       </div>, document.body)}
 
       {/* ── SESSION FORM MODAL ── */}
-      {showSessionForm && (
+      {showSessionForm && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', width: '100%', maxWidth: '520px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -892,10 +892,10 @@ export default function ServicesPage() {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* ── PACKAGE FORM MODAL ── */}
-      {showPackageForm && (
+      {showPackageForm && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', width: '100%', maxWidth: '480px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -943,7 +943,7 @@ export default function ServicesPage() {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }
