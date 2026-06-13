@@ -272,7 +272,7 @@ export default function MeetingsPage() {
                 <label className="form-label">Title</label>
                 <input 
                   type="text" 
-                  className="form-input" 
+                  className="input" 
                   placeholder="e.g. Discovery Call" 
                   value={title} 
                   onChange={e => setTitle(e.target.value)} 
@@ -283,7 +283,7 @@ export default function MeetingsPage() {
               <div className="form-group">
                 <label className="form-label">Contact (Optional)</label>
                 <select 
-                  className="form-input" 
+                  className="input" 
                   value={contactId} 
                   onChange={e => setContactId(e.target.value)}
                 >
@@ -300,7 +300,7 @@ export default function MeetingsPage() {
                   <DatePicker 
                     value={date} 
                     onChange={val => setDate(val)} 
-                    className="form-input" 
+                    className="input" 
                     required 
                   />
                 </div>
@@ -308,7 +308,7 @@ export default function MeetingsPage() {
                   <label className="form-label">Time</label>
                   <input 
                     type="time" 
-                    className="form-input" 
+                    className="input" 
                     value={time} 
                     onChange={e => setTime(e.target.value)} 
                     required 
@@ -320,7 +320,7 @@ export default function MeetingsPage() {
                 <div className="form-group">
                   <label className="form-label">Duration</label>
                   <select 
-                    className="form-input" 
+                    className="input" 
                     value={durationMinutes} 
                     onChange={e => setDurationMinutes(Number(e.target.value))}
                   >
@@ -335,7 +335,7 @@ export default function MeetingsPage() {
                 <div className="form-group">
                   <label className="form-label">Type</label>
                   <select 
-                    className="form-input" 
+                    className="input" 
                     value={meetingType} 
                     onChange={e => setMeetingType(e.target.value)}
                   >
@@ -353,7 +353,7 @@ export default function MeetingsPage() {
               <div className="form-group">
                 <label className="form-label">Notes / Description</label>
                 <textarea 
-                  className="form-input" 
+                  className="input" 
                   rows={3}
                   placeholder="Meeting agenda or details..."
                   value={notes}
