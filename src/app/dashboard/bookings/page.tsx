@@ -78,42 +78,33 @@ function BookingsDashboardContent() {
         </div>
       </div>
 
-      {/* Tabs — pill segment control */}
-      <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl mb-6 w-fit border border-slate-200/70 shadow-sm">
+      {/* Tabs — clean chips */}
+      <div className="flex items-center gap-1.5 mb-6">
         {[
-          { id: "All",      label: "All",       count: stats.all,       dot: null },
-          { id: "Pending",  label: "Pending",   count: stats.pending,   dot: "bg-amber-400" },
-          { id: "Approved", label: "Confirmed", count: stats.confirmed, dot: "bg-emerald-400" },
-          { id: "Declined", label: "Declined",  count: stats.declined,  dot: "bg-red-400" },
-        ].map(({ id, label, count, dot }) => (
+          { id: "All",      label: "All",       count: stats.all,       active: "bg-slate-900 text-white",         badge: "bg-white/20 text-white" },
+          { id: "Pending",  label: "Pending",   count: stats.pending,   active: "bg-amber-50 text-amber-800 border border-amber-200",  badge: "bg-amber-200 text-amber-800" },
+          { id: "Approved", label: "Confirmed", count: stats.confirmed, active: "bg-emerald-50 text-emerald-800 border border-emerald-200", badge: "bg-emerald-200 text-emerald-800" },
+          { id: "Declined", label: "Declined",  count: stats.declined,  active: "bg-red-50 text-red-800 border border-red-200",   badge: "bg-red-200 text-red-800" },
+        ].map(({ id, label, count, active, badge }) => (
           <button
             key={id}
             onClick={() => setStatusFilter(id)}
-            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap ${
               statusFilter === id
-                ? "bg-white text-slate-900 shadow-md shadow-slate-200/70 border border-slate-200/60"
-                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                ? active
+                : "bg-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-transparent"
             }`}
           >
-            {dot && (
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot} ${
-                statusFilter === id ? "opacity-100" : "opacity-60"
-              }`} />
-            )}
             {label}
-            <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center leading-none transition-colors ${
-              statusFilter === id
-                ? id === "Pending"  ? "bg-amber-100 text-amber-700"
-                : id === "Approved" ? "bg-emerald-100 text-emerald-700"
-                : id === "Declined" ? "bg-red-100 text-red-700"
-                : "bg-slate-200 text-slate-700"
-                : "bg-slate-200/60 text-slate-500"
+            <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center leading-none ${
+              statusFilter === id ? badge : "bg-slate-100 text-slate-500"
             }`}>
               {count}
             </span>
           </button>
         ))}
       </div>
+
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
