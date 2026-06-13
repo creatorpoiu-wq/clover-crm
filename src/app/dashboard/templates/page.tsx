@@ -30,6 +30,48 @@ export default function TemplatesPage() {
   const [isSending, setIsSending] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success'|'error'} | null>(null);
 
+  const [activeTab, setActiveTab] = useState<'email' | 'contract' | 'invoice'>('email');
+  const [contractTemplates, setContractTemplates] = useState<any[]>([]);
+  const [invoiceTemplates, setInvoiceTemplates] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchContractTemplates();
+    fetchInvoiceTemplates();
+  }, []);
+
+  const fetchContractTemplates = async () => {
+    try {
+      const res = await fetch("/api/contract-templates");
+      const data = await res.json();
+      if (data.success) setContractTemplates(data.templates);
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchInvoiceTemplates = async () => {
+    try {
+      const res = await fetch("/api/invoice-actions?type=templates");
+      const data = await res.json();
+      if (data.success) setInvoiceTemplates(data.templates);
+    } catch (err) { console.error(err); }
+  };
+
+  const deleteContractTemplate = async (id: number) => {
+    if (!confirm("Delete contract template?")) return;
+    try {
+      await fetch(`/api/contract-templates?id=${id}`, { method: "DELETE" });
+      fetchContractTemplates();
+    } catch (err) { console.error(err); }
+  };
+
+  const deleteInvoiceTemplate = async (id: number) => {
+    if (!confirm("Delete invoice template?")) return;
+    try {
+      await fetch(`/api/invoice-actions?id=${id}&type=template`, { method: "DELETE" });
+      fetchInvoiceTemplates();
+    } catch (err) { console.error(err); }
+  };
+
+
   useEffect(() => {
     fetchTemplates();
     fetchContacts();
@@ -167,26 +209,55 @@ export default function TemplatesPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2.5rem" }}>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
         <div>
-          <h1 className="page-title">Email Templates</h1>
-          <p className="page-subtitle" style={{ marginBottom: 0 }}>Create and manage canned responses.</p>
+          <h1 className="page-title">Templates</h1>
+          <p className="page-subtitle" style={{ marginBottom: 0 }}>Manage your saved templates.</p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem" }}>
-          <button 
-            onClick={() => setShowSendModal(true)} 
-            className="btn btn-primary" 
-            style={{ width: "auto", background: "#111827", display: "flex", alignItems: "center", gap: 6 }}
-          >
-            <Send size={16} /> Send Email
-          </button>
-          <button onClick={handleAddNewClick} className="btn btn-primary" style={{ width: "auto" }}>
-            <Plus size={18} /> New Template
-          </button>
+          {activeTab === 'email' && (
+            <>
+              <button 
+                onClick={() => setShowSendModal(true)} 
+                className="btn btn-primary" 
+                style={{ width: "auto", background: "#111827", display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <Send size={16} /> Send Email
+              </button>
+              <button onClick={handleAddNewClick} className="btn btn-primary" style={{ width: "auto" }}>
+                <Plus size={18} /> New Email Template
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div style={{ display: 'flex', gap: '2rem', borderBottom: '1px solid #e2e8f0', marginBottom: '2rem' }}>
+        {['email', 'contract', 'invoice'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as any)}
+            style={{
+              padding: '0.75rem 0',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === tab ? '2px solid var(--primary)' : '2px solid transparent',
+              color: activeTab === tab ? 'var(--primary)' : '#64748b',
+              fontWeight: activeTab === tab ? 800 : 600,
+              cursor: 'pointer',
+              fontSize: '0.95rem',
+              textTransform: 'capitalize'
+            }}
+          >
+            {tab} Templates
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'email' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
         
         {/* Create New Form inline */}
         {isCreating && (
@@ -351,7 +422,57 @@ export default function TemplatesPage() {
         })}
       </div>
 
+      )}
+      {activeTab === 'contract' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {contractTemplates.map((tmpl) => (
+            <div key={tmpl.Template_ID} className="glass-panel" style={{ padding: "1.5rem" }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                <div className="flex items-center gap-2 section-header" style={{ marginBottom: 0, borderBottom: "none", paddingBottom: 0 }}>
+                  <h2 style={{ fontSize: "1.125rem" }}>{tmpl.Name}</h2>
+                </div>
+                <button 
+                  onClick={() => deleteContractTemplate(tmpl.Template_ID)} 
+                  className="btn btn-outline" 
+                  style={{ padding: "0.5rem", width: "auto", color: "var(--status-red-fg)", borderColor: "var(--status-red)" }} 
+                  title="Delete"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Created: {new Date(tmpl.Created_At).toLocaleDateString()}</p>
+            </div>
+          ))}
+          {contractTemplates.length === 0 && <div className="empty-state" style={{ gridColumn: '1 / -1' }}>No contract templates found. Create one in the Pipeline.</div>}
+        </div>
+      )}
+
+      {activeTab === 'invoice' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {invoiceTemplates.map((tmpl) => (
+            <div key={tmpl.Template_ID} className="glass-panel" style={{ padding: "1.5rem" }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                <div className="flex items-center gap-2 section-header" style={{ marginBottom: 0, borderBottom: "none", paddingBottom: 0 }}>
+                  <h2 style={{ fontSize: "1.125rem" }}>{tmpl.Name}</h2>
+                </div>
+                <button 
+                  onClick={() => deleteInvoiceTemplate(tmpl.Template_ID)} 
+                  className="btn btn-outline" 
+                  style={{ padding: "0.5rem", width: "auto", color: "var(--status-red-fg)", borderColor: "var(--status-red)" }} 
+                  title="Delete"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Created: {new Date(tmpl.Created_At).toLocaleDateString()}</p>
+            </div>
+          ))}
+          {invoiceTemplates.length === 0 && <div className="empty-state" style={{ gridColumn: '1 / -1' }}>No invoice templates found. Create one in the Finance page.</div>}
+        </div>
+      )}
+
       {/* Send Email Modal */}
+
       {showSendModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', width: 500, borderRadius: 16, padding: 32, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }}>
