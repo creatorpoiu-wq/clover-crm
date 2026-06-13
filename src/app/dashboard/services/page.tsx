@@ -545,7 +545,7 @@ export default function ServicesPage() {
 
       {/* Slide-out Panel ── OVERLAY MANAGEMENT PANEL (Drawer) ─────────────────── */}
       {activePanel && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 bg-slate-900/45 z-[1000] flex justify-end animate-fade-in backdrop-blur-sm">
+        <div className="fixed inset-0 bg-slate-900/45 flex justify-end animate-fade-in backdrop-blur-sm" style={{ zIndex: 1000 }}>
           <div className="w-full max-w-[480px] bg-white shadow-[-10px_0_40px_rgba(0,0,0,0.15)] flex flex-col h-full animate-[slideInRight_0.25s_cubic-bezier(0.16,1,0.3,1)]">
           {/* Panel header */}
           <div className="p-5 border-b border-slate-200 flex justify-between items-center shrink-0">
@@ -892,7 +892,7 @@ export default function ServicesPage() {
 
       {/* ── PACKAGE FORM MODAL ── */}
       {showPackageForm && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', width: '100%', maxWidth: '480px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{packageForm.id ? 'Edit Package' : 'New Package'}</h2>
