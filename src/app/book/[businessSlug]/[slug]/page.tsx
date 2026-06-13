@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CreditCard, PenTool } from 'lucide-react';
+import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CreditCard, PenTool, Building2, Smartphone, Lock } from 'lucide-react';
 import SignaturePad from 'signature_pad';
 
 interface TimeSlot {
@@ -59,6 +59,19 @@ function generateTimeOptions(slots: TimeSlot[], dayOfWeek: number): string[] {
   return times;
 }
 
+const DEFAULT_PAYMENT_METHODS = [
+  { id: 'card',  name: 'Credit Card',   icon: 'card',  details: '' },
+  { id: 'bank',  name: 'Bank Transfer', icon: 'bank',  details: 'Bank: Chase\nAccount: 123456789\nRouting: 987654321' },
+  { id: 'zelle', name: 'Zelle',         icon: 'zelle', details: 'payments@studio.com' },
+];
+
+function PaymentIcon({ iconId }: { iconId: string }) {
+  if (iconId === 'card')  return <CreditCard size={20} />;
+  if (iconId === 'bank')  return <Building2 size={20} />;
+  if (iconId === 'zelle') return <Smartphone size={20} />;
+  return <CreditCard size={20} />;
+}
+
 export default function BookSessionPage({ params }: { params: Promise<{ businessSlug: string, slug: string }> }) {
   const resolvedParams = React.use(params);
   
@@ -66,6 +79,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [funnelSettings, setFunnelSettings] = useState<any>(null);
 
   type StepType = 'datetime' | 'details' | 'packages' | 'contract' | 'payment' | 'confirm';
   const [step, setStep] = useState<StepType>('datetime');
@@ -78,6 +92,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   const [signature, setSignature] = useState('');
   const [showSigPad, setShowSigPad] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedMethodId, setSelectedMethodId] = useState<string>('');
+  const [hpValue, setHpValue] = useState('');
 
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigPadRef = useRef<any>(null);
@@ -91,6 +107,11 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
           fetch(`/api/availability?userId=${d.session.user_id}`)
             .then(r => r.json())
             .then(av => { if (av.success) setBlockedDates(av.blockedDates || []); });
+          
+          fetch(`/api/public-booking?type=settings&userId=${d.session.user_id}`)
+            .then(r => r.json())
+            .then(fData => { if (fData.success) setFunnelSettings(fData.settings); })
+            .catch(() => {});
         } else {
           setNotFound(true);
         }
@@ -229,6 +250,13 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     const d = new Date(dateStr + 'T00:00:00');
     return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   };
+
+  const rawMethods: any[] = funnelSettings?.paymentMethods?.length > 0
+    ? funnelSettings.paymentMethods.filter((m: any) => m.enabled !== false)
+    : DEFAULT_PAYMENT_METHODS;
+  const activeMethodId = selectedMethodId || rawMethods[0]?.id || '';
+  const activeMethod = rawMethods.find(m => m.id === activeMethodId) || rawMethods[0];
+  const isCardMethod = activeMethodId === 'card' || activeMethod?.type === 'card' || (!activeMethod?.details && activeMethodId !== 'zelle' && activeMethodId !== 'bank');
 
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc' }}><p style={{ color: '#64748b', fontWeight: 600 }}>Loading session details...</p></div>;
   if (notFound || !session) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc' }}><p style={{ color: '#ef4444', fontWeight: 600 }}>Session not found or unavailable.</p></div>;
@@ -546,29 +574,95 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Payment</h3>
             </div>
             
-            <div style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
+            <div style={{ padding: '2rem 1.5rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
               <h2 style={{ margin: '0 0 0.5rem', fontSize: '2rem', fontWeight: 800, color: '#0f172a' }}>
                 ${(selectedPackage ? selectedPackage.Price : (session.Price || 0)).toFixed(2)}
               </h2>
               <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Total due today for <strong>{selectedPackage ? selectedPackage.Name : session.Session_Type}</strong></p>
-              
-              <div style={{ marginTop: '2rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1.5rem' }}>
-                <CreditCard size={32} style={{ color: '#0f172a', margin: '0 auto 1rem' }} />
-                <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: '#334155', fontWeight: 500 }}>
-                  In a production environment, this is where a Stripe integration would collect credit card details securely.
-                </p>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>For now, click the button below to complete your booking.</p>
-              </div>
             </div>
             
-            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e2e8f0' }}>
-              <button
-                onClick={() => handleSubmit()}
-                disabled={submitting}
-                style={{ width: '100%', padding: '0.85rem', border: 'none', borderRadius: '0.5rem', backgroundColor: '#0f172a', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-              >
-                {submitting ? 'Processing...' : 'Complete Payment & Book'}
-              </button>
+            <div style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                {rawMethods.map((m: any) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setSelectedMethodId(m.id)}
+                    style={{
+                      flex: 1, minWidth: '80px', padding: '12px 10px',
+                      border: activeMethodId === m.id ? '2px solid #0f172a' : '1px solid #e2e8f0',
+                      background: activeMethodId === m.id ? '#f8fafc' : '#fff',
+                      borderRadius: '0.5rem', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                      color: activeMethodId === m.id ? '#0f172a' : '#64748b',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <PaymentIcon iconId={m.icon || m.id} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{m.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <input 
+                  type="text" 
+                  name="website_url_payment" 
+                  style={{ display: 'none', visibility: 'hidden', opacity: 0, position: 'absolute', left: '-9999px' }} 
+                  tabIndex={-1} 
+                  autoComplete="off" 
+                  value={hpValue} 
+                  onChange={(e) => setHpValue(e.target.value)} 
+                />
+                
+                {isCardMethod ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Cardholder Name</label>
+                      <input required placeholder="Jordan Smith" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Card Number</label>
+                      <div style={{ position: 'relative' }}>
+                        <input required placeholder="0000 0000 0000 0000" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={19} />
+                        <CreditCard size={16} color="#9ca3af" style={{ position: 'absolute', right: 14, top: 14 }} />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Expiration</label>
+                        <input required placeholder="MM/YY" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={5} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>CVC</label>
+                        <input required placeholder="123" type="password" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={4} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '1.25rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#475569', margin: '0 0 1rem', lineHeight: 1.5 }}>
+                      Please send your payment using the details below. Include your name in the reference.
+                    </p>
+                    {activeMethod?.details?.split('\n').map((line: string, i: number) => (
+                      <div key={i} style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600, marginBottom: '0.25rem' }}>{line}</div>
+                    ))}
+                  </div>
+                )}
+                
+                <div style={{ marginTop: '1.5rem' }}>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    style={{ width: '100%', padding: '0.85rem', border: 'none', borderRadius: '0.5rem', backgroundColor: '#0f172a', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  >
+                    {submitting ? 'Processing...' : isCardMethod ? `Pay $${(selectedPackage ? selectedPackage.Price : (session.Price || 0)).toFixed(2)}` : 'I Have Sent Payment'}
+                    {!submitting && <Lock size={16} />}
+                  </button>
+                  <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+                    <Lock size={12} /> Secure encrypted checkout
+                  </p>
+                </div>
+              </form>
             </div>
           </div>
         )}
