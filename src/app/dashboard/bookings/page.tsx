@@ -150,7 +150,7 @@ function BookingsDashboardContent() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border ${
                       b.Status === "Approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
                       b.Status === "Declined" ? "bg-red-50 text-red-700 border-red-200" :
                       "bg-amber-50 text-amber-700 border-amber-200"
@@ -161,7 +161,7 @@ function BookingsDashboardContent() {
                   <td className="px-6 py-4 text-right">
                     <button 
                       onClick={() => setSelectedBooking(b)}
-                      className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors font-medium text-sm border border-transparent hover:border-emerald-100"
+                      className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-5 py-2 rounded-lg transition-colors font-medium text-sm border border-emerald-200 hover:border-emerald-300"
                     >
                       View Details
                     </button>
