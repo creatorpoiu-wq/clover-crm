@@ -696,7 +696,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
               </div>
             </div>
             <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
-              A confirmation receipt and copy of your contract have been sent to <strong>{form.email}</strong>.
+              A confirmation receipt {session.Contract_Template ? 'and copy of your contract ' : ''}has been sent to <strong>{form.email}</strong>.
             </p>
           </div>
         )}
