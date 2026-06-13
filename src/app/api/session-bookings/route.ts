@@ -186,9 +186,7 @@ export async function PATCH(req: NextRequest) {
         if (existingContact) {
           contactId = existingContact.Contact_ID;
           let updatePayload: any = { Status: 'Client' };
-          if (booking.Package_ID) {
-            updatePayload.Package_ID = booking.Package_ID;
-          }
+          // Do not override existing Package_ID on the contact level when booking multiple sessions
           await supabase.from('Contacts').update(updatePayload).eq('Contact_ID', contactId);
         } else {
           const { data: newContact, error: contactErr } = await supabase
@@ -209,31 +207,18 @@ export async function PATCH(req: NextRequest) {
         }
 
         if (contactId) {
-          const { data: existingInq } = await supabase
+          // Unconditionally create a new inquiry for this specific booking so multiple bookings aren't overridden
+          await supabase
             .from('Inquiries')
-            .select('Inquiry_ID')
-            .eq('Contact_ID', contactId)
-            .eq('Event_Date', booking.Booked_Date)
-            .single();
-
-          if (!existingInq) {
-            await supabase
-              .from('Inquiries')
-              .insert({
-                user_id: user.id,
-                Contact_ID: contactId,
-                Service_Type: booking.Sessions?.Service_Type || 'Session',
-                Event_Date: booking.Booked_Date,
-                Pipeline_Stage: 'Booked',
-                Estimated_Value: booking.Amount_Paid || 0,
-                Package_ID: booking.Package_ID || null
-              });
-          } else if (booking.Package_ID) {
-            await supabase
-              .from('Inquiries')
-              .update({ Package_ID: booking.Package_ID })
-              .eq('Inquiry_ID', existingInq.Inquiry_ID);
-          }
+            .insert({
+              user_id: user.id,
+              Contact_ID: contactId,
+              Service_Type: booking.Sessions?.Service_Type || 'Session',
+              Event_Date: booking.Booked_Date,
+              Pipeline_Stage: 'Booked',
+              Estimated_Value: booking.Amount_Paid || 0,
+              Package_ID: booking.Package_ID || null
+            });
         }
       }
     }

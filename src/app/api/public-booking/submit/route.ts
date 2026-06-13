@@ -90,28 +90,42 @@ export async function POST(req: NextRequest) {
 
     } else {
       // COLD LEAD FLOW: Direct booking from public link without a pre-existing contract.
-      // 1. Create Contact
-      const { data: contact, error: contactError } = await supabase
+      // 1. Get or Create Contact
+      let contactId;
+      const { data: existingContact } = await supabase
         .from('Contacts')
-        .insert({
-          user_id: userId,
-          Name: clientName,
-          Email: clientEmail,
-          Phone: phone,
-          Lead_Source: 'Booking Funnel',
-          Package_ID: pkg?.Package_ID || pkg?.id || null,
-          Status: 'Client'
-        })
-        .select()
+        .select('Contact_ID')
+        .eq('Email', clientEmail)
+        .eq('user_id', userId)
         .single();
-      if (contactError) throw contactError;
+
+      if (existingContact) {
+        contactId = existingContact.Contact_ID;
+        await supabase.from('Contacts').update({ Status: 'Client' }).eq('Contact_ID', contactId);
+      } else {
+        const { data: newContact, error: contactError } = await supabase
+          .from('Contacts')
+          .insert({
+            user_id: userId,
+            Name: clientName,
+            Email: clientEmail,
+            Phone: phone,
+            Lead_Source: 'Booking Funnel',
+            Package_ID: pkg?.Package_ID || pkg?.id || null,
+            Status: 'Client'
+          })
+          .select()
+          .single();
+        if (contactError) throw contactError;
+        contactId = newContact.Contact_ID;
+      }
 
       // 2. Create Inquiry
       const { data: inquiry, error: inquiryError } = await supabase
         .from('Inquiries')
         .insert({
           user_id: userId,
-          Contact_ID: contact.Contact_ID,
+          Contact_ID: contactId,
           Service_Type: serviceType,
           Event_Date: eventDate,
           Estimated_Value: totalAmount,
