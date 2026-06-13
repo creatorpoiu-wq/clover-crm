@@ -539,7 +539,19 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
     },
   });
 
+  // Force-load initialContent once the editor is ready (handles async Tiptap init timing)
+  useEffect(() => {
+    if (editor && initialContent) {
+      // Use a short timeout to ensure the editor DOM is fully mounted
+      const timer = setTimeout(() => {
+        editor.commands.setContent(initialContent);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [editor, initialContent]);
+
   if (!mounted) return null;
+
 
   return createPortal(
     <div style={{
