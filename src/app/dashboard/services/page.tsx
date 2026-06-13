@@ -92,8 +92,8 @@ export default function ServicesPage() {
   // Confirm delete
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     // Fetch settings to get business slug
     const settingsRes = await fetch('/api/settings');
     const settingsData = await settingsRes.json();
@@ -109,10 +109,10 @@ export default function ServicesPage() {
         setSelectedService(data.sessions[0].Service_Type);
       }
     }
-    setLoading(false);
+    if (showLoading) setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(true); }, []);
 
   // Refresh panel if active
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function ServicesPage() {
         setShowSessionForm(false);
         setSessionForm({ ...defaultSessionForm });
         setSelectedService(sessionForm.serviceType);
-        fetchData();
+        fetchData(false);
       } else {
         alert(`Failed to save session: ${data.error || 'Unknown error'}`);
       }
@@ -230,7 +230,7 @@ export default function ServicesPage() {
     setConfirmDelete(null);
     await fetch(`/api/sessions?id=${id}`, { method: 'DELETE' });
     if (activePanel?.Session_ID === id) setActivePanel(null);
-    fetchData();
+    fetchData(false);
   };
 
   // ── PACKAGE CRUD ─────────────────────────────────────────
@@ -246,7 +246,7 @@ export default function ServicesPage() {
     if (res.ok) {
       setShowPackageForm(false);
       setPackageForm({ ...defaultPackageForm });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -259,7 +259,7 @@ export default function ServicesPage() {
     }
     setConfirmDelete(null);
     await fetch(`/api/packages?type=package&id=${id}`, { method: 'DELETE' });
-    fetchData();
+    fetchData(false);
   };
 
   // ── TIME SLOTS ──────────────────────────────────────────
@@ -273,13 +273,13 @@ export default function ServicesPage() {
     });
     if (res.ok) {
       setShowSlotForm(false);
-      fetchData();
+      fetchData(false);
     }
   };
 
   const deleteSlot = async (id: number) => {
     await fetch(`/api/time-slots?id=${id}`, { method: 'DELETE' });
-    fetchData();
+    fetchData(false);
   };
 
   const updateBookingStatus = async (bookingId: number, status: string) => {
