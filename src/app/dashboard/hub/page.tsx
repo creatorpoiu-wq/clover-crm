@@ -287,16 +287,16 @@ export default function HubPage() {
 
   return (
     <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 100px)" }}>
-      <div className="mb-6" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="mb-6 flex flex-col gap-4">
         <div>
           <h1 className="page-title">Inbox & Hub</h1>
-          <p className="page-subtitle">Centralized communication and activity logs.</p>
+          <p className="page-subtitle mb-0">Centralized communication and activity logs.</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {syncStatus && <span style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{syncStatus}</span>}
           <button className="btn btn-outline" style={{ width: 'auto' }} onClick={() => handleSync(false)} disabled={isSyncing}>
             <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> {isSyncing ? "Syncing..." : "Sync Gmail"}
           </button>
+          {syncStatus && <span style={{ fontSize: "0.875rem", color: "var(--muted)", fontWeight: 600 }}>{syncStatus}</span>}
         </div>
       </div>
 
