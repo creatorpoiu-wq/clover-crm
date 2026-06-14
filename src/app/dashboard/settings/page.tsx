@@ -826,7 +826,6 @@ function SettingsInner() {
         </div>
         )}
 
-      </div>
     </div>
   );
 }
