@@ -43,14 +43,15 @@ export async function POST(req: NextRequest) {
 
     // Send email to client
     try {
-      const { data: config } = await supabase.from('AppConfig').select('Email_User, Email_Pass, Company_Name').eq('user_id', userAuth.user.id).single();
+      const { data: config } = await supabase.from('AppConfig').select('Email_User, Email_Pass, Company_Name, Custom_Domain').eq('user_id', userAuth.user.id).single();
       const { data: inquiry } = await supabase.from('Inquiries').select('Contact_ID').eq('Inquiry_ID', inquiryId).single();
       if (config?.Email_User && config?.Email_Pass && inquiry?.Contact_ID) {
         const { data: contact } = await supabase.from('Contacts').select('Email, Name').eq('Contact_ID', inquiry.Contact_ID).single();
         if (contact?.Email) {
           const nodemailer = require('nodemailer');
           const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: config.Email_User, pass: config.Email_Pass } });
-          const portalLink = `${req.nextUrl.origin}/portal/${inquiryId}`;
+          const baseUrl = config.Custom_Domain ? `https://${config.Custom_Domain}` : req.nextUrl.origin;
+          const portalLink = `${baseUrl}/portal/${inquiryId}`;
           await transporter.sendMail({
             from: `"${config.Company_Name}" <${config.Email_User}>`,
             to: contact.Email,

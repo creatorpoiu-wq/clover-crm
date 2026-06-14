@@ -11,6 +11,7 @@ export default function MarketingDashboard() {
   const [activeTab, setActiveTab] = useState<'campaigns' | 'popups'>('campaigns');
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [popups, setPopups] = useState<any[]>([]);
+  const [customDomain, setCustomDomain] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
@@ -27,9 +28,10 @@ export default function MarketingDashboard() {
       return;
     }
 
-    const [campaignRes, popupRes] = await Promise.all([
+    const [campaignRes, popupRes, settingsRes] = await Promise.all([
       supabase.from("Marketing_Campaigns").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("Marketing_Popups").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
+      supabase.from("Marketing_Popups").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      fetch("/api/settings").then(r => r.json())
     ]);
 
     if (!campaignRes.error && campaignRes.data) {
@@ -37,6 +39,9 @@ export default function MarketingDashboard() {
     }
     if (!popupRes.error && popupRes.data) {
       setPopups(popupRes.data);
+    }
+    if (settingsRes.success && settingsRes.config?.customDomain) {
+      setCustomDomain(settingsRes.config.customDomain);
     }
     setIsLoading(false);
   };
@@ -248,7 +253,7 @@ export default function MarketingDashboard() {
                     <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Embed Code</p>
                     <input 
                       readOnly 
-                      value={`<script src="${process.env.NEXT_PUBLIC_SITE_URL || 'https://clover-crm.vercel.app'}/api/popups/widget/${popup.id}"></script>`}
+                      value={`<script src="${customDomain ? `https://${customDomain}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://clover-crm.vercel.app')}/api/popups/widget/${popup.id}"></script>`}
                       onClick={(e) => { (e.target as HTMLInputElement).select(); navigator.clipboard.writeText((e.target as HTMLInputElement).value); alert('Copied to clipboard!') }}
                       style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1', width: '200px', cursor: 'pointer', backgroundColor: '#f8fafc' }}
                       title="Click to copy"

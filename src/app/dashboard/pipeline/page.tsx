@@ -44,10 +44,16 @@ export default function PipelinePage() {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [packages, setPackages] = useState<any[]>([]);
 
+  const [customDomain, setCustomDomain] = useState("");
+
   useEffect(() => {
     fetch('/api/packages?type=packages')
       .then(res => res.json())
       .then(data => { if (data.success) setPackages(data.packages || []); });
+    
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => { if (data.success && data.config?.customDomain) setCustomDomain(data.config.customDomain); });
   }, []);
 
   useEffect(() => {
@@ -389,7 +395,8 @@ export default function PipelinePage() {
                     className="btn btn-outline" 
                     style={{ flex: 1, padding: "0.75rem", borderRadius: "0.75rem", fontWeight: 600, color: "var(--primary)", borderColor: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
                     onClick={() => {
-                      const portalUrl = `${window.location.origin}/portal/${selectedInquiry.Inquiry_ID}`;
+                      const baseUrl = customDomain ? `https://${customDomain}` : window.location.origin;
+                      const portalUrl = `${baseUrl}/portal/${selectedInquiry.Inquiry_ID}`;
                       navigator.clipboard.writeText(portalUrl);
                       alert('Portal link copied to clipboard!');
                     }}

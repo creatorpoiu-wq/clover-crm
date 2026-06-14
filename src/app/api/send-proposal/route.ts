@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     // 2. Get App Config for SMTP credentials + email settings
     const { data: config, error: configError } = await supabase
       .from('AppConfig')
-      .select('Email_User, Email_Pass, Company_Name, Email_Settings')
+      .select('Email_User, Email_Pass, Company_Name, Email_Settings, Custom_Domain')
       .eq('user_id', userAuth.user.id)
       .single();
 
@@ -104,9 +104,11 @@ export async function POST(req: NextRequest) {
     const userId = userAuth.user.id;
     const host = req.headers.get('host') || '';
     const protocol = host.includes('localhost') ? 'http' : 'https';
-    const appUrl = process.env.NEXT_PUBLIC_BASE_URL
-      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-      || `${protocol}://${host}`;
+    const appUrl = config.Custom_Domain 
+      ? `https://${config.Custom_Domain}`
+      : process.env.NEXT_PUBLIC_BASE_URL 
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) 
+        || `${protocol}://${host}`;
     const proposalLink = `${appUrl}/booking?userId=${userId}&contractId=${realContractId}&questionnaireId=${questionnaireId}`;
 
     // 5. Configure Nodemailer Transporter

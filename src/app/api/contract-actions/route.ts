@@ -80,14 +80,16 @@ export async function POST(req: NextRequest) {
 
       const { data: config } = await supabase
         .from('AppConfig')
-        .select('Email_User, Email_Pass, Company_Name, Email_Settings')
+        .select('Email_User, Email_Pass, Company_Name, Email_Settings, Custom_Domain')
         .eq('user_id', userId)
         .single();
 
+      let customDomain = null;
       if (config) {
         if (config.Email_User) emailUser = config.Email_User;
         if (config.Email_Pass) emailPass = config.Email_Pass;
         if (config.Company_Name) companyName = config.Company_Name;
+        if (config.Custom_Domain) customDomain = config.Custom_Domain;
         try { emailSettings = JSON.parse(config.Email_Settings || '{}'); } catch { emailSettings = {}; }
       }
 
@@ -125,9 +127,11 @@ export async function POST(req: NextRequest) {
       const signToken = randomUUID();
       const host = req.headers.get('host') || '';
       const protocol = host.includes('localhost') ? 'http' : 'https';
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-        || `${protocol}://${host}`;
+      const baseUrl = customDomain 
+        ? `https://${customDomain}`
+        : process.env.NEXT_PUBLIC_BASE_URL 
+          || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) 
+          || `${protocol}://${host}`;
 
       // Auto-save contract to Finance Contracts table with sign token BEFORE generating signUrl
       let actualContractId = null;
@@ -332,19 +336,20 @@ export async function POST(req: NextRequest) {
       let emailUser: string | null = process.env.EMAIL_USER || null;
       let emailPass: string | null = process.env.EMAIL_PASS || null;
       let companyName = 'Clover';
+      let customDomain = null;
       let emailSettings: any = {};
 
       const { data: config } = await supabase
         .from('AppConfig')
-        .select('Email_User, Email_Pass, Company_Name, Email_Settings')
-        .eq('user_id', userId)
+        .select('Email_User, Email_Pass, Company_Name, Custom_Domain')
+        .eq('user_id', contract.user_id)
         .single();
 
       if (config) {
         if (config.Email_User) emailUser = config.Email_User;
         if (config.Email_Pass) emailPass = config.Email_Pass;
         if (config.Company_Name) companyName = config.Company_Name;
-        try { emailSettings = JSON.parse(config.Email_Settings || '{}'); } catch { emailSettings = {}; }
+        if (config.Custom_Domain) customDomain = config.Custom_Domain;
       }
 
       if (!emailUser || !emailPass) {
@@ -363,9 +368,11 @@ export async function POST(req: NextRequest) {
 
       const host = req.headers.get('host') || '';
       const protocol = host.includes('localhost') ? 'http' : 'https';
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-        || `${protocol}://${host}`;
+      const baseUrl = customDomain 
+        ? `https://${customDomain}`
+        : process.env.NEXT_PUBLIC_BASE_URL 
+          || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) 
+          || `${protocol}://${host}`;
       const signUrl = `${baseUrl}/sign/${signToken}`;
 
       const signatureRowsHtml = signersArr.map((s: any) => {

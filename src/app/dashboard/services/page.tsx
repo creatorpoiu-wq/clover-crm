@@ -72,6 +72,7 @@ export default function ServicesPage() {
   const [panelTab, setPanelTab] = useState<'general' | 'availability' | 'packages' | 'bookings'>('general');
   const [copied, setCopied] = useState(false);
   const [businessSlug, setBusinessSlug] = useState<string>('');
+  const [customDomain, setCustomDomain] = useState<string>('');
   const [mainTab, setMainTab] = useState<'sessions' | 'packages'>('sessions');
 
   // Session form
@@ -98,8 +99,9 @@ export default function ServicesPage() {
     // Fetch settings to get business slug
     const settingsRes = await fetch('/api/settings');
     const settingsData = await settingsRes.json();
-    if (settingsData.success && settingsData.config?.businessSlug) {
-      setBusinessSlug(settingsData.config.businessSlug);
+    if (settingsData.success) {
+      if (settingsData.config?.businessSlug) setBusinessSlug(settingsData.config.businessSlug);
+      if (settingsData.config?.customDomain) setCustomDomain(settingsData.config.customDomain);
     }
 
     const res = await fetch('/api/sessions');
@@ -155,7 +157,8 @@ export default function ServicesPage() {
     return pkgs.sort((a, b) => b.Package_ID - a.Package_ID);
   }, [sessions]);
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const baseUrl = customDomain ? `https://${customDomain}` : baseOrigin;
 
   const copyLink = (slug: string) => {
     const finalBusinessSlug = businessSlug || 'unconfigured-business';
