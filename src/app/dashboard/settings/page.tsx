@@ -22,7 +22,11 @@ function SettingsInner() {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
-  const tabs = ["General", "Security", "Integrations"];
+  const tabs = ["General", "Security", "Integrations", "Domains"];
+  const [customDomain, setCustomDomain] = useState("");
+  const [domainStatus, setDomainStatus] = useState<any>(null);
+  const [savingDomain, setSavingDomain] = useState(false);
+  const [checkingDomain, setCheckingDomain] = useState(false);
   const [message, setMessage] = useState<{type: "success" | "error", text: string} | null>(null);
 
   // Account Security state
@@ -88,6 +92,10 @@ function SettingsInner() {
           setTwilioAuthToken(data.config.twilioAuthToken || "");
           setTwilioPhone(data.config.twilioPhone || "");
           setBusinessSlug(data.config.businessSlug || "");
+          if (data.config.customDomain) {
+            setCustomDomain(data.config.customDomain);
+            handleCheckDomain(data.config.customDomain);
+          }
         }
       })
       .finally(() => setLoading(false));
@@ -262,6 +270,74 @@ function SettingsInner() {
       setMessage({ type: "error", text: "An error occurred during SMS test." });
     } finally {
       setTestingSms(false);
+    }
+  };
+
+  const handleCheckDomain = async (domainToCheck: string) => {
+    setCheckingDomain(true);
+    try {
+      const res = await fetch(`/api/settings/domain?domain=${domainToCheck}`);
+      const data = await res.json();
+      if (data.success) {
+        setDomainStatus(data.status);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCheckingDomain(false);
+    }
+  };
+
+  const handleSaveDomain = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customDomain || !customDomain.includes('.')) {
+      setMessage({ type: "error", text: "Please enter a valid domain name." });
+      return;
+    }
+    setSavingDomain(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/settings/domain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: customDomain.toLowerCase().trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({ type: "success", text: "Domain added successfully! Please configure your DNS settings." });
+        handleCheckDomain(customDomain);
+      } else {
+        setMessage({ type: "error", text: data.error || "Failed to add domain." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "An error occurred." });
+    } finally {
+      setSavingDomain(false);
+    }
+  };
+
+  const handleRemoveDomain = async () => {
+    if (!confirm("Are you sure you want to remove this domain? Your clients will no longer be able to access the portal via this domain.")) return;
+    setSavingDomain(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/settings/domain", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: customDomain })
+      });
+      if (res.ok) {
+        setCustomDomain("");
+        setDomainStatus(null);
+        setMessage({ type: "success", text: "Domain removed successfully." });
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "Failed to remove domain." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "An error occurred." });
+    } finally {
+      setSavingDomain(false);
     }
   };
 
@@ -668,6 +744,85 @@ function SettingsInner() {
               </button>
             </div>
           </form>
+        </div>
+        )}
+      </div>
+
+        {/* Custom Domains */}
+        {activeTab === 'domains' && (
+        <div className="glass-panel" style={{ padding: "2rem", gridColumn: "1 / -1" }}>
+          <div className="flex items-center gap-2 section-header">
+            <h2>Custom Domain</h2>
+          </div>
+
+          <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "1.5rem" }}>
+            Map your own custom domain (e.g., <code>portal.yourbusiness.com</code>) to your CRM to white-label your public links.
+          </p>
+
+          <form onSubmit={handleSaveDomain} className="space-y-4 mb-6" style={{ maxWidth: 500 }}>
+            <div>
+              <label style={labelStyle}>Your Custom Domain</label>
+              <input type="text" style={inputStyle} value={customDomain}
+                onChange={e => setCustomDomain(e.target.value)} placeholder="portal.yourdomain.com" />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button type="submit" className="btn btn-primary" style={{ width: "auto" }} disabled={savingDomain}>
+                {savingDomain ? "Saving..." : "Add Domain"}
+              </button>
+              {customDomain && (
+                <button type="button" onClick={handleRemoveDomain} disabled={savingDomain} className="btn btn-outline" style={{ width: "auto", color: "var(--status-red-fg)", borderColor: "var(--status-red-fg)" }}>
+                  Remove Domain
+                </button>
+              )}
+            </div>
+          </form>
+
+          {customDomain && domainStatus && (
+            <div style={{ padding: "1.5rem", backgroundColor: "var(--muted-bg)", borderRadius: "0.5rem", border: "1px solid var(--border)" }}>
+              <div style={{ fontWeight: 800, marginBottom: "0.5rem" }}>DNS Configuration</div>
+              
+              {domainStatus.verified ? (
+                <div style={{ color: "var(--status-green-fg)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <CheckCircle2 size={16} /> Domain Verified and Active
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>
+                    Please configure your DNS settings to point to Vercel:
+                  </p>
+                  <table style={{ width: "100%", fontSize: "0.875rem", textAlign: "left", borderCollapse: "collapse", marginBottom: "1rem" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                        <th style={{ padding: "0.5rem" }}>Type</th>
+                        <th style={{ padding: "0.5rem" }}>Name</th>
+                        <th style={{ padding: "0.5rem" }}>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: "0.5rem" }}>CNAME</td>
+                        <td style={{ padding: "0.5rem" }}>{customDomain.split('.').slice(0, -2).join('.') || '@'}</td>
+                        <td style={{ padding: "0.5rem", fontFamily: "monospace" }}>cname.vercel-dns.com</td>
+                      </tr>
+                      {customDomain.split('.').length === 2 && (
+                        <tr>
+                          <td style={{ padding: "0.5rem" }}>A</td>
+                          <td style={{ padding: "0.5rem" }}>@</td>
+                          <td style={{ padding: "0.5rem", fontFamily: "monospace" }}>76.76.21.21</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <button onClick={() => handleCheckDomain(customDomain)} disabled={checkingDomain} className="btn btn-outline" style={{ width: "auto" }}>
+                      {checkingDomain ? "Checking..." : "Refresh Status"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
         </div>
         )}
 

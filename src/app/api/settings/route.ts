@@ -42,6 +42,7 @@ export async function GET() {
         twilioAuthToken: config.Twilio_Auth_Token || '',
         twilioPhone: config.Twilio_Phone_Number || '',
         businessSlug: config.Business_Slug || '',
+        customDomain: config.Custom_Domain || '',
       }
     });
   } catch (error: any) {
