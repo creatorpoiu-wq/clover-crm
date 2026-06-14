@@ -66,7 +66,10 @@ export default function FormsDashboard() {
   const [selectedFieldIdx, setSelectedFieldIdx] = useState<number | null>(null);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
-  const hostUrl = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
+  const [customDomain, setCustomDomain] = useState("");
+
+  const baseOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
+  const hostUrl = customDomain ? `https://${customDomain}` : baseOrigin;
 
   useEffect(() => {
     fetchForms();
@@ -75,10 +78,17 @@ export default function FormsDashboard() {
   const fetchForms = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/forms');
-      const data = await res.json();
+      const [fRes, sRes] = await Promise.all([
+        fetch('/api/forms'),
+        fetch('/api/settings')
+      ]);
+      const data = await fRes.json();
+      const sData = await sRes.json();
       if (data.success) {
         setForms(data.forms || []);
+      }
+      if (sData.success && sData.config?.customDomain) {
+        setCustomDomain(sData.config.customDomain);
       }
     } catch (e) {
       console.error(e);

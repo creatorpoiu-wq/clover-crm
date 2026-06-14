@@ -11,6 +11,7 @@ export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customDomain, setCustomDomain] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,16 +39,21 @@ export default function MeetingsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [mRes, cRes] = await Promise.all([
+      const [mRes, cRes, sRes] = await Promise.all([
         fetch('/api/meetings'),
-        fetch('/api/contacts')
+        fetch('/api/contacts'),
+        fetch('/api/settings')
       ]);
 
       const mData = await mRes.json();
       const cData = await cRes.json();
+      const sData = await sRes.json();
 
       if (mData.success) setMeetings(mData.meetings || []);
       if (cData.success) setContacts(cData.contacts || []);
+      if (sData.success && sData.config?.customDomain) {
+        setCustomDomain(sData.config.customDomain);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -164,7 +170,8 @@ export default function MeetingsPage() {
             className="btn btn-outline" 
             onClick={() => {
               if (userId) {
-                const link = `${window.location.origin}/schedule/${userId}`;
+                const baseUrl = customDomain ? `https://${customDomain}` : window.location.origin;
+                const link = `${baseUrl}/schedule/${userId}`;
                 navigator.clipboard.writeText(link);
                 alert("Booking link copied to clipboard!");
               } else {

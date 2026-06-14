@@ -65,6 +65,7 @@ export default function PortraitSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [customDomain, setCustomDomain] = useState("");
 
   // Input states for list additions
   const [newSessionType, setNewSessionType] = useState("");
@@ -72,7 +73,8 @@ export default function PortraitSettingsPage() {
   const [newPaymentMethod, setNewPaymentMethod] = useState("");
   const [newPackageFeature, setNewPackageFeature] = useState("");
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
+  const baseOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
+  const baseUrl = customDomain ? `https://${customDomain}` : baseOrigin;
   const publicLink = settings.userId ? `${baseUrl}/portrait?userId=${settings.userId}` : null;
 
   const copyLink = () => {
@@ -91,6 +93,10 @@ export default function PortraitSettingsPage() {
     fetch("/api/contract-templates")
       .then(r => r.json())
       .then(d => { if (d.success) setCTemplates(d.templates); });
+      
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(d => { if (d.success && d.config?.customDomain) setCustomDomain(d.config.customDomain); });
   }, []);
 
   const showToast = (msg: string, type: "success" | "error") => {
