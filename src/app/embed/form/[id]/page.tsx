@@ -32,11 +32,15 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
       .finally(() => setLoading(false));
   }, [resolvedParams.id]);
 
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const reportHeight = () => {
-      // Send height + bottom padding buffer to parent
-      const height = document.documentElement.scrollHeight || document.body.scrollHeight;
-      window.parent.postMessage({ type: 'crm-form-resize', id: resolvedParams.id, height: height + 40 }, '*');
+      if (containerRef.current) {
+        // Send actual container height to parent
+        const height = containerRef.current.offsetHeight;
+        window.parent.postMessage({ type: 'crm-form-resize', id: resolvedParams.id, height: height + 20 }, '*');
+      }
     };
     
     // Initial report and window resize
@@ -45,7 +49,9 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
     
     // Setup observer for dynamic height changes
     const observer = new MutationObserver(reportHeight);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+    if (containerRef.current) {
+      observer.observe(containerRef.current, { childList: true, subtree: true, attributes: true });
+    }
     
     return () => {
       window.removeEventListener('resize', reportHeight);
@@ -137,7 +143,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
           display: none;
         }
       `}</style>
-      <div style={{ padding: '2rem 1rem 1rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+      <div ref={containerRef} style={{ padding: '2rem 1rem 1rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
         {formConfig.description && <p style={{ color: '#64748b', marginBottom: '2rem', lineHeight: 1.5 }}>{formConfig.description}</p>}
       
       {error && <div style={{ padding: '1rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
