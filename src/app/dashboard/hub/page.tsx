@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, Mail, Send, RefreshCw, X, User, CheckCircle2, Trash2, Bot, Loader2 } from "lucide-react";
+import { MessageCircle, Mail, Send, RefreshCw, X, User, CheckCircle2, Trash2, Bot, Loader2, ArrowLeft } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 
 export default function HubPage() {
@@ -300,9 +300,9 @@ export default function HubPage() {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ display: "flex", flex: 1, overflow: "hidden", borderRadius: "12px", border: "1px solid var(--border)" }}>
+      <div className="glass-panel flex flex-col md:flex-row flex-1 overflow-hidden rounded-xl border border-[var(--border)]">
         {/* Left Pane - Inquiries List */}
-        <div style={{ width: "350px", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", backgroundColor: "var(--background)" }}>
+        <div className={`w-full md:w-[350px] border-b md:border-b-0 md:border-r border-[var(--border)] flex-col bg-[var(--background)] ${(selectedInquiry || selectedDraft) ? 'hidden md:flex' : 'flex'}`}>
           <div style={{ display: "flex", borderBottom: "1px solid var(--border)" }}>
             <button 
               onClick={() => { setViewTab('threads'); setSelectedInquiry(null); setSelectedDraft(null); }}
@@ -398,13 +398,16 @@ export default function HubPage() {
         </div>
 
         {/* Right Pane - Chat/Messages or Drafts */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", backgroundColor: "#fdfdfd" }}>
+        <div className={`flex-1 flex-col bg-[#fdfdfd] ${(selectedInquiry || selectedDraft) ? 'flex' : 'hidden md:flex'}`}>
           {viewTab === 'threads' ? (
             selectedInquiry ? (
               <>
                 {/* Header */}
                 <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#fff" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <button className="md:hidden p-2 -ml-2 text-slate-500" onClick={() => setSelectedInquiry(null)}>
+                      <ArrowLeft size={20} />
+                    </button>
                     <div style={{ width: 40, height: 40, borderRadius: "50%", backgroundColor: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>
                       {selectedInquiry.Contact_Name.charAt(0)}
                     </div>
@@ -496,9 +499,14 @@ export default function HubPage() {
           ) : (
             selectedDraft ? (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", backgroundColor: "#fff" }}>
-                  <h2 className="text-xl font-bold mb-1">Review AI Draft</h2>
-                  <p className="text-sm text-[var(--muted)] m-0">Drafted by {selectedDraft.Agents?.Name} ({selectedDraft.Agents?.Role}) for {selectedDraft.Inquiries?.Contact_Name}</p>
+                <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", backgroundColor: "#fff", display: "flex", alignItems: "center", gap: "12px" }}>
+                  <button className="md:hidden p-2 -ml-2 text-slate-500" onClick={() => setSelectedDraft(null)}>
+                    <ArrowLeft size={20} />
+                  </button>
+                  <div>
+                    <h2 className="text-xl font-bold mb-1">Review AI Draft</h2>
+                    <p className="text-sm text-[var(--muted)] m-0">Drafted by {selectedDraft.Agents?.Name} ({selectedDraft.Agents?.Role}) for {selectedDraft.Inquiries?.Contact_Name}</p>
+                  </div>
                 </div>
                 <div style={{ flex: 1, padding: "24px", overflowY: "auto", display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
