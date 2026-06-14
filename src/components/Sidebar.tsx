@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { 
   LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, 
   MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle, PieChart, 
-  Clock, ChevronDown, ChevronUp, Users, PenTool, LayoutTemplate, HelpCircle, User
+  Clock, ChevronDown, ChevronUp, Users, PenTool, LayoutTemplate, HelpCircle, User, X
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -192,7 +192,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
-      <div className="sidebar-header" style={{ padding: '24px 20px' }}>
+      <div className="sidebar-header" style={{ padding: '24px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {businessLogo ? (
           <div style={{ display: 'flex', alignItems: 'center', height: '32px' }}>
             <img src={businessLogo} alt={companyName} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
@@ -202,6 +202,9 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             {companyName.toLowerCase()}<span style={{ color: '#4da685' }}>.</span>
           </h1>
         )}
+        <button onClick={onClose} className="lg:hidden p-1 text-[var(--muted)] hover:text-[var(--foreground)] bg-transparent border-none cursor-pointer flex items-center justify-center">
+          <X size={24} />
+        </button>
       </div>
 
       <nav className="sidebar-nav" style={{ padding: '0 12px 24px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
