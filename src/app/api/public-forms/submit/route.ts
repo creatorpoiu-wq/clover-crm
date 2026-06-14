@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing formId or formData' }, { status: 400 });
     }
 
+    // Strip internal fields like _style_config from the submission data
+    for (const key in formData) {
+      if (key.startsWith('_')) {
+        delete formData[key];
+      }
+    }
+
     // 1. Fetch form to get user_id, title, and fields array
     const { data: form, error: formError } = await supabase
       .from('Forms')
