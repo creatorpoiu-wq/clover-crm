@@ -137,7 +137,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
           display: none;
         }
       `}</style>
-      <div style={{ padding: '2rem 1rem 6rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ padding: '2rem 1rem 1rem 1rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
         {formConfig.description && <p style={{ color: '#64748b', marginBottom: '2rem', lineHeight: 1.5 }}>{formConfig.description}</p>}
       
       {error && <div style={{ padding: '1rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
@@ -176,7 +176,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   required={field.required}
                   value={formData[field.id] || ''}
                   onChange={e => handleFieldChange(field.id, e.target.value)}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
+                  style={{ width: '100%', padding: '0.75rem', minHeight: '3rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
                 >
                   <option value="" disabled>Select an option...</option>
                   {(field.options || []).map((opt: string) => (
@@ -230,7 +230,7 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
                   onChange={e => handleFieldChange(field.id, e.target.value)}
                   pattern={field.type === 'phone' ? '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$' : undefined}
                   title={field.type === 'phone' ? 'Please enter a valid phone number' : undefined}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
+                  style={{ width: '100%', padding: '0.75rem', minHeight: '3rem', borderRadius: styleConfig.fieldBorderRadius, border: '1px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', backgroundColor: styleConfig.inputBgColor, color: styleConfig.inputTextColor }}
                 />
               )}
 
