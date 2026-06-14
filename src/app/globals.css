@@ -558,6 +558,12 @@ textarea::placeholder {
   z-index: 40;
 }
 
+@media (min-width: 1025px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
 .mobile-menu-btn {
   display: none;
   position: fixed;

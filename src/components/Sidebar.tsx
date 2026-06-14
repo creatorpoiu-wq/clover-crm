@@ -202,7 +202,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             {companyName.toLowerCase()}<span style={{ color: '#4da685' }}>.</span>
           </h1>
         )}
-        <button onClick={onClose} className="lg:hidden p-1 text-[var(--muted)] hover:text-[var(--foreground)] bg-transparent border-none cursor-pointer flex items-center justify-center">
+        <button onClick={onClose} className="mobile-only p-1 text-[var(--muted)] hover:text-[var(--foreground)] bg-transparent border-none cursor-pointer flex items-center justify-center">
           <X size={24} />
         </button>
       </div>
