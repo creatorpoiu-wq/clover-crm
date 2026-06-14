@@ -777,11 +777,11 @@ function SettingsInner() {
             </div>
           </form>
 
-          {customDomain && domainStatus && (
+          {customDomain && (
             <div style={{ padding: "1.5rem", backgroundColor: "var(--muted-bg)", borderRadius: "0.5rem", border: "1px solid var(--border)" }}>
               <div style={{ fontWeight: 800, marginBottom: "0.5rem" }}>DNS Configuration</div>
               
-              {domainStatus.verified ? (
+              {domainStatus?.verified ? (
                 <div style={{ color: "var(--status-green-fg)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <CheckCircle2 size={16} /> Domain Verified and Active
                 </div>
