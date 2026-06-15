@@ -130,8 +130,7 @@ export async function POST(req: NextRequest) {
           Event_Date: eventDate,
           Estimated_Value: totalAmount,
           Pipeline_Stage: 'Contract Signed',
-          Questionnaire_Data: questionnaire,
-          Package_ID: pkg?.Package_ID || pkg?.id || null
+          Questionnaire_Data: questionnaire
         })
         .select()
         .single();
