@@ -191,10 +191,11 @@ export default function ServicesPage() {
 
   // ── SESSION CRUD ─────────────────────────────────────────
   const openNewSession = (serviceType: string) => {
+    const finalServiceType = serviceType || (mainTab === 'weddings' ? WEDDING_SERVICE_TYPES[0] : SERVICE_TYPES[0]);
     setSessionForm({ 
       ...defaultSessionForm, 
-      serviceType,
-      sessionType: mainTab === 'weddings' ? serviceType : '',
+      serviceType: finalServiceType,
+      sessionType: mainTab === 'weddings' ? finalServiceType : '',
       slugDirty: false
     });
     setShowSessionForm(true);
