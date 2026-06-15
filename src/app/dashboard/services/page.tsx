@@ -160,9 +160,13 @@ export default function ServicesPage() {
   const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   const baseUrl = customDomain ? `https://${customDomain}` : baseOrigin;
 
+  const getBookingUrl = (slug: string) => {
+    if (customDomain) return `https://${customDomain}/book/${slug}`;
+    return `${baseOrigin}/book/${businessSlug || 'unconfigured-business'}/${slug}`;
+  };
+
   const copyLink = (slug: string) => {
-    const finalBusinessSlug = businessSlug || 'unconfigured-business';
-    navigator.clipboard.writeText(`${baseUrl}/book/${finalBusinessSlug}/${slug}`);
+    navigator.clipboard.writeText(getBookingUrl(slug));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -558,7 +562,7 @@ export default function ServicesPage() {
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               {activePanel.Slug && (
-                <a href={`/book/${businessSlug || 'unconfigured-business'}/${activePanel.Slug}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
+                <a href={getBookingUrl(activePanel.Slug)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
                   <Link size={13} /> View Page
                 </a>
               )}
@@ -594,7 +598,7 @@ export default function ServicesPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.8rem', backgroundColor: '#f8fafc', borderRadius: '0.4rem', border: '1px solid #e2e8f0' }}>
                     <Globe size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
                     <span style={{ fontSize: '0.82rem', color: '#475569', flex: 1, wordBreak: 'break-all' }}>
-                      {baseUrl}/book/{businessSlug || 'unconfigured-business'}/{activePanel.Slug || '(no slug set)'}
+                      {activePanel.Slug ? getBookingUrl(activePanel.Slug) : `${baseUrl}/book/...`}
                     </span>
                     {activePanel.Slug && (
                       <button onClick={() => copyLink(activePanel.Slug)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', flexShrink: 0 }}>
@@ -814,7 +818,9 @@ export default function ServicesPage() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Booking URL Slug *</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.875rem', backgroundColor: '#f8fafc' }}>
-                    <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>/book/{businessSlug || 'unconfigured-business'}/</span>
+                    <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                      {getBookingUrl('')}
+                    </span>
                     <input value={sessionForm.slug} onChange={e => setSessionForm(p => ({ ...p, slugDirty: true, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }))} style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, fontSize: '0.875rem' }} placeholder="portrait-session" required />
                   </div>
                 </div>

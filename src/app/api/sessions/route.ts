@@ -14,7 +14,38 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get('slug');
     const businessSlug = searchParams.get('businessSlug');
+    const customDomain = searchParams.get('customDomain');
     const publicUserId = searchParams.get('userId');
+
+    // Public fetch by customDomain and slug
+    if (slug && customDomain) {
+      const supabase = getServiceClient();
+      
+      const { data: configData, error: configError } = await supabase
+        .from('AppConfig')
+        .select('user_id')
+        .eq('Custom_Domain', customDomain)
+        .limit(1);
+
+      if (configError || !configData || configData.length === 0) {
+        return NextResponse.json({ success: false, error: 'Business not found for domain' }, { status: 404 });
+      }
+      
+      const targetUserId = configData[0].user_id;
+
+      const { data, error } = await supabase
+        .from('Sessions')
+        .select('*, Session_Time_Slots(*), Packages(*)')
+        .eq('Slug', slug)
+        .eq('user_id', targetUserId)
+        .eq('Is_Public', true)
+        .limit(1);
+
+      if (error) return NextResponse.json({ success: false, error: error.message }, { status: 404 });
+      if (!data || data.length === 0) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+      
+      return NextResponse.json({ success: true, session: data[0] });
+    }
 
     // Public fetch by businessSlug and slug (for booking page)
     if (slug && businessSlug) {
