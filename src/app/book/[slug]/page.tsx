@@ -250,6 +250,54 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     return html;
   };
 
+  const parseDurationHours = (durationStr: string) => {
+    if (!durationStr) return 0;
+    const match = durationStr.match(/([\d.]+)/);
+    if (match) return parseFloat(match[1]);
+    return 0;
+  };
+
+  const getEndTime = (startTime: string, durationHours: number, formatted = true) => {
+    if (!startTime) return '';
+    let hStr = '0', mStr = '0';
+    if (startTime.includes(':') && startTime.includes(' ')) {
+      const [time, period] = startTime.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (period === 'PM' && h !== 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      hStr = h.toString(); mStr = m.toString();
+    } else {
+      [hStr, mStr] = startTime.split(':');
+    }
+    
+    let h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+    const totalMinutes = h * 60 + m + durationHours * 60;
+    const newH = Math.floor(totalMinutes / 60);
+    const newM = totalMinutes % 60;
+    
+    if (!formatted) {
+      return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}:00`;
+    }
+
+    const period = newH >= 12 && newH < 24 ? 'PM' : 'AM';
+    const displayH = newH % 12 === 0 ? 12 : newH % 12;
+    const displayM = newM.toString().padStart(2, '0');
+    return `${displayH}:${displayM} ${period}`;
+  };
+
+  const getStartTimeFormatted = (startTime: string) => {
+    if (!startTime) return '';
+    if (startTime.includes(' ')) return startTime; // already formatted
+    const [hStr, mStr] = startTime.split(':');
+    const h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+    const period = h >= 12 && h < 24 ? 'PM' : 'AM';
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    const displayM = m.toString().padStart(2, '0');
+    return `${displayH}:${displayM} ${period}`;
+  };
+
   const year = calMonth.getFullYear();
   const month = calMonth.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
