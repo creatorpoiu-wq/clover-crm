@@ -5,6 +5,8 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { data: rawEvents, error: eventsError } = await supabase
       .from('Inquiries')
       .select(`
@@ -19,13 +21,58 @@ export async function GET() {
 
     if (eventsError) throw eventsError;
 
-    const events = (rawEvents || []).map((ev: any) => ({
+    const events: any[] = (rawEvents || []).map((ev: any) => ({
       Inquiry_ID: ev.Inquiry_ID,
-      Contact_Name: ev.Contacts?.Name,
+      Contact_Name: ev.Contacts?.Name || 'Unknown Contact',
       Event_Date: ev.Event_Date,
       Pipeline_Stage: ev.Pipeline_Stage,
-      Service_Type: ev.Service_Type
+      Service_Type: ev.Service_Type,
+      Event_Type: 'Inquiry'
     }));
+
+    // Fetch Meetings
+    if (user) {
+      const { data: rawMeetings, error: meetingsError } = await supabase
+        .from('Meetings')
+        .select('Meeting_ID, Title, Start_Time, Contacts(Name)')
+        .eq('user_id', user.id);
+      
+      if (!meetingsError && rawMeetings) {
+        rawMeetings.forEach((m: any) => {
+          if (m.Start_Time) {
+            events.push({
+              Inquiry_ID: m.Meeting_ID,
+              Contact_Name: m.Contacts?.Name || 'Meeting',
+              Event_Date: m.Start_Time.split('T')[0],
+              Pipeline_Stage: 'Meeting',
+              Service_Type: m.Title,
+              Event_Type: 'Meeting'
+            });
+          }
+        });
+      }
+
+      // Fetch Session Bookings
+      const { data: rawBookings, error: bookingsError } = await supabase
+        .from('Session_Bookings')
+        .select('Booking_ID, Booked_Date, Client_Name, Sessions(Session_Type)')
+        .eq('user_id', user.id);
+      
+      if (!bookingsError && rawBookings) {
+        rawBookings.forEach((b: any) => {
+          if (b.Booked_Date) {
+            events.push({
+              Inquiry_ID: b.Booking_ID,
+              Contact_Name: b.Client_Name || 'Client',
+              Event_Date: b.Booked_Date.split('T')[0],
+              Pipeline_Stage: 'Session Booking',
+              Service_Type: b.Sessions?.Session_Type || 'Session',
+              Event_Type: 'SessionBooking'
+            });
+          }
+        });
+      }
+    }
 
     const { data: rawReminders, error: remindersError } = await supabase
       .from('Reminders')

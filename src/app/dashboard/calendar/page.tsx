@@ -13,6 +13,7 @@ interface EventData {
   Event_Date: string;
   Pipeline_Stage: string;
   Service_Type: string;
+  Event_Type?: string;
 }
 
 interface ReminderData {
@@ -154,6 +155,8 @@ export default function CalendarPage() {
 
   const getEventColors = (stage: string) => {
     if (stage === "Booked") return { bg: "#e0e7ff", text: "#4338ca", border: "transparent" };
+    if (stage === "Meeting") return { bg: "#fef3c7", text: "#b45309", border: "transparent" }; // amber
+    if (stage === "Session Booking") return { bg: "#dbeafe", text: "#1d4ed8", border: "transparent" }; // blue
     if (stage === "Proposal Drafted" || stage === "Proposal Sent") return { bg: "#fce7f3", text: "#be185d", border: "transparent" };
     if (stage === "Negotiation/Revision") return { bg: "#f3e8ff", text: "#6b21a8", border: "transparent" };
     if (stage === "New Inquiry" || stage === "Discovery/Consultation") return { bg: "#ccfbf1", text: "#0f766e", border: "transparent" };
@@ -246,7 +249,7 @@ export default function CalendarPage() {
 
           {/* Render Normal Events */}
           {dayEvents.map((ev, idx) => {
-            const colors = getEventColors(ev.Pipeline_Stage);
+            const colors = getEventColors(ev.Pipeline_Stage, ev.Event_Type);
             return (
               <div 
                 key={idx} 
@@ -259,26 +262,28 @@ export default function CalendarPage() {
                 }}
               >
                 <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ev.Contact_Name}</span>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); handleDeleteEvent(ev.Inquiry_ID); }}
-                  style={{ 
-                    background: confirmDeleteId === ev.Inquiry_ID ? "#dc2626" : "none", 
-                    border: "none", 
-                    color: confirmDeleteId === ev.Inquiry_ID ? "#fff" : colors.text, 
-                    cursor: "pointer", 
-                    opacity: confirmDeleteId === ev.Inquiry_ID ? 1 : 0.7, 
-                    padding: confirmDeleteId === ev.Inquiry_ID ? "2px 4px" : 0, 
-                    borderRadius: "4px",
-                    display: "flex",
-                    fontSize: "0.7rem",
-                    fontWeight: 700
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.opacity = "1"}
-                  onMouseOut={(e) => e.currentTarget.style.opacity = confirmDeleteId === ev.Inquiry_ID ? "1" : "0.7"}
-                  title="Remove from Calendar"
-                >
-                  {confirmDeleteId === ev.Inquiry_ID ? "Confirm?" : <Trash2 size={12} />}
-                </button>
+                {(!ev.Event_Type || ev.Event_Type === 'Inquiry') && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDeleteEvent(ev.Inquiry_ID); }}
+                    style={{ 
+                      background: confirmDeleteId === ev.Inquiry_ID ? "#dc2626" : "none", 
+                      border: "none", 
+                      color: confirmDeleteId === ev.Inquiry_ID ? "#fff" : colors.text, 
+                      cursor: "pointer", 
+                      opacity: confirmDeleteId === ev.Inquiry_ID ? 1 : 0.7, 
+                      padding: confirmDeleteId === ev.Inquiry_ID ? "2px 4px" : 0, 
+                      borderRadius: "4px",
+                      display: "flex",
+                      fontSize: "0.7rem",
+                      fontWeight: 700
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.opacity = "1"}
+                    onMouseOut={(e) => e.currentTarget.style.opacity = confirmDeleteId === ev.Inquiry_ID ? "1" : "0.7"}
+                    title="Remove from Calendar"
+                  >
+                    {confirmDeleteId === ev.Inquiry_ID ? "Confirm?" : <Trash2 size={12} />}
+                  </button>
+                )}
               </div>
             );
           })}
