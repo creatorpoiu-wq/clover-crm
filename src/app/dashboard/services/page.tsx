@@ -921,9 +921,7 @@ export default function ServicesPage() {
                         />
                       ) : null}
                       
-                      {(!mainTab || mainTab !== 'weddings' || sessionForm.serviceType === 'Wedding Photo' || sessionForm.serviceType === 'Wedding Content Creation') && (
-                        <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', fontSize: '0.875rem', marginTop: mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Content Creation' ? '0.5rem' : '0' }} />
-                      )}
+                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', fontSize: '0.875rem', marginTop: mainTab === 'weddings' && (sessionForm.serviceType === 'Wedding Content Creation' || sessionForm.serviceType === 'Wedding Video') ? '0.5rem' : '0' }} />
                       
                       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: '#94a3b8' }}>
                         {mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Video' ? 'Required ratio 16:9.' : 
