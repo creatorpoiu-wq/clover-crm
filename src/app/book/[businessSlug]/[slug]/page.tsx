@@ -108,6 +108,9 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
       .then(d => {
         if (d.success && d.session) {
           setSession(d.session);
+          if (d.session.Service_Type?.toLowerCase().includes('wedding') && d.session.Packages && d.session.Packages.length > 0) {
+            setStep('packages');
+          }
           fetch(`/api/availability?userId=${d.session.user_id}`)
             .then(r => r.json())
             .then(av => { if (av.success) setBlockedDates(av.blockedDates || []); });
@@ -139,6 +142,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     return () => { if (sigPadRef.current) sigPadRef.current.off(); };
   }, [showSigPad]);
 
+  const isWedding = session?.Service_Type?.toLowerCase().includes('wedding') || session?.Session_Type?.toLowerCase().includes('wedding');
+
   const isDayAvailable = (date: Date) => {
     const dayOfWeek = date.getDay();
     const dateStr = date.toISOString().split('T')[0];
@@ -147,6 +152,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     if (date < today) return false;
     if (blockedDates.includes(dateStr)) return false;
     if (!session) return false;
+    if (isWedding) return true;
     return (session.Session_Time_Slots || []).some(s => s.Day_Of_Week === dayOfWeek);
   };
 
@@ -157,25 +163,39 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   };
 
   const proceedFromDetails = () => {
-    if (session?.Packages && session.Packages.length > 0) {
-      setStep('packages');
-    } else if (session?.Contract_Template) {
-      setStep('contract');
-    } else if (session?.Price && session.Price > 0) {
-      setStep('payment');
+    if (isWedding) {
+      if (session?.Contract_Template) {
+        setStep('contract');
+      } else if ((selectedPackage?.Price || 0) > 0 || (session?.Price && session.Price > 0)) {
+        setStep('payment');
+      } else {
+        handleSubmit();
+      }
     } else {
-      handleSubmit(); // Direct submit if free and no contract
+      if (session?.Packages && session.Packages.length > 0) {
+        setStep('packages');
+      } else if (session?.Contract_Template) {
+        setStep('contract');
+      } else if (session?.Price && session.Price > 0) {
+        setStep('payment');
+      } else {
+        handleSubmit();
+      }
     }
   };
 
   const proceedFromPackages = () => {
     if (!selectedPackage) return;
-    if (session?.Contract_Template) {
-      setStep('contract');
-    } else if (selectedPackage.Price > 0 || (session?.Price && session.Price > 0)) {
-      setStep('payment');
+    if (isWedding) {
+      setStep('datetime');
     } else {
-      handleSubmit();
+      if (session?.Contract_Template) {
+        setStep('contract');
+      } else if (selectedPackage.Price > 0 || (session?.Price && session.Price > 0)) {
+        setStep('payment');
+      } else {
+        handleSubmit();
+      }
     }
   };
 
@@ -214,7 +234,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         packageId: selectedPackage ? selectedPackage.Package_ID : null,
         contractHtml: session.Contract_Template ? getProcessedContractHtml() : null,
         signature: signature || null,
-        amountPaid: priceToPay
+        amountPaid: priceToPay,
+        endTime: isWedding && selectedPackage ? getEndTime(selectedTime, parseDurationHours(selectedPackage.Duration), false) : null
       })
     });
     
@@ -235,10 +256,60 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     
     html = html.replace(/\[CLIENT_NAME\]/g, form.name || '[Client Name]');
     html = html.replace(/\[DATE\]/g, selectedDate ? formatDisplayDate(selectedDate) : '[Date]');
-    html = html.replace(/\[TIME\]/g, selectedTime || '[Time]');
+    html = html.replace(/\[TIME\]/g, isWedding && selectedTime ? getStartTimeFormatted(selectedTime) : (selectedTime || '[Time]'));
     html = html.replace(/\[PACKAGE_NAME\]/g, pkgName);
     html = html.replace(/\[PRICE\]/g, `$${priceToPay.toFixed(2)}`);
     return html;
+  };
+
+  const parseDurationHours = (durationStr: string) => {
+    if (!durationStr) return 0;
+    const match = durationStr.match(/([\d.]+)/);
+    if (match) return parseFloat(match[1]);
+    return 0;
+  };
+
+  const getEndTime = (startTime: string, durationHours: number, formatted = true) => {
+    if (!startTime) return '';
+    let hStr = '0', mStr = '0';
+    if (startTime.includes(':') && startTime.includes(' ')) {
+      // standard 12-hour
+      const [time, period] = startTime.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (period === 'PM' && h !== 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      hStr = h.toString(); mStr = m.toString();
+    } else {
+      // 24-hour input type="time"
+      [hStr, mStr] = startTime.split(':');
+    }
+    
+    let h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+    const totalMinutes = h * 60 + m + durationHours * 60;
+    const newH = Math.floor(totalMinutes / 60);
+    const newM = totalMinutes % 60;
+    
+    if (!formatted) {
+      return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}:00`;
+    }
+
+    const period = newH >= 12 && newH < 24 ? 'PM' : 'AM';
+    const displayH = newH % 12 === 0 ? 12 : newH % 12;
+    const displayM = newM.toString().padStart(2, '0');
+    return `${displayH}:${displayM} ${period}`;
+  };
+
+  const getStartTimeFormatted = (startTime: string) => {
+    if (!startTime) return '';
+    if (startTime.includes(' ')) return startTime; // already formatted
+    const [hStr, mStr] = startTime.split(':');
+    const h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+    const period = h >= 12 && h < 24 ? 'PM' : 'AM';
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    const displayM = m.toString().padStart(2, '0');
+    return `${displayH}:${displayM} ${period}`;
   };
 
   const year = calMonth.getFullYear();
@@ -273,19 +344,27 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
           {session.Cover_Image && (
             <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '4px solid white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-              <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {session.Cover_Image.match(/\.(mp4|webm|ogg)$/i) ? (
+                <video src={session.Cover_Image} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
             </div>
           )}
           <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{session.Session_Type}</h1>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>{session.Duration_Minutes} Minutes {session.Location ? `· ${session.Location}` : ''}</p>
+          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
+            {!isWedding && `${session.Duration_Minutes} Minutes `}
+            {session.Location ? (!isWedding ? `· ${session.Location}` : session.Location) : ''}
+          </p>
           {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
         </div>
 
         {/* ── STEP 1: Date & Time ── */}
         {step === 'datetime' && (
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>Select Date & Time</h2>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {isWedding && <button onClick={() => setStep('packages')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>}
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Select Date & Time</h3>
             </div>
             
             <div style={{ display: 'flex', flexDirection: typeof window !== 'undefined' && window.innerWidth > 600 ? 'row' : 'column' }}>
@@ -340,7 +419,27 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                 {selectedDate ? (
                   <>
                     <h3 style={{ margin: '0 0 1rem', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{formatDisplayDate(selectedDate)}</h3>
-                    {availableTimesForSelected.length > 0 ? (
+                    {isWedding ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>Start Time</label>
+                          <input 
+                            type="time" 
+                            value={selectedTime || ''} 
+                            onChange={(e) => setSelectedTime(e.target.value)} 
+                            style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none' }}
+                          />
+                        </div>
+                        {selectedTime && selectedPackage && (
+                          <div style={{ backgroundColor: '#e0e7ff', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #c7d2fe' }}>
+                            <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: '#4338ca', fontWeight: 600 }}>Booking Duration</p>
+                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#3730a3' }}>
+                              Your package includes {selectedPackage.Duration}. Your event will be scheduled from <strong>{getStartTimeFormatted(selectedTime)}</strong> to <strong>{getEndTime(selectedTime, parseDurationHours(selectedPackage.Duration))}</strong>.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : availableTimesForSelected.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '280px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                         {availableTimesForSelected.map(time => (
                           <button
@@ -442,7 +541,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         {step === 'packages' && (
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <button onClick={() => setStep('details')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
+              {!isWedding && <button onClick={() => setStep('details')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>}
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Select a Package</h3>
             </div>
             
@@ -493,7 +592,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <button onClick={() => {
-                if (session.Packages && session.Packages.length > 0) setStep('packages');
+                if (isWedding) setStep('details');
+                else if (session.Packages && session.Packages.length > 0) setStep('packages');
                 else setStep('details');
               }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Digital Contract</h3>

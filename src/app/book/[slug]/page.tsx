@@ -140,6 +140,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     return () => { if (sigPadRef.current) sigPadRef.current.off(); };
   }, [showSigPad]);
 
+  const isWedding = session?.Service_Type?.toLowerCase().includes('wedding') || session?.Session_Type?.toLowerCase().includes('wedding');
+
   const isDayAvailable = (date: Date) => {
     const dayOfWeek = date.getDay();
     const dateStr = date.toISOString().split('T')[0];
@@ -148,6 +150,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     if (date < today) return false;
     if (blockedDates.includes(dateStr)) return false;
     if (!session) return false;
+    if (isWedding) return true;
     if (session.Duration_Minutes === 0) return true;
     return (session.Session_Time_Slots || []).some(s => s.Day_Of_Week === dayOfWeek);
   };
@@ -279,19 +282,27 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
         <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
           {session.Cover_Image && (
             <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '4px solid white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-              <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {session.Cover_Image.match(/\.(mp4|webm|ogg)$/i) ? (
+                <video src={session.Cover_Image} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
             </div>
           )}
           <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{session.Session_Type}</h1>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>{session.Duration_Minutes === 0 ? 'Full Day / Event Only' : `${session.Duration_Minutes} Minutes`} {session.Location ? `· ${session.Location}` : ''}</p>
+          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
+            {!isWedding && `${session.Duration_Minutes} Minutes `}
+            {session.Location ? (!isWedding ? `· ${session.Location}` : session.Location) : ''}
+          </p>
           {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
         </div>
 
         {/* ── STEP 1: Date & Time ── */}
         {step === 'datetime' && (
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>Select Date & Time</h2>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {isWedding && <button onClick={() => setStep('packages')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>}
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Select Date & Time</h3>
             </div>
             
             <div style={{ display: 'flex', flexDirection: typeof window !== 'undefined' && window.innerWidth > 600 ? 'row' : 'column' }}>
@@ -346,7 +357,27 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                 {selectedDate ? (
                   <>
                     <h3 style={{ margin: '0 0 1rem', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{formatDisplayDate(selectedDate)}</h3>
-                    {session?.Duration_Minutes === 0 ? (
+                    {isWedding ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>Start Time</label>
+                          <input 
+                            type="time" 
+                            value={selectedTime || ''} 
+                            onChange={(e) => setSelectedTime(e.target.value)} 
+                            style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none' }}
+                          />
+                        </div>
+                        {selectedTime && selectedPackage && (
+                          <div style={{ backgroundColor: '#e0e7ff', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #c7d2fe' }}>
+                            <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: '#4338ca', fontWeight: 600 }}>Booking Duration</p>
+                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#3730a3' }}>
+                              Your package includes {selectedPackage.Duration}. Your event will be scheduled from <strong>{getStartTimeFormatted(selectedTime)}</strong> to <strong>{getEndTime(selectedTime, parseDurationHours(selectedPackage.Duration))}</strong>.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : session?.Duration_Minutes === 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#0f172a', textAlign: 'center', gap: '0.5rem', backgroundColor: '#f1f5f9', padding: '1rem', borderRadius: '0.5rem' }}>
                         <CheckCircle size={32} style={{ color: '#0ea5e9' }} />
                         <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Date Selected</p>
@@ -454,7 +485,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
         {step === 'packages' && (
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <button onClick={() => setStep('details')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
+              {!isWedding && <button onClick={() => setStep('details')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>}
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Select a Package</h3>
             </div>
             
@@ -505,7 +536,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <button onClick={() => {
-                if (session.Packages && session.Packages.length > 0) setStep('packages');
+                if (isWedding) setStep('details');
+                else if (session.Packages && session.Packages.length > 0) setStep('packages');
                 else setStep('details');
               }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Digital Contract</h3>

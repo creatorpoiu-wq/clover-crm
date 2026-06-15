@@ -147,7 +147,7 @@ export default function ServicesPage() {
 
   const visibleSessions = useMemo(() => {
     return sessions.filter(s => {
-      const isWedding = s.Service_Type?.toLowerCase().includes('wedding');
+      const isWedding = s.Service_Type?.toLowerCase().includes('wedding') || s.Session_Type?.toLowerCase().includes('wedding');
       if (mainTab === 'weddings') return isWedding;
       if (mainTab === 'sessions') return !isWedding;
       return true;

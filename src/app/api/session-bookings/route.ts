@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { sessionId, userId, clientName, clientEmail, clientPhone, bookedDate, bookedTime, notes, packageId, contractHtml, signature, amountPaid } = body;
+    const { sessionId, userId, clientName, clientEmail, clientPhone, bookedDate, bookedTime, notes, packageId, contractHtml, signature, amountPaid, endTime } = body;
 
     if (!sessionId || !userId || !clientName || !clientEmail || !bookedDate || !bookedTime) {
       return NextResponse.json({ success: false, error: 'Missing required fields.' }, { status: 400 });
@@ -50,28 +50,53 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceSupabase();
 
+    const insertData: any = {
+      user_id: userId,
+      Session_ID: sessionId,
+      Client_Name: clientName,
+      Client_Email: clientEmail,
+      Client_Phone: clientPhone || '',
+      Booked_Date: bookedDate,
+      Booked_Time: bookedTime,
+      Notes: notes || '',
+      Package_ID: packageId || null,
+      Contract_HTML: contractHtml || null,
+      Signature: signature || null,
+      Amount_Paid: amountPaid || 0,
+      Status: 'Pending'
+    };
+    if (endTime) insertData['End_Time'] = endTime;
+
     // Insert booking
     const { data: booking, error: bookingError } = await supabase
       .from('Session_Bookings')
-      .insert({
-        user_id: userId,
-        Session_ID: sessionId,
-        Client_Name: clientName,
-        Client_Email: clientEmail,
-        Client_Phone: clientPhone || '',
-        Booked_Date: bookedDate,
-        Booked_Time: bookedTime,
-        Notes: notes || '',
-        Package_ID: packageId || null,
-        Contract_HTML: contractHtml || null,
-        Signature: signature || null,
-        Amount_Paid: amountPaid || 0,
-        Status: 'Pending'
-      })
+      .insert(insertData)
       .select('*, Sessions(Session_Type, Service_Type)')
       .single();
 
-    if (bookingError) throw bookingError;
+    if (bookingError) {
+      console.error("Session Booking Insert Error:", bookingError);
+      throw bookingError;
+    }
+
+    // Auto-block the calendar for this time slot
+    if (endTime) {
+      let formattedStartTime = bookedTime;
+      if (formattedStartTime && formattedStartTime.length <= 5) {
+        formattedStartTime += ":00";
+      }
+      const { error: blockError } = await supabase.from('Blocked_Dates').insert({
+        user_id: userId,
+        Start_Date: bookedDate,
+        End_Date: bookedDate,
+        Is_All_Day: false,
+        Start_Time: formattedStartTime,
+        End_Time: endTime
+      });
+      if (blockError) {
+        console.error("Failed to auto-insert Blocked_Date:", blockError);
+      }
+    }
 
     // Fetch owner email settings
     const { data: config } = await supabase
