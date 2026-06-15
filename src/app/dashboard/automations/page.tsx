@@ -97,7 +97,7 @@ export default function AutomationsPage() {
 
   return (
     <div className="animate-fade-in" style={{ padding: '0 1rem', maxWidth: 900 }}>
-      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', fontWeight: 500, color: '#0f172a', marginBottom: '0.5rem' }}>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 500, color: '#0f172a', marginBottom: '0.5rem' }}>
         Automations
       </h1>
       <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '3rem' }}>Set up "If This, Then That" rules to put your studio on autopilot.</p>

@@ -579,7 +579,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
             </div>
             
             <div style={{ padding: '2rem 1.5rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-              <h2 style={{ margin: '0 0 0.5rem', fontSize: '2rem', fontWeight: 800, color: '#0f172a' }}>
+              <h2 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: '#0f172a' }}>
                 ${(selectedPackage ? selectedPackage.Price : (session.Price || 0)).toFixed(2)}
               </h2>
               <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Total due today for <strong>{selectedPackage ? selectedPackage.Name : session.Session_Type}</strong></p>

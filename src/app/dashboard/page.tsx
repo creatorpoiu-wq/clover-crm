@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in px-4 md:px-8">
-      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.5rem', fontWeight: 500, color: '#0f172a', marginBottom: '0.25rem' }}>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: 500, color: '#0f172a', marginBottom: '0.25rem' }}>
         {greeting}{companyName ? `, ${companyName}` : ''}
       </h1>
       <p style={{ color: '#a0a0a0', fontSize: '0.875rem', marginBottom: '3rem' }}>{currentDate}</p>

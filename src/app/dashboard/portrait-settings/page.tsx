@@ -133,7 +133,7 @@ export default function PortraitSettingsPage() {
     <div className="animate-fade-in" style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto", paddingBottom: "100px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
         <div>
-          <h1 className="page-title" style={{ fontSize: "2rem", fontWeight: 900, marginBottom: "0.5rem" }}>Portrait Funnel Settings</h1>
+          <h1 className="page-title" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 900, marginBottom: "0.5rem" }}>Portrait Funnel Settings</h1>
           <p className="page-subtitle" style={{ color: "var(--muted)" }}>Customize the design, steps, and flow for your public Portrait Booking Page.</p>
         </div>
         <button onClick={save} disabled={saving} className="btn btn-primary" style={{ width: "auto", display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: "8px", fontWeight: 700, backgroundColor: "var(--primary)", color: "#fff", border: "none", cursor: "pointer" }}>

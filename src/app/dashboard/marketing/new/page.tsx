@@ -268,7 +268,7 @@ export default function NewCampaign() {
 
             <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
               <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 0.5rem 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estimated Recipients</p>
-              <p style={{ fontSize: '2rem', fontWeight: 700, color: '#3b82f6', margin: 0 }}>
+              <p style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700, color: '#3b82f6', margin: 0 }}>
                 {previewCount === null ? '...' : previewCount}
               </p>
               <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.5rem 0 0 0' }}>Excludes contacts without emails</p>

@@ -200,7 +200,7 @@ function PortraitBookingContent() {
         <div style={{ width: '100%', maxWidth: '700px' }}>
           
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.025em', marginBottom: '1rem', lineHeight: 1.1 }}>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.025em', marginBottom: '1rem', lineHeight: 1.1 }}>
               {step === 1 ? "Let's get your details." : step === 2 ? headline : "Tell us about the session."}
             </h2>
             <p style={{ fontSize: '1.125rem', color: '#64748b' }}>

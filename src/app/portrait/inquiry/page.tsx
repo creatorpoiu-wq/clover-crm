@@ -108,7 +108,7 @@ function InquiryFormContent() {
               <h1 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '2rem' }}>{companyName}</h1>
             )}
             
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1 }}>Let's create something beautiful.</h2>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1 }}>Let's create something beautiful.</h2>
             <p style={{ fontSize: '1.125rem', opacity: 0.9, lineHeight: 1.6, marginBottom: '2rem' }}>
               Every great portrait starts with a simple conversation. Tell me a bit about what you're looking for, and I'll send you all the details to get started.
             </p>

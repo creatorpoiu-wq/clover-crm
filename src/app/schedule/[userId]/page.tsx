@@ -116,7 +116,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
           <div style={{ width: '80px', height: '80px', backgroundColor: `${themeColor}15`, color: themeColor, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
             <CheckCircle2 size={40} />
           </div>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>Meeting Scheduled!</h2>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>Meeting Scheduled!</h2>
           <p style={{ color: '#64748b', fontSize: '1.125rem', marginBottom: '2rem' }}>
             Thanks for booking time with {companyName}. We've sent a calendar invitation to {formData.email}.
           </p>
@@ -164,7 +164,7 @@ export default function PublicSchedulingPage({ params }: { params: Promise<{ use
           {/* Left Side: Info */}
           <div className="schedule-left" style={{ backgroundColor: `${themeColor}05` }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, color: themeColor, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Book a Meeting</h2>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginBottom: '1.5rem' }}>
+            <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginBottom: '1.5rem' }}>
               Schedule Time with {companyName}
             </h1>
             <p style={{ color: '#64748b', fontSize: '1.125rem', marginBottom: '2rem' }}>
