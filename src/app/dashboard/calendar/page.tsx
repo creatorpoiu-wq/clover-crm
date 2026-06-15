@@ -249,7 +249,7 @@ export default function CalendarPage() {
 
           {/* Render Normal Events */}
           {dayEvents.map((ev, idx) => {
-            const colors = getEventColors(ev.Pipeline_Stage, ev.Event_Type);
+            const colors = getEventColors(ev.Pipeline_Stage);
             return (
               <div 
                 key={idx} 
