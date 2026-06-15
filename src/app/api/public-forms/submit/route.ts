@@ -260,21 +260,7 @@ export async function POST(req: NextRequest) {
                   </div>
                   ` : ''}
                   
-                  <div style="border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 32px;">
-                    <p style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 12px;">Your Submission details:</p>
-                    <table style="width: 100%; border-collapse: collapse;">
-                      <tbody>
-                        ${Object.entries(formData).map(([key, value]) => {
-                          const displayValue = Array.isArray(value) ? value.join(', ') : value;
-                          const label = fieldMap[key] || key;
-                          return `<tr>
-                            <td style="padding: 8px 0; color: #64748b; font-size: 14px; width: 40%; vertical-align: top;">${label}</td>
-                            <td style="padding: 8px 0; color: #0f172a; font-size: 14px; font-weight: 500; vertical-align: top;">${displayValue}</td>
-                          </tr>`;
-                        }).join('')}
-                      </tbody>
-                    </table>
-                  </div>
+                  <div style="border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 32px;"></div>
                 </div>
                 <div style="background-color: #f1f5f9; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
                   <p style="font-size: 13px; color: #64748b; margin: 0;">${companyName}</p>
