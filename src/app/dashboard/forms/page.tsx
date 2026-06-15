@@ -20,6 +20,7 @@ interface FormField {
   fontFamily?: string;
   scheduleLink?: string;
   scheduleButtonText?: string;
+  autoReplySubject?: string;
 }
 
 interface Form {
