@@ -271,7 +271,7 @@ export async function POST(req: NextRequest) {
           await transporter.sendMail({
             from: `"${companyName}" <${config.Email_User}>`,
             to: actualEmail,
-            subject: `We've received your submission: ${form.title}`,
+            subject: styleConfig.autoReplySubject || `We've received your submission: ${form.title}`,
             html: autoReplyBody
           });
         }

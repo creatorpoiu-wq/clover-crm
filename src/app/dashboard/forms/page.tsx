@@ -669,7 +669,8 @@ export default function FormsDashboard() {
                     inputTextColor: '#0f172a',
                     fontFamily: 'system-ui, sans-serif',
                     scheduleLink: '',
-                    scheduleButtonText: 'Schedule a Call'
+                    scheduleButtonText: 'Schedule a Call',
+                    autoReplySubject: ''
                   };
                   
                   const updateStyleConfig = (updates: any) => {
@@ -810,6 +811,15 @@ export default function FormsDashboard() {
                     </div>
 
                     <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Auto-Reply Email Subject</label>
+                      <input
+                        type="text"
+                        value={styleConfig.autoReplySubject || ''}
+                        onChange={e => updateStyleConfig({ autoReplySubject: e.target.value })}
+                        placeholder="We've received your submission: [Form Title]"
+                        style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--border)', backgroundColor: 'transparent', marginBottom: '1rem' }}
+                      />
+
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 6, color: 'var(--muted)' }}>Auto-Reply Email Message</label>
                       <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.75rem' }}>Sent instantly to the client after they submit the form. If left blank, a generic thank you message is sent.</p>
                       <textarea
