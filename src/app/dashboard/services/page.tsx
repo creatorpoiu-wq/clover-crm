@@ -195,6 +195,40 @@ export default function ServicesPage() {
     setShowSessionForm(true);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          setSessionForm(p => ({ ...p, coverImage: dataUrl }));
+        }
+      };
+      if (event.target?.result) {
+        img.src = event.target.result as string;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const saveSession = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingSession(true);
@@ -822,6 +856,20 @@ export default function ServicesPage() {
                       {getBookingUrl('')}
                     </span>
                     <input value={sessionForm.slug} onChange={e => setSessionForm(p => ({ ...p, slugDirty: true, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }))} style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, fontSize: '0.875rem' }} placeholder="portrait-session" required />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Cover Image</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {sessionForm.coverImage && (
+                      <div style={{ width: '60px', height: '60px', borderRadius: '0.4rem', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                        <img src={sessionForm.coverImage} alt="Cover Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', fontSize: '0.875rem' }} />
+                      <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: '#94a3b8' }}>Optional. Recommended ratio 1:1 or 16:9.</p>
+                    </div>
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
