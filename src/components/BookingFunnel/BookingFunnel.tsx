@@ -39,11 +39,21 @@ export default function BookingFunnel() {
     const pkgFetch = userId
       ? fetch(`/api/public-booking?type=packages&userId=${userId}`)
           .then(res => res.json())
-          .then(data => { if (data.success) setPackages(data.packages); })
+          .then(data => { 
+            if (data.success) {
+              const weddingPkgs = data.packages.filter((p: any) => p.Sessions?.Service_Type?.toLowerCase().includes('wedding'));
+              setPackages(weddingPkgs);
+            } 
+          })
           .catch(() => {})
       : fetch('/api/packages?type=packages')
           .then(res => res.json())
-          .then(data => { if (data.success) setPackages(data.packages); })
+          .then(data => { 
+            if (data.success) {
+              const weddingPkgs = data.packages.filter((p: any) => p.Sessions?.Service_Type?.toLowerCase().includes('wedding'));
+              setPackages(weddingPkgs);
+            } 
+          })
           .catch(() => {});
 
     Promise.all([pkgFetch, settingsFetch]).finally(() => setLoading(false));

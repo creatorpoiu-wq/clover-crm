@@ -5,6 +5,7 @@ import { Plus, Trash2, Edit3, Camera, Video, Clock, MapPin, Globe, Lock, Copy, C
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SERVICE_TYPES = ['Photography', 'Videography', 'Photo & Video', 'Headshots', 'Commercial', 'Events', 'Other'];
+const WEDDING_SERVICE_TYPES = ['Wedding Photography', 'Wedding Videography', 'Wedding Photo & Video', 'Wedding Other'];
 
 interface TimeSlot {
   Slot_ID: number;
@@ -73,7 +74,7 @@ export default function ServicesPage() {
   const [copied, setCopied] = useState(false);
   const [businessSlug, setBusinessSlug] = useState<string>('');
   const [customDomain, setCustomDomain] = useState<string>('');
-  const [mainTab, setMainTab] = useState<'sessions' | 'packages'>('sessions');
+  const [mainTab, setMainTab] = useState<'sessions' | 'weddings' | 'packages'>('sessions');
 
   // Session form
   const [showSessionForm, setShowSessionForm] = useState(false);
@@ -144,8 +145,25 @@ export default function ServicesPage() {
     }
   }, [panelTab, activePanel]);
 
-  const serviceTypes = [...new Set(sessions.map(s => s.Service_Type))];
-  const filteredSessions = sessions.filter(s => s.Service_Type === selectedService);
+  const visibleSessions = useMemo(() => {
+    return sessions.filter(s => {
+      const isWedding = s.Service_Type?.toLowerCase().includes('wedding');
+      if (mainTab === 'weddings') return isWedding;
+      if (mainTab === 'sessions') return !isWedding;
+      return true;
+    });
+  }, [sessions, mainTab]);
+
+  const serviceTypes = [...new Set(visibleSessions.map(s => s.Service_Type))];
+  const filteredSessions = visibleSessions.filter(s => s.Service_Type === selectedService);
+
+  useEffect(() => {
+    if (serviceTypes.length > 0 && !serviceTypes.includes(selectedService)) {
+      setSelectedService(serviceTypes[0]);
+    } else if (serviceTypes.length === 0) {
+      setSelectedService('');
+    }
+  }, [mainTab, serviceTypes, selectedService]);
 
   const allPackages = useMemo(() => {
     const pkgs: any[] = [];
@@ -369,11 +387,11 @@ export default function ServicesPage() {
             </button>
           )}
           <button
-            onClick={() => openNewSession(selectedService || 'Photography')}
+            onClick={() => openNewSession(selectedService || (mainTab === 'weddings' ? 'Wedding Photography' : 'Photography'))}
             className="flex items-center gap-2 bg-[var(--primary)] text-white border-none rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer w-full md:w-auto justify-center"
             style={{ backgroundColor: 'var(--primary)', color: 'white' }}
           >
-            <Plus size={16} /> New Session
+            <Plus size={16} /> New {mainTab === 'weddings' ? 'Wedding' : 'Session'}
           </button>
         </div>
       </div>
@@ -388,6 +406,12 @@ export default function ServicesPage() {
             Sessions
           </button>
           <button
+            onClick={() => setMainTab('weddings')}
+            style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: mainTab === "weddings" ? "2px solid var(--primary)" : "2px solid transparent", color: mainTab === "weddings" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.95rem" }}
+          >
+            Weddings
+          </button>
+          <button
             onClick={() => setMainTab('packages')}
             style={{ padding: "1rem 1.5rem", fontWeight: 700, borderBottom: mainTab === "packages" ? "2px solid var(--primary)" : "2px solid transparent", color: mainTab === "packages" ? "var(--primary)" : "var(--muted)", background: "transparent", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.95rem" }}
           >
@@ -396,7 +420,7 @@ export default function ServicesPage() {
         </div>
 
         <div style={{ padding: '2rem', flex: 1, overflowY: 'auto' }}>
-      {mainTab === 'sessions' && (
+      {(mainTab === 'sessions' || mainTab === 'weddings') && (
         <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
 
         {/* Left: Service Categories */}
@@ -842,7 +866,7 @@ export default function ServicesPage() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Service Type</label>
                   <select value={sessionForm.serviceType} onChange={e => setSessionForm(p => ({ ...p, serviceType: e.target.value }))} className="input" style={{ width: '100%' }}>
-                    {SERVICE_TYPES.map(st => <option key={st} value={st}>{st}</option>)}
+                    {(mainTab === 'weddings' ? WEDDING_SERVICE_TYPES : SERVICE_TYPES).map(st => <option key={st} value={st}>{st}</option>)}
                   </select>
                 </div>
                 <div>

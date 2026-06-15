@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     if (type === 'packages') {
       const { data: packages, error } = await supabase
         .from('Packages')
-        .select('*')
+        .select('*, Sessions(*)')
         .order('Created_At', { ascending: false });
       if (error) throw error;
       return NextResponse.json({ success: true, packages });
