@@ -108,7 +108,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
       .then(d => {
         if (d.success && d.session) {
           setSession(d.session);
-          if (d.session.Service_Type?.toLowerCase().includes('wedding') && d.session.Packages && d.session.Packages.length > 0) {
+          const _isWedding = d.session.Service_Type?.toLowerCase().includes('wedding') || d.session.Session_Type?.toLowerCase().includes('wedding');
+          if (_isWedding && d.session.Packages && d.session.Packages.length > 0) {
             setStep('packages');
           }
           fetch(`/api/availability?userId=${d.session.user_id}`)
