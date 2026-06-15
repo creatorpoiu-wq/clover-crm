@@ -148,13 +148,18 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     if (date < today) return false;
     if (blockedDates.includes(dateStr)) return false;
     if (!session) return false;
+    if (session.Duration_Minutes === 0) return true;
     return (session.Session_Time_Slots || []).some(s => s.Day_Of_Week === dayOfWeek);
   };
 
   const handleDateClick = (dateStr: string, date: Date) => {
     if (!isDayAvailable(date)) return;
     setSelectedDate(dateStr);
-    setSelectedTime(null);
+    if (session?.Duration_Minutes === 0) {
+      setSelectedTime('TBD');
+    } else {
+      setSelectedTime(null);
+    }
   };
 
   const proceedFromDetails = () => {
@@ -278,7 +283,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
             </div>
           )}
           <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{session.Session_Type}</h1>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>{session.Duration_Minutes} Minutes {session.Location ? `· ${session.Location}` : ''}</p>
+          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>{session.Duration_Minutes === 0 ? 'Full Day / Event Only' : `${session.Duration_Minutes} Minutes`} {session.Location ? `· ${session.Location}` : ''}</p>
           {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
         </div>
 
@@ -341,7 +346,13 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                 {selectedDate ? (
                   <>
                     <h3 style={{ margin: '0 0 1rem', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{formatDisplayDate(selectedDate)}</h3>
-                    {availableTimesForSelected.length > 0 ? (
+                    {session?.Duration_Minutes === 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#0f172a', textAlign: 'center', gap: '0.5rem', backgroundColor: '#f1f5f9', padding: '1rem', borderRadius: '0.5rem' }}>
+                        <CheckCircle size={32} style={{ color: '#0ea5e9' }} />
+                        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Date Selected</p>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>This service is booked for the entire day. No time selection required.</p>
+                      </div>
+                    ) : availableTimesForSelected.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '280px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                         {availableTimesForSelected.map(time => (
                           <button

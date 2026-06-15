@@ -610,7 +610,7 @@ export default function ServicesPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', color: '#334155', marginBottom: '0.4rem' }}>Duration</label>
-                    <div style={{ padding: '0.6rem 0.8rem', backgroundColor: '#f8fafc', borderRadius: '0.4rem', border: '1px solid #e2e8f0', fontSize: '0.9rem' }}>{activePanel.Duration_Minutes || 60} minutes</div>
+                    <div style={{ padding: '0.6rem 0.8rem', backgroundColor: '#f8fafc', borderRadius: '0.4rem', border: '1px solid #e2e8f0', fontSize: '0.9rem' }}>{activePanel.Duration_Minutes === 0 ? 'Full Day / Event Only' : `${activePanel.Duration_Minutes || 60} minutes`}</div>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', color: '#334155', marginBottom: '0.4rem' }}>Status</label>
@@ -827,7 +827,8 @@ export default function ServicesPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Duration (minutes)</label>
-                    <input type="number" value={sessionForm.durationMinutes} onChange={e => setSessionForm(p => ({ ...p, durationMinutes: parseInt(e.target.value) }))} className="input" style={{ width: '100%' }} min={15} max={960} />
+                    <input type="number" value={sessionForm.durationMinutes} onChange={e => setSessionForm(p => ({ ...p, durationMinutes: parseInt(e.target.value) }))} className="input" style={{ width: '100%' }} min={0} max={960} />
+                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>(Set to 0 for full-day / event-date only bookings)</span>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Location</label>
