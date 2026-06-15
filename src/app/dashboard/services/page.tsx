@@ -5,7 +5,7 @@ import { Plus, Trash2, Edit3, Camera, Video, Clock, MapPin, Globe, Lock, Copy, C
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SERVICE_TYPES = ['Photography', 'Videography', 'Photo & Video', 'Headshots', 'Commercial', 'Events', 'Other'];
-const WEDDING_SERVICE_TYPES = ['Wedding Photography', 'Wedding Videography', 'Wedding Photo & Video', 'Wedding Other'];
+const WEDDING_SERVICE_TYPES = ['Wedding Photo', 'Wedding Video', 'Wedding Content Creation'];
 
 interface TimeSlot {
   Slot_ID: number;
@@ -191,7 +191,12 @@ export default function ServicesPage() {
 
   // ── SESSION CRUD ─────────────────────────────────────────
   const openNewSession = (serviceType: string) => {
-    setSessionForm({ ...defaultSessionForm, serviceType });
+    setSessionForm({ 
+      ...defaultSessionForm, 
+      serviceType,
+      sessionType: mainTab === 'weddings' ? serviceType : '',
+      slugDirty: false
+    });
     setShowSessionForm(true);
   };
 
@@ -258,14 +263,14 @@ export default function ServicesPage() {
         body: JSON.stringify({
           id: sessionForm.id,
           serviceType: sessionForm.serviceType,
-          sessionType: sessionForm.sessionType,
-          slug: sessionForm.slug || sessionForm.sessionType.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+          sessionType: mainTab === 'weddings' ? sessionForm.serviceType : sessionForm.sessionType,
+          slug: sessionForm.slug || (mainTab === 'weddings' ? sessionForm.serviceType.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : sessionForm.sessionType.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')),
           description: sessionForm.description,
           coverImage: sessionForm.coverImage,
-          durationMinutes: sessionForm.durationMinutes,
-          location: sessionForm.location,
+          durationMinutes: mainTab === 'weddings' ? 0 : sessionForm.durationMinutes,
+          location: mainTab === 'weddings' ? '' : sessionForm.location,
           isPublic: sessionForm.isPublic,
-          price: sessionForm.price,
+          price: mainTab === 'weddings' ? 0 : sessionForm.price,
           contractTemplate: sessionForm.contractTemplate
         })
       });
@@ -387,7 +392,7 @@ export default function ServicesPage() {
             </button>
           )}
           <button
-            onClick={() => openNewSession(selectedService || (mainTab === 'weddings' ? 'Wedding Photography' : 'Photography'))}
+            onClick={() => openNewSession(selectedService || (mainTab === 'weddings' ? 'Wedding Photo' : 'Photography'))}
             className="flex items-center gap-2 bg-[var(--primary)] text-white border-none rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer w-full md:w-auto justify-center"
             style={{ backgroundColor: 'var(--primary)', color: 'white' }}
           >
@@ -869,10 +874,12 @@ export default function ServicesPage() {
                     {(mainTab === 'weddings' ? WEDDING_SERVICE_TYPES : SERVICE_TYPES).map(st => <option key={st} value={st}>{st}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Session Name *</label>
-                  <input value={sessionForm.sessionType} onChange={e => { const v = e.target.value; setSessionForm(p => ({ ...p, sessionType: v, slug: p.slugDirty ? p.slug : v.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })); }} className="input" style={{ width: '100%' }} placeholder="e.g. Portrait Session, Family Session" required />
-                </div>
+                {mainTab !== 'weddings' && (
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Session Name *</label>
+                    <input value={sessionForm.sessionType} onChange={e => { const v = e.target.value; setSessionForm(p => ({ ...p, sessionType: v, slug: p.slugDirty ? p.slug : v.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })); }} className="input" style={{ width: '100%' }} placeholder="e.g. Portrait Session, Family Session" required />
+                  </div>
+                )}
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Booking URL Slug *</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.875rem', backgroundColor: '#f8fafc' }}>
@@ -883,37 +890,71 @@ export default function ServicesPage() {
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Cover Image</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>
+                    {mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Video' ? 'Cover Video URL' : 
+                     mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Content Creation' ? 'Cover Image / Video URL' : 
+                     'Cover Image'}
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                     {sessionForm.coverImage && (
-                      <div style={{ width: '60px', height: '60px', borderRadius: '0.4rem', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0' }}>
-                        <img src={sessionForm.coverImage} alt="Cover Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ 
+                        width: sessionForm.serviceType === 'Wedding Content Creation' ? '45px' : '80px', 
+                        height: sessionForm.serviceType === 'Wedding Content Creation' ? '80px' : '45px', 
+                        borderRadius: '0.4rem', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0', backgroundColor: '#000' 
+                      }}>
+                        {sessionForm.coverImage.startsWith('data:') || sessionForm.coverImage.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                          <img src={sessionForm.coverImage} alt="Cover Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.6rem' }}>VIDEO</div>
+                        )}
                       </div>
                     )}
-                    <div style={{ flex: 1 }}>
-                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', fontSize: '0.875rem' }} />
-                      <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: '#94a3b8' }}>Optional. Recommended ratio 1:1 or 16:9.</p>
+                    <div style={{ flex: 1, minWidth: '200px' }}>
+                      {mainTab === 'weddings' && (sessionForm.serviceType === 'Wedding Video' || sessionForm.serviceType === 'Wedding Content Creation') ? (
+                        <input 
+                          type="url" 
+                          value={sessionForm.coverImage.startsWith('data:') ? '' : sessionForm.coverImage} 
+                          onChange={e => setSessionForm(p => ({ ...p, coverImage: e.target.value }))} 
+                          className="input" 
+                          style={{ width: '100%', fontSize: '0.875rem' }} 
+                          placeholder="e.g. https://vimeo.com/..., https://youtube.com/..." 
+                        />
+                      ) : null}
+                      
+                      {(!mainTab || mainTab !== 'weddings' || sessionForm.serviceType === 'Wedding Photo' || sessionForm.serviceType === 'Wedding Content Creation') && (
+                        <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', fontSize: '0.875rem', marginTop: mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Content Creation' ? '0.5rem' : '0' }} />
+                      )}
+                      
+                      <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: '#94a3b8' }}>
+                        {mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Video' ? 'Required ratio 16:9.' : 
+                         mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Content Creation' ? 'Required ratio 9:16.' : 
+                         'Optional. Recommended ratio 1:1 or 16:9.'}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Duration (minutes)</label>
-                    <input type="number" value={sessionForm.durationMinutes} onChange={e => setSessionForm(p => ({ ...p, durationMinutes: parseInt(e.target.value) }))} className="input" style={{ width: '100%' }} min={0} max={960} />
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>(Set to 0 for full-day / event-date only bookings)</span>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Location</label>
-                    <input value={sessionForm.location} onChange={e => setSessionForm(p => ({ ...p, location: e.target.value }))} className="input" style={{ width: '100%' }} placeholder="e.g. On Location, Studio" />
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Flat Price ($)</label>
-                    <input type="number" value={sessionForm.price} onChange={e => setSessionForm(p => ({ ...p, price: parseFloat(e.target.value) }))} className="input" style={{ width: '100%' }} placeholder="0" min={0} step="0.01" />
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Used if no packages are attached</span>
-                  </div>
-                </div>
+                {mainTab !== 'weddings' && (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Duration (minutes)</label>
+                        <input type="number" value={sessionForm.durationMinutes} onChange={e => setSessionForm(p => ({ ...p, durationMinutes: parseInt(e.target.value) }))} className="input" style={{ width: '100%' }} min={0} max={960} />
+                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>(Set to 0 for full-day / event-date only bookings)</span>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Location</label>
+                        <input value={sessionForm.location} onChange={e => setSessionForm(p => ({ ...p, location: e.target.value }))} className="input" style={{ width: '100%' }} placeholder="e.g. On Location, Studio" />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Flat Price ($)</label>
+                        <input type="number" value={sessionForm.price} onChange={e => setSessionForm(p => ({ ...p, price: parseFloat(e.target.value) }))} className="input" style={{ width: '100%' }} placeholder="0" min={0} step="0.01" />
+                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Used if no packages are attached</span>
+                      </div>
+                    </div>
+                  </>
+                )}
                 <div>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Description</label>
                   <textarea value={sessionForm.description} onChange={e => setSessionForm(p => ({ ...p, description: e.target.value }))} className="input" style={{ width: '100%', minHeight: '80px', resize: 'vertical' }} placeholder="Describe what this session includes..." />

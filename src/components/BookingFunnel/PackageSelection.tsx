@@ -51,6 +51,47 @@ export default function PackageSelection({ packages, selectedPackage, setSelecte
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
         {packages.map(pkg => {
           const isSelected = selectedPackage?.Package_ID === pkg.Package_ID;
+          const coverImage = pkg.Sessions?.Cover_Image;
+          const serviceType = pkg.Sessions?.Service_Type;
+
+          const renderCover = () => {
+             if (!coverImage) return null;
+             if (coverImage.startsWith('http') && !coverImage.match(/\.(jpeg|jpg|gif|png)$/i)) {
+               // Render iframe for youtube/vimeo or video tag for mp4
+               const isMp4 = coverImage.endsWith('.mp4');
+               const isYoutube = coverImage.includes('youtube.com') || coverImage.includes('youtu.be');
+               const isVimeo = coverImage.includes('vimeo.com');
+
+               let embedUrl = coverImage;
+               if (isYoutube) {
+                 const videoId = coverImage.split('v=')[1]?.split('&')[0] || coverImage.split('youtu.be/')[1];
+                 embedUrl = `https://www.youtube.com/embed/${videoId}`;
+               } else if (isVimeo) {
+                 const videoId = coverImage.split('vimeo.com/')[1];
+                 embedUrl = `https://player.vimeo.com/video/${videoId}`;
+               }
+
+               const aspectRatio = serviceType === 'Wedding Content Creation' ? '9/16' : '16/9';
+
+               return (
+                 <div style={{ width: '100%', aspectRatio, borderRadius: '12px 12px 0 0', overflow: 'hidden', backgroundColor: '#000', marginBottom: 16 }}>
+                   {isMp4 ? (
+                     <video src={coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
+                   ) : (
+                     <iframe src={embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allow="autoplay; fullscreen; picture-in-picture" />
+                   )}
+                 </div>
+               );
+             } else {
+               // Render Image
+               return (
+                 <div style={{ width: '100%', aspectRatio: serviceType === 'Wedding Content Creation' ? '9/16' : '16/9', borderRadius: '12px 12px 0 0', overflow: 'hidden', backgroundColor: '#f3f4f6', marginBottom: 16 }}>
+                   <img src={coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Cover" />
+                 </div>
+               );
+             }
+          };
+
           return (
             <div 
               key={pkg.Package_ID}
@@ -59,35 +100,40 @@ export default function PackageSelection({ packages, selectedPackage, setSelecte
                 background: '#fff', 
                 border: isSelected ? '3px solid #0d9488' : '1px solid #e5e7eb',
                 borderRadius: 16, 
-                padding: 32, 
+                padding: '0 0 32px 0', 
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 boxShadow: isSelected ? '0 10px 30px rgba(13, 148, 136, 0.15)' : '0 4px 6px rgba(0,0,0,0.02)',
                 transform: isSelected ? 'translateY(-4px)' : 'none',
-                position: 'relative'
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column'
               }}
             >
               {isSelected && (
-                <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: '#0d9488', color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: '#0d9488', color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 4, zIndex: 10 }}>
                   <Check size={14} /> SELECTED
                 </div>
               )}
-              <h3 style={{ fontSize: 22, fontWeight: 900, color: '#111827', margin: '0 0 8px' }}>{pkg.Name}</h3>
-              <div style={{ fontSize: 32, fontWeight: 900, color: '#0d9488', marginBottom: 8 }}>
-                ${(pkg.Price || 0).toLocaleString()}
+              {renderCover()}
+              <div style={{ padding: '0 32px' }}>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#111827', margin: '0 0 8px', marginTop: coverImage ? 0 : 32 }}>{pkg.Name}</h3>
+                <div style={{ fontSize: 32, fontWeight: 900, color: '#0d9488', marginBottom: 8 }}>
+                  ${(pkg.Price || 0).toLocaleString()}
+                </div>
+                {pkg.Duration && <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280', marginBottom: 24, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{pkg.Duration} Coverage</div>}
+                
+                <div style={{ height: 1, background: '#e5e7eb', margin: '24px 0' }} />
+                
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {parseItems(pkg.Items).map((item: string, i: number) => (
+                    <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#4b5563', lineHeight: 1.4 }}>
+                      <Check size={18} color="#0d9488" style={{ marginTop: 2, flexShrink: 0 }} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              {pkg.Duration && <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280', marginBottom: 24, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{pkg.Duration} Coverage</div>}
-              
-              <div style={{ height: 1, background: '#e5e7eb', margin: '24px 0' }} />
-              
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {parseItems(pkg.Items).map((item: string, i: number) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#4b5563', lineHeight: 1.4 }}>
-                    <Check size={18} color="#0d9488" style={{ marginTop: 2, flexShrink: 0 }} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
           );
         })}
