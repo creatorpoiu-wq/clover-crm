@@ -511,18 +511,25 @@ export default function ServicesPage() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#475569' }}>
-                        <Clock size={12} />{session.Duration_Minutes || 60} min
-                      </span>
-                      {session.Location && (
+                    {mainTab !== 'weddings' && (
+                      <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#475569' }}>
-                          <MapPin size={12} />{session.Location}
+                          <Clock size={12} />{session.Duration_Minutes || 60} min
+                        </span>
+                        {session.Location && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <MapPin size={12} />{session.Location}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                      {mainTab !== 'weddings' && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#475569' }}>
+                          <Calendar size={12} />{(session.Session_Time_Slots || []).length} time slot{(session.Session_Time_Slots || []).length !== 1 ? 's' : ''}
                         </span>
                       )}
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#475569' }}>
-                        <Calendar size={12} />{(session.Session_Time_Slots || []).length} time slot{(session.Session_Time_Slots || []).length !== 1 ? 's' : ''}
-                      </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#475569' }}>
                         <PackageIcon size={12} />{(session.Packages || []).length} package{(session.Packages || []).length !== 1 ? 's' : ''}
                       </span>
@@ -706,74 +713,91 @@ export default function ServicesPage() {
             {/* ── AVAILABILITY TAB ── */}
             {panelTab === 'availability' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Weekly Time Slots</h3>
-                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#64748b' }}>Add the days and times clients can book this session.</p>
-                  </div>
-                  <button
-                    onClick={() => setShowSlotForm(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.375rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <Plus size={14} /> Add Slot
-                  </button>
-                </div>
-
-                {/* Slots grouped by day */}
-                {DAY_NAMES.map((day, dayIndex) => {
-                  const daySlots = (activePanel.Session_Time_Slots || []).filter(s => s.Day_Of_Week === dayIndex);
-                  if (daySlots.length === 0) return null;
-                  return (
-                    <div key={dayIndex} style={{ marginBottom: '0.75rem' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>{day}</div>
-                      {daySlots.map(slot => (
-                        <div key={slot.Slot_ID} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.375rem', marginBottom: '0.3rem' }}>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#15803d' }}>
-                            <Clock size={13} style={{ display: 'inline', marginRight: '0.4rem', verticalAlign: 'middle' }} />
-                            {slot.Start_Time} – {slot.End_Time}
-                          </span>
-                          <button onClick={() => deleteSlot(slot.Slot_ID)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={14} /></button>
-                        </div>
-                      ))}
+                {mainTab === 'weddings' ? (
+                  <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                    <div style={{ width: '48px', height: '48px', backgroundColor: '#e0e7ff', color: '#4f46e5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                      <Calendar size={24} />
                     </div>
-                  );
-                })}
-
-                {(activePanel.Session_Time_Slots || []).length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.875rem' }}>
-                    No time slots yet. Add your available days and hours.
+                    <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>Wedding Availability</h3>
+                    <p style={{ margin: '0 0 1.5rem', fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5 }}>
+                      Weddings do not use recurring time slots. To block off dates or manage your wedding schedule, please use your main CRM calendar.
+                    </p>
+                    <a href="/dashboard/calendar" style={{ display: 'inline-block', padding: '0.6rem 1.2rem', backgroundColor: 'var(--primary)', color: 'white', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
+                      Open Main Calendar
+                    </a>
                   </div>
-                )}
-
-                {/* Add slot inline form */}
-                {showSlotForm && (
-                  <form onSubmit={addSlot} style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
-                    <p style={{ margin: '0 0 0.75rem', fontWeight: 700, fontSize: '0.85rem' }}>Add Time Slot</p>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>Day of Week</label>
-                      <select
-                        value={slotForm.dayOfWeek}
-                        onChange={e => setSlotForm(p => ({ ...p, dayOfWeek: parseInt(e.target.value) }))}
-                        className="input" style={{ width: '100%' }}
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Weekly Time Slots</h3>
+                        <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#64748b' }}>Add the days and times clients can book this session.</p>
+                      </div>
+                      <button
+                        onClick={() => setShowSlotForm(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '0.375rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
                       >
-                        {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d}</option>)}
-                      </select>
+                        <Plus size={14} /> Add Slot
+                      </button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>Start Time</label>
-                        <input type="time" value={slotForm.startTime} onChange={e => setSlotForm(p => ({ ...p, startTime: e.target.value }))} className="input" style={{ width: '100%' }} required />
+
+                    {/* Slots grouped by day */}
+                    {DAY_NAMES.map((day, dayIndex) => {
+                      const daySlots = (activePanel.Session_Time_Slots || []).filter(s => s.Day_Of_Week === dayIndex);
+                      if (daySlots.length === 0) return null;
+                      return (
+                        <div key={dayIndex} style={{ marginBottom: '0.75rem' }}>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>{day}</div>
+                          {daySlots.map(slot => (
+                            <div key={slot.Slot_ID} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.375rem', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#15803d' }}>
+                                <Clock size={13} style={{ display: 'inline', marginRight: '0.4rem', verticalAlign: 'middle' }} />
+                                {slot.Start_Time} – {slot.End_Time}
+                              </span>
+                              <button onClick={() => deleteSlot(slot.Slot_ID)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={14} /></button>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+
+                    {(activePanel.Session_Time_Slots || []).length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.875rem' }}>
+                        No time slots yet. Add your available days and hours.
                       </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>End Time</label>
-                        <input type="time" value={slotForm.endTime} onChange={e => setSlotForm(p => ({ ...p, endTime: e.target.value }))} className="input" style={{ width: '100%' }} required />
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button type="button" onClick={() => setShowSlotForm(false)} style={{ flex: 1, padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.375rem', backgroundColor: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}>Cancel</button>
-                      <button type="submit" style={{ flex: 1, padding: '0.5rem', border: 'none', borderRadius: '0.375rem', backgroundColor: 'var(--primary)', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}>Save Slot</button>
-                    </div>
-                  </form>
+                    )}
+
+                    {/* Add slot inline form */}
+                    {showSlotForm && (
+                      <form onSubmit={addSlot} style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                        <p style={{ margin: '0 0 0.75rem', fontWeight: 700, fontSize: '0.85rem' }}>Add Time Slot</p>
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>Day of Week</label>
+                          <select
+                            value={slotForm.dayOfWeek}
+                            onChange={e => setSlotForm(p => ({ ...p, dayOfWeek: parseInt(e.target.value) }))}
+                            className="input" style={{ width: '100%' }}
+                          >
+                            {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                          </select>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>Start Time</label>
+                            <input type="time" value={slotForm.startTime} onChange={e => setSlotForm(p => ({ ...p, startTime: e.target.value }))} className="input" style={{ width: '100%' }} required />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>End Time</label>
+                            <input type="time" value={slotForm.endTime} onChange={e => setSlotForm(p => ({ ...p, endTime: e.target.value }))} className="input" style={{ width: '100%' }} required />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button type="button" onClick={() => setShowSlotForm(false)} style={{ flex: 1, padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.375rem', backgroundColor: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}>Cancel</button>
+                          <button type="submit" style={{ flex: 1, padding: '0.5rem', border: 'none', borderRadius: '0.375rem', backgroundColor: 'var(--primary)', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}>Save Slot</button>
+                        </div>
+                      </form>
+                    )}
+                  </>
                 )}
               </div>
             )}

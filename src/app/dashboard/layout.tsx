@@ -35,7 +35,7 @@ export default function DashboardLayout({
         >
           <Menu size={24} />
         </button>
-        <div className="flex-1 mobile-only"></div>
+        <div className="flex-1"></div>
         <NotificationBell />
       </header>
 
