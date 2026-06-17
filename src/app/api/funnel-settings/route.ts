@@ -23,6 +23,8 @@ const DEFAULTS = {
   Style_Media_Type: 'image',
   Style_Video1_Url: '',
   Style_Video2_Url: '',
+  Investment_Headline: 'Transparent, all-inclusive pricing.',
+  Investment_Description: 'No hidden fees. Select the collection that best suits your vision for the big day.',
   Whats_Next_Heading: 'What happens next?',
   Whats_Next_Sub: 'Booking your session is a seamless, 3-step process.',
   Whats_Next_Steps: '[{"title":"Tell Us About Your Day","description":"Fill out your contact and event details to start the process."},{"title":"Sign Digitally","description":"Review and sign your digital contract instantly to secure the legalities."},{"title":"Pay Retainer","description":"Submit your non-refundable retainer securely. Your date is officially locked in!"}]',
@@ -66,6 +68,8 @@ export async function GET() {
       styleMediaType: row?.Style_Media_Type || DEFAULTS.Style_Media_Type,
       styleVideo1Url: row?.Style_Video1_Url || DEFAULTS.Style_Video1_Url,
       styleVideo2Url: row?.Style_Video2_Url || DEFAULTS.Style_Video2_Url,
+      investmentHeadline: row?.Investment_Headline || DEFAULTS.Investment_Headline,
+      investmentDescription: row?.Investment_Description || DEFAULTS.Investment_Description,
       whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
       whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
       whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
@@ -86,6 +90,7 @@ export async function PUT(req: NextRequest) {
       steps, addons, paymentMethods, confirmationTitle, confirmationMessage,
       welcomeHeroHeadline, coverImage, styleHeading, styleDescription, stylePhotoUrl, 
       styleBullets, styleMediaType, styleVideo1Url, styleVideo2Url,
+      investmentHeadline, investmentDescription,
       whatsNextHeading, whatsNextSub, whatsNextSteps
     } = body;
 
@@ -120,6 +125,8 @@ export async function PUT(req: NextRequest) {
         Style_Media_Type: styleMediaType || DEFAULTS.Style_Media_Type,
         Style_Video1_Url: styleVideo1Url || DEFAULTS.Style_Video1_Url,
         Style_Video2_Url: styleVideo2Url || DEFAULTS.Style_Video2_Url,
+        Investment_Headline: investmentHeadline || DEFAULTS.Investment_Headline,
+        Investment_Description: investmentDescription || DEFAULTS.Investment_Description,
         Whats_Next_Heading: whatsNextHeading || DEFAULTS.Whats_Next_Heading,
         Whats_Next_Sub: whatsNextSub || DEFAULTS.Whats_Next_Sub,
         Whats_Next_Steps: JSON.stringify(whatsNextSteps || JSON.parse(DEFAULTS.Whats_Next_Steps)),

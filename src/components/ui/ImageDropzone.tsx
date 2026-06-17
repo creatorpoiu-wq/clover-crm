@@ -16,8 +16,8 @@ export default function ImageDropzone({
   value,
   onChange,
   label = "Upload Image",
-  maxDimension = 1200,
-  quality = 0.8,
+  maxDimension = 2400,
+  quality = 0.9,
   aspectRatio = 'auto',
   className = "",
   thumbnailMode = false

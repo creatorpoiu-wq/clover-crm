@@ -116,6 +116,8 @@ export async function GET(req: NextRequest) {
           styleMediaType: row?.Style_Media_Type || DEFAULTS.Style_Media_Type,
           styleVideo1Url: row?.Style_Video1_Url || DEFAULTS.Style_Video1_Url,
           styleVideo2Url: row?.Style_Video2_Url || DEFAULTS.Style_Video2_Url,
+          investmentHeadline: row?.Investment_Headline || 'Transparent, all-inclusive pricing.',
+          investmentDescription: row?.Investment_Description || 'No hidden fees. Select the collection that best suits your vision for the big day.',
           whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
           whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
           whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),

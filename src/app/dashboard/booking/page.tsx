@@ -6,6 +6,7 @@ import ImageDropzone from "@/components/ui/ImageDropzone";
 const TABS = [
   { id: "general", label: "General Intro", icon: Settings },
   { id: "style",   label: "Signature Style", icon: Camera },
+  { id: "investment", label: "Investment", icon: Package },
   { id: "addons",  label: "Add-Ons",       icon: Package },
   { id: "whatsnext", label: "What's Next", icon: ArrowRight },
   { id: "payment", label: "Payment",        icon: CreditCard },
@@ -27,6 +28,9 @@ const DEFAULT_SETTINGS = {
   stylePhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop',
   styleVideo1Url: '',
   styleVideo2Url: '',
+  // Investment
+  investmentHeadline: 'Transparent, all-inclusive pricing.',
+  investmentDescription: 'No hidden fees. Select the collection that best suits your vision for the big day.',
   // What's Next
   whatsNextHeading: 'What happens next?',
   whatsNextSub: 'Booking your session is a seamless, 3-step process.',
@@ -343,6 +347,27 @@ export default function BookingSettingsPage() {
                 <button onClick={() => setSettings(s => ({ ...s, styleBullets: [...(s.styleBullets || []), 'New bullet point'] }))} style={{ background: "var(--background)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   + Add Bullet
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INVESTMENT TAB */}
+      {tab === "investment" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div className="glass-panel" style={{ padding: "1.5rem" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>Investment Section</h3>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>This text introduces your globally configured packages.</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={labelCls}>Investment Headline</label>
+                <input style={inputCls} value={settings.investmentHeadline || ''} onChange={e => setSettings(s => ({ ...s, investmentHeadline: e.target.value }))} placeholder="e.g. Transparent, all-inclusive pricing." />
+              </div>
+              <div>
+                <label style={labelCls}>Investment Description</label>
+                <textarea style={{ ...inputCls, resize: 'vertical' }} rows={3} value={settings.investmentDescription || ''} onChange={e => setSettings(s => ({ ...s, investmentDescription: e.target.value }))} placeholder="e.g. No hidden fees. Select the collection that best suits your vision." />
               </div>
             </div>
           </div>

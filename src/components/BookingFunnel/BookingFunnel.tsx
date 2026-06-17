@@ -302,10 +302,10 @@ export default function BookingFunnel() {
             <section style={{ maxWidth: '896px', margin: '0 auto', textAlign: 'center', padding: '6rem 1.5rem' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>The Investment</div>
               <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
-                Transparent, all-inclusive pricing.
+                {funnelSettings?.investmentHeadline || 'Transparent, all-inclusive pricing.'}
               </h2>
               <p style={{ color: '#64748b', fontSize: '1.125rem', marginBottom: '4rem', maxWidth: '42rem', margin: '0 auto 4rem' }}>
-                No hidden fees. Select the collection that best suits your vision for the big day.
+                {funnelSettings?.investmentDescription || 'No hidden fees. Select the collection that best suits your vision for the big day.'}
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8" style={{ textAlign: 'left' }}>
