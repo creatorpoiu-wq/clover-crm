@@ -24,7 +24,14 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type');
     const userId = searchParams.get('userId');
+    const customDomain = searchParams.get('customDomain');
     const templateId = searchParams.get('templateId');
+
+    let targetUserId = userId;
+    if (!targetUserId && customDomain) {
+      const { data: appSettings } = await supabase.from('App_Settings').select('user_id').eq('Custom_Domain', customDomain).single();
+      if (appSettings) targetUserId = appSettings.user_id;
+    }
 
     // ── Questionnaire Fields (no userId needed) ──────────────────────────────
     if (type === 'fields' && templateId) {
@@ -50,8 +57,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, contract });
     }
 
-    if (!userId) {
-      return NextResponse.json({ success: false, error: 'Missing userId' }, { status: 400 });
+    if (!targetUserId) {
+      return NextResponse.json({ success: false, error: 'Missing userId or customDomain' }, { status: 400 });
     }
 
     // ── Booking Settings (includes questionnaire & contract template IDs) ─────
@@ -59,7 +66,7 @@ export async function GET(req: NextRequest) {
       const { data: row } = await supabase
         .from('Booking_Settings')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', targetUserId)
         .single();
 
       const DEFAULTS = {
@@ -112,7 +119,8 @@ export async function GET(req: NextRequest) {
           whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
           whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
           whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
-        }
+        },
+        userId: targetUserId
       });
     }
 
@@ -121,11 +129,11 @@ export async function GET(req: NextRequest) {
       const { data: packages, error } = await supabase
         .from('Packages')
         .select('*, Sessions(*)')
-        .eq('user_id', userId)
+        .eq('user_id', targetUserId)
         .order('Price', { ascending: true });
 
       if (error) throw error;
-      return NextResponse.json({ success: true, packages: packages || [] });
+      return NextResponse.json({ success: true, packages: packages || [], userId: targetUserId });
     }
 
     // ── Inquiry Details ──────────────────────────────────────────────────────
@@ -141,7 +149,7 @@ export async function GET(req: NextRequest) {
       
       const contacts = inquiry?.Contacts;
       const contactName = Array.isArray(contacts) ? (contacts[0] as any)?.Name : (contacts as any)?.Name || '';
-      return NextResponse.json({ success: true, inquiryDetails: { contactName } });
+      return NextResponse.json({ success: true, inquiryDetails: { contactName }, userId: targetUserId });
     }
 
     // ── Portrait Settings ────────────────────────────────────────────────────
@@ -151,8 +159,8 @@ export async function GET(req: NextRequest) {
       }
 
       const [{ data: row }, { data: appConfig }] = await Promise.all([
-        supabase.from('Portrait_Settings').select('*').eq('user_id', userId).single(),
-        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User, Website').eq('user_id', userId).single(),
+        supabase.from('Portrait_Settings').select('*').eq('user_id', targetUserId).single(),
+        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User, Website').eq('user_id', targetUserId).single(),
       ]);
 
       return NextResponse.json({
@@ -212,7 +220,8 @@ export async function GET(req: NextRequest) {
           venmoHandle:         row?.Venmo_Handle         || '',
           paypalLink:          row?.Paypal_Link          || '',
           zelleContact:        row?.Zelle_Contact        || '',
-        }
+        },
+        userId: targetUserId
       });
     }
 

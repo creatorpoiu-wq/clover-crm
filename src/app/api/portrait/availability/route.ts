@@ -12,16 +12,23 @@ export async function GET(req: NextRequest) {
     const supabase = getServiceClient();
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const customDomain = searchParams.get('customDomain');
 
-    if (!userId) {
-      return NextResponse.json({ success: false, error: 'Missing userId' }, { status: 400 });
+    let targetUserId = userId;
+    if (!targetUserId && customDomain) {
+      const { data: appSettings } = await supabase.from('App_Settings').select('user_id').eq('Custom_Domain', customDomain).single();
+      if (appSettings) targetUserId = appSettings.user_id;
+    }
+
+    if (!targetUserId) {
+      return NextResponse.json({ success: false, error: 'Missing userId or customDomain' }, { status: 400 });
     }
 
     // Fetch all Inquiries for this vendor that have an Event_Date
     const { data: events, error } = await supabase
       .from('Inquiries')
       .select('Event_Date')
-      .eq('user_id', userId)
+      .eq('user_id', targetUserId)
       .not('Event_Date', 'is', null)
       .neq('Event_Date', '');
 

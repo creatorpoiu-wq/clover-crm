@@ -14,26 +14,31 @@ export default function PortraitFunnel() {
   const [contactName, setContactName] = useState<string>('');
   const searchParams = useSearchParams();
   
-  const userId = searchParams.get('userId');
+  const urlUserId = searchParams.get('userId');
   const inquiryId = searchParams.get('inquiryId');
 
   // Funnel State
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(urlUserId);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [signature, setSignature] = useState('');
   const [contractHtml, setContractHtml] = useState('');
 
   useEffect(() => {
-    if (!userId || !inquiryId) {
+    // If there is no inquiryId, we still can't proceed (as portrait booking requires one)
+    if (!inquiryId) {
       setLoading(false);
       return;
     }
 
-    const fetchVendorInfo = fetch(`/api/public-booking?type=portrait_settings&userId=${userId}`)
+    const customDomain = window.location.hostname;
+
+    const fetchVendorInfo = fetch(`/api/public-booking?type=portrait_settings&customDomain=${customDomain}${urlUserId ? `&userId=${urlUserId}` : ''}`)
       .then(res => res.json())
       .then(data => { 
         if (data.success) {
           setVendorInfo(data.settings); 
+          if (data.userId) setResolvedUserId(data.userId);
           document.title = `${data.settings.companyName || 'Portrait Studio'} | Booking Process`;
           let metaDesc = document.querySelector('meta[name="description"]');
           if (!metaDesc) {
@@ -46,23 +51,21 @@ export default function PortraitFunnel() {
       })
       .catch(() => {});
 
-    // Fetch booked dates from the public booking API or a dedicated calendar availability API
-    // We'll use the existing public-booking endpoint and modify the backend slightly or add a new endpoint.
-    // For now, let's fetch from a new endpoint we will create: `/api/portrait/availability?userId=...`
-    const fetchAvailability = fetch(`/api/portrait/availability?userId=${userId}`)
+    // For availability and inquiry details, we can use the domain as well.
+    const fetchAvailability = fetch(`/api/portrait/availability?customDomain=${customDomain}${urlUserId ? `&userId=${urlUserId}` : ''}`)
       .then(res => res.json())
       .then(data => { if (data.success) setBookedDates(data.bookedDates); })
       .catch(() => {});
 
-    const fetchInquiryDetails = fetch(`/api/public-booking?userId=${userId}&type=inquiry_details&inquiryId=${inquiryId}`)
+    const fetchInquiryDetails = fetch(`/api/public-booking?type=inquiry_details&inquiryId=${inquiryId}&customDomain=${customDomain}${urlUserId ? `&userId=${urlUserId}` : ''}`)
       .then(res => res.json())
       .then(data => { if (data.success) setContactName(data.inquiryDetails.contactName); })
       .catch(() => {});
 
     Promise.all([fetchVendorInfo, fetchAvailability, fetchInquiryDetails]).finally(() => setLoading(false));
-  }, [userId, inquiryId]);
+  }, [urlUserId, inquiryId]);
 
-  if (!userId || !inquiryId) {
+  if (!resolvedUserId || !inquiryId) {
     return (
       <div className="login-wrapper">
         <div className="login-card glass-panel">
@@ -141,7 +144,7 @@ export default function PortraitFunnel() {
 
         {currentStep === 2 && (
           <PortraitContract 
-            userId={userId}
+            userId={resolvedUserId}
             inquiryId={inquiryId}
             contactName={contactName}
             selectedDate={selectedDate}
@@ -158,7 +161,7 @@ export default function PortraitFunnel() {
 
         {currentStep === 3 && (
           <RetainerCheckout 
-            userId={userId}
+            userId={resolvedUserId}
             inquiryId={inquiryId}
             selectedDate={selectedDate}
             selectedTime={selectedTime}

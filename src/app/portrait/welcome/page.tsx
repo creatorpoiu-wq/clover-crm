@@ -6,34 +6,36 @@ import Link from 'next/link';
 
 function WelcomeGuideContent() {
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
+  const urlUserId = searchParams.get('userId');
   const inquiryId = searchParams.get('inquiryId');
   
   const [vendorInfo, setVendorInfo] = useState<any>(null);
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(urlUserId);
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (userId) {
-      fetch(`/api/public-booking?type=portrait_settings&userId=${userId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.settings) {
-            setVendorInfo(data.settings);
-            document.title = `${data.settings.companyName || 'Portrait Studio'} | Booking Process`;
-            let metaDesc = document.querySelector('meta[name="description"]');
-            if (!metaDesc) {
-              metaDesc = document.createElement('meta');
-              metaDesc.setAttribute('name', 'description');
-              document.head.appendChild(metaDesc);
-            }
-            metaDesc.setAttribute('content', 'Booking Process');
+    const customDomain = window.location.hostname;
+    const fetchUrl = `/api/public-booking?type=portrait_settings&customDomain=${customDomain}${urlUserId ? `&userId=${urlUserId}` : ''}`;
+    fetch(fetchUrl)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          setVendorInfo(data.settings);
+          if (data.userId) setResolvedUserId(data.userId);
+          document.title = `${data.settings.companyName || 'Portrait Studio'} | Booking Process`;
+          let metaDesc = document.querySelector('meta[name="description"]');
+          if (!metaDesc) {
+            metaDesc = document.createElement('meta');
+            metaDesc.setAttribute('name', 'description');
+            document.head.appendChild(metaDesc);
           }
-        })
-        .catch(console.error);
-    }
-  }, [userId]);
+          metaDesc.setAttribute('content', 'Booking Process');
+        }
+      })
+      .catch(console.error);
+  }, [urlUserId]);
 
-  if (!userId || !inquiryId) {
+  if (!resolvedUserId || !inquiryId) {
     return (
       <div className="login-wrapper">
         <div className="login-card glass-panel">
@@ -57,7 +59,7 @@ function WelcomeGuideContent() {
             {companyName}
           </div>
           <Link 
-            href={`/portrait/book?userId=${userId}&inquiryId=${inquiryId}`}
+            href={`/portrait/book?inquiryId=${inquiryId}${resolvedUserId ? `&userId=${resolvedUserId}` : ''}`}
             style={{ backgroundColor: themeColor, color: 'white', fontWeight: 700, fontSize: '0.875rem', padding: '0.5rem 1.25rem', borderRadius: '9999px', textDecoration: 'none', boxShadow: `0 4px 14px 0 ${themeColor}40` }}
           >
             Book Now
@@ -119,7 +121,7 @@ function WelcomeGuideContent() {
             {vendorInfo?.welcomeHeroSubheadline || 'Thank you for inquiring! This guide outlines our signature style, transparent pricing, and the simple three-step process to secure your session.'}
           </p>
           <Link
-            href={`/portrait/book?userId=${userId}&inquiryId=${inquiryId}`}
+            href={`/portrait/book?inquiryId=${inquiryId}${resolvedUserId ? `&userId=${resolvedUserId}` : ''}`}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               fontSize: '1rem', fontWeight: 700, padding: '1rem 2rem',
@@ -286,7 +288,7 @@ function WelcomeGuideContent() {
           Click below to access our live calendar and secure your session immediately.
         </p>
         <Link 
-          href={`/portrait/book?userId=${userId}&inquiryId=${inquiryId}${selectedPackage ? `&package=${encodeURIComponent(selectedPackage)}` : ''}`}
+          href={`/portrait/book?inquiryId=${inquiryId}${resolvedUserId ? `&userId=${resolvedUserId}` : ''}${selectedPackage ? `&package=${encodeURIComponent(selectedPackage)}` : ''}`}
           className="btn btn-primary"
           style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '1.25rem', fontWeight: 800, padding: '1.25rem 2.5rem', borderRadius: '9999px', backgroundColor: themeColor, color: 'white', textDecoration: 'none', boxShadow: `0 4px 14px 0 ${themeColor}60` }}
         >

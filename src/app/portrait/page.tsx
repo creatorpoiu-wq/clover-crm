@@ -7,9 +7,10 @@ import { DatePicker } from '@/components/ui/DatePicker';
 function PortraitBookingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const userId = searchParams.get('userId');
+  const urlUserId = searchParams.get('userId');
 
   const [vendorInfo, setVendorInfo] = useState<any>(null);
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(urlUserId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -32,41 +33,41 @@ function PortraitBookingContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (userId) {
-      fetch(`/api/public-booking?type=portrait_settings&userId=${userId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.settings) {
-            setVendorInfo(data.settings);
-            // Update page title and description
-            document.title = `${data.settings.companyName || 'Portrait Studio'} | Booking Process`;
-            let metaDesc = document.querySelector('meta[name="description"]');
-            if (!metaDesc) {
-              metaDesc = document.createElement('meta');
-              metaDesc.setAttribute('name', 'description');
-              document.head.appendChild(metaDesc);
-            }
-            metaDesc.setAttribute('content', 'Booking Process');
-
-            // Initialize custom questions in form data
-            if (data.settings.customQuestions && Array.isArray(data.settings.customQuestions)) {
-              const initialCustomAnswers: Record<string, any> = {};
-              data.settings.customQuestions.forEach((q: any) => {
-                initialCustomAnswers[q.label] = '';
-              });
-              setFormData(prev => ({ ...prev, customAnswers: initialCustomAnswers }));
-            }
-          } else {
-            setError('Could not load booking settings.');
+    const customDomain = window.location.hostname;
+    const fetchUrl = `/api/public-booking?type=portrait_settings&customDomain=${customDomain}${urlUserId ? `&userId=${urlUserId}` : ''}`;
+    
+    fetch(fetchUrl)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          setVendorInfo(data.settings);
+          if (data.userId) setResolvedUserId(data.userId);
+          
+          // Update page title and description
+          document.title = `${data.settings.companyName || 'Portrait Studio'} | Booking Process`;
+          let metaDesc = document.querySelector('meta[name="description"]');
+          if (!metaDesc) {
+            metaDesc = document.createElement('meta');
+            metaDesc.setAttribute('name', 'description');
+            document.head.appendChild(metaDesc);
           }
-        })
-        .catch(() => setError('Failed to load booking settings.'))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-      setError('Invalid Link: Missing Vendor ID');
-    }
-  }, [userId]);
+          metaDesc.setAttribute('content', 'Booking Process');
+
+          // Initialize custom questions in form data
+          if (data.settings.customQuestions && Array.isArray(data.settings.customQuestions)) {
+            const initialCustomAnswers: Record<string, any> = {};
+            data.settings.customQuestions.forEach((q: any) => {
+              initialCustomAnswers[q.label] = '';
+            });
+            setFormData(prev => ({ ...prev, customAnswers: initialCustomAnswers }));
+          }
+        } else {
+          setError('Could not load booking settings. Please check your link.');
+        }
+      })
+      .catch(() => setError('Failed to load booking settings.'))
+      .finally(() => setLoading(false));
+  }, [urlUserId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -122,7 +123,7 @@ function PortraitBookingContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
+          userId: resolvedUserId,
           ...formData
         })
       });
@@ -130,7 +131,7 @@ function PortraitBookingContent() {
       const data = await res.json();
       if (data.success) {
         // Redirect to welcome guide with inquiryId
-        router.push(`/portrait/welcome?userId=${userId}&inquiryId=${data.inquiryId}`);
+        router.push(`/portrait/welcome?inquiryId=${data.inquiryId}${resolvedUserId ? `&userId=${resolvedUserId}` : ''}`);
       } else {
         alert(data.error || 'Failed to submit booking inquiry.');
         setIsSubmitting(false);
@@ -152,7 +153,7 @@ function PortraitBookingContent() {
     );
   }
 
-  if (error || !userId) {
+  if (error || !resolvedUserId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full mx-4">
@@ -319,7 +320,7 @@ function PortraitBookingContent() {
                   <DatePicker 
                     value={formData.preferredDates} 
                     onChange={(val) => setFormData({ ...formData, preferredDates: val })} 
-                    userId={userId || undefined}
+                    userId={resolvedUserId || undefined}
                     className="input-field" 
                     style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', fontFamily: 'inherit' }}
                   />
