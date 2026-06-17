@@ -409,43 +409,89 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         
         {/* Header Header */}
-        <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-          {session.Cover_Image && (
-            <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '4px solid white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-              {session.Cover_Image.match(/\.(mp4|webm|ogg)$/i) ? (
-                <video src={session.Cover_Image} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              )}
-            </div>
-          )}
-          <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{session.Session_Type}</h1>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
-            {!isWedding && `${session.Duration_Minutes} Minutes `}
-            {session.Location ? (!isWedding ? `· ${session.Location}` : session.Location) : ''}
-          </p>
-          {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
-        </div>
+        {step !== 'welcome' && (
+          <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+            {session.Cover_Image && (
+              <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '4px solid white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                {session.Cover_Image.match(/\.(mp4|webm|ogg)$/i) ? (
+                  <video src={session.Cover_Image} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
+              </div>
+            )}
+            <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{session.Session_Type}</h1>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
+              {!isWedding && `${session.Duration_Minutes} Minutes `}
+              {session.Location ? (!isWedding ? `· ${session.Location}` : session.Location) : ''}
+            </p>
+            {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
+          </div>
+        )}
 
         {/* ── STEP 0: Welcome ── */}
         {step === 'welcome' && (
-          <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden', textAlign: 'center', padding: '3rem 2rem' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-              Welcome to your {session.Session_Type} Booking
-            </h2>
-            <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto 2.5rem' }}>
-              {session.Description || 'We are thrilled to be part of your special day. Please proceed to select your package and secure your date.'}
-            </p>
-            <button 
-              onClick={() => {
-                if (isWedding && session.Packages && session.Packages.length > 0) setStep('packages');
-                else setStep('datetime');
-              }}
-              style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', fontWeight: 700, backgroundColor: '#0f172a', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
-            >
-              Get Started <ArrowRight size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }} />
-            </button>
-          </div>
+          <header style={{
+            position: 'fixed',
+            inset: 0,
+            width: '100%',
+            height: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            backgroundColor: '#0f172a',
+            zIndex: 50
+          }}>
+            {session.Cover_Image && (
+              <img
+                src={session.Cover_Image}
+                alt="Hero"
+                style={{
+                  position: 'absolute', inset: 0, width: '100%', height: '100%',
+                  objectFit: 'cover', objectPosition: 'center',
+                }}
+              />
+            )}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: session.Cover_Image
+                ? 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.65) 100%)'
+                : 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)',
+            }} />
+            <div style={{
+              position: 'relative', zIndex: 10, textAlign: 'center',
+              padding: '8rem 1.5rem 5rem', maxWidth: '800px', margin: '0 auto',
+            }}>
+              <h1 style={{
+                fontWeight: 900, letterSpacing: '-0.04em', color: 'white',
+                marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 6vw, 4rem)', lineHeight: 1.1,
+              }}>
+                Welcome to your {session.Session_Type} Booking
+              </h1>
+              <p style={{
+                fontSize: '1.25rem', color: 'rgba(255,255,255,0.75)',
+                fontWeight: 400, lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem',
+              }}>
+                {session.Description || 'We are thrilled to be part of your special day. Please proceed to select your package and secure your date.'}
+              </p>
+              <button
+                onClick={() => {
+                  if (isWedding && session.Packages && session.Packages.length > 0) setStep('packages');
+                  else setStep('datetime');
+                }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  fontSize: '1rem', fontWeight: 700, padding: '1rem 2rem',
+                  borderRadius: '9999px', backgroundColor: 'white', color: '#0f172a',
+                  textDecoration: 'none', boxShadow: '0 10px 30px -5px rgba(255,255,255,0.3)',
+                  border: 'none', cursor: 'pointer'
+                }}
+              >
+                Book Your Session <ArrowRight size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }} />
+              </button>
+            </div>
+          </header>
         )}
 
         {/* ── STEP 1: Date & Time ── */}

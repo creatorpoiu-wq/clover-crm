@@ -78,69 +78,109 @@ export default function BookingFunnel() {
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: "'Inter', sans-serif", paddingBottom: 60 }}>
       {/* Top Progress Bar */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10 }}>
-        {!searchParams.get('userId') && (
-          <div style={{ maxWidth: 900, margin: '0 auto', padding: '12px 20px 0' }}>
-            <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#6b7280', textDecoration: 'none', transition: 'color 0.2s' }}>
-              <ArrowLeft size={14} /> Back to Dashboard
-            </Link>
+      {currentStep > 0 && (
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10 }}>
+          {!searchParams.get('userId') && (
+            <div style={{ maxWidth: 900, margin: '0 auto', padding: '12px 20px 0' }}>
+              <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#6b7280', textDecoration: 'none', transition: 'color 0.2s' }}>
+                <ArrowLeft size={14} /> Back to Dashboard
+              </Link>
+            </div>
+          )}
+          <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
+            {steps.map((label, idx) => {
+              const stepNum = idx + 1;
+              const isActive = currentStep === stepNum;
+              const isPast = currentStep > stepNum;
+              
+              return (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', opacity: isActive || isPast ? 1 : 0.4 }}>
+                  <div style={{ 
+                    width: 28, height: 28, borderRadius: '50%', 
+                    background: isPast ? '#0d9488' : isActive ? '#111827' : '#e5e7eb',
+                    color: isPast ? '#fff' : isActive ? '#fff' : '#6b7280',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, fontWeight: 800
+                  }}>
+                    {isPast ? <Check size={14} /> : stepNum}
+                  </div>
+                  <span style={{ marginLeft: 10, fontSize: 13, fontWeight: 700, color: '#111827', display: typeof window !== 'undefined' && window.innerWidth > 600 ? 'block' : 'none' }}>
+                    {label}
+                  </span>
+                  {idx < steps.length - 1 && (
+                    <div style={{ width: 40, height: 2, background: isPast ? '#0d9488' : '#e5e7eb', margin: '0 16px', display: typeof window !== 'undefined' && window.innerWidth > 600 ? 'block' : 'none' }} />
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
-        <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
-          {steps.map((label, idx) => {
-            const stepNum = idx + 1;
-            const isActive = currentStep === stepNum;
-            const isPast = currentStep > stepNum;
-            
-            return (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', opacity: isActive || isPast ? 1 : 0.4 }}>
-                <div style={{ 
-                  width: 28, height: 28, borderRadius: '50%', 
-                  background: isPast ? '#0d9488' : isActive ? '#111827' : '#e5e7eb',
-                  color: isPast ? '#fff' : isActive ? '#fff' : '#6b7280',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 800
-                }}>
-                  {isPast ? <Check size={14} /> : stepNum}
-                </div>
-                <span style={{ marginLeft: 10, fontSize: 13, fontWeight: 700, color: '#111827', display: typeof window !== 'undefined' && window.innerWidth > 600 ? 'block' : 'none' }}>
-                  {label}
-                </span>
-                {idx < steps.length - 1 && (
-                  <div style={{ width: 40, height: 2, background: isPast ? '#0d9488' : '#e5e7eb', margin: '0 16px', display: typeof window !== 'undefined' && window.innerWidth > 600 ? 'block' : 'none' }} />
-                )}
-              </div>
-            );
-          })}
         </div>
-      </div>
+      )}
 
-      <div style={{ maxWidth: 900, margin: '40px auto 0', padding: '0 20px' }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '100px 0', color: '#6b7280' }}>Loading proposal...</div>
-        ) : (
-          <>
-            {currentStep === 0 && (
-              <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden', textAlign: 'center' }}>
-                {funnelSettings?.coverImage && (
-                  <div style={{ width: '100%', height: '250px', backgroundImage: `url(${funnelSettings.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                )}
-                <div style={{ padding: '3rem 2rem' }}>
-                  <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-                    Welcome to your Booking Proposal
-                  </h2>
-                  <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto 2.5rem' }}>
-                    We are thrilled at the opportunity to work with you! Please proceed to complete your information, select your package, and finalize your booking.
-                  </p>
-                  <button 
-                    onClick={handleNext}
-                    style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', fontWeight: 700, backgroundColor: '#0f172a', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
-                  >
-                    Get Started <span style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }}>→</span>
-                  </button>
-                </div>
-              </div>
-            )}
+      {currentStep === 0 ? (
+        <header style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          backgroundColor: '#0f172a',
+        }}>
+          {funnelSettings?.coverImage && (
+            <img
+              src={funnelSettings.coverImage}
+              alt="Hero"
+              style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center',
+              }}
+            />
+          )}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: funnelSettings?.coverImage
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.65) 100%)'
+              : 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)',
+          }} />
+          <div style={{
+            position: 'relative', zIndex: 10, textAlign: 'center',
+            padding: '8rem 1.5rem 5rem', maxWidth: '800px', margin: '0 auto',
+          }}>
+            <h1 style={{
+              fontWeight: 900, letterSpacing: '-0.04em', color: 'white',
+              marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 6vw, 4rem)', lineHeight: 1.1,
+            }}>
+              Welcome to the Experience.
+            </h1>
+            <p style={{
+              fontSize: '1.25rem', color: 'rgba(255,255,255,0.75)',
+              fontWeight: 400, lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem',
+            }}>
+              Thank you for inquiring! We are thrilled to be part of your special journey. This guide outlines our signature style and the simple process to secure your session.
+            </p>
+            <button
+              onClick={handleNext}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                fontSize: '1rem', fontWeight: 700, padding: '1rem 2rem',
+                borderRadius: '9999px', backgroundColor: 'white', color: '#0f172a',
+                textDecoration: 'none', boxShadow: '0 10px 30px -5px rgba(255,255,255,0.3)',
+                border: 'none', cursor: 'pointer'
+              }}
+            >
+              Book Your Session <span style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }}>→</span>
+            </button>
+          </div>
+        </header>
+      ) : (
+        <div style={{ maxWidth: 900, margin: '40px auto 0', padding: '0 20px' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '100px 0', color: '#6b7280' }}>Loading proposal...</div>
+          ) : (
+            <>
+
 
             {currentStep === 1 && (
               <ClientInfo 
@@ -203,6 +243,7 @@ export default function BookingFunnel() {
           </>
         )}
       </div>
+      )}
     </div>
   );
 }
