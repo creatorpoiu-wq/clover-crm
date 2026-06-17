@@ -1,16 +1,38 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Settings, Package, CreditCard, CheckCircle, Type, Mail } from "lucide-react";
+import { Save, Plus, Trash2, Settings, Package, CreditCard, CheckCircle, Type, Mail, Camera, ArrowRight } from "lucide-react";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 
 const TABS = [
-  { id: "steps",   label: "Step Text",     icon: Type },
+  { id: "general", label: "General Intro", icon: Settings },
+  { id: "style",   label: "Signature Style", icon: Camera },
   { id: "addons",  label: "Add-Ons",       icon: Package },
+  { id: "whatsnext", label: "What's Next", icon: ArrowRight },
   { id: "payment", label: "Payment",        icon: CreditCard },
+  { id: "steps",   label: "Step Text",     icon: Type },
   { id: "confirm", label: "Confirmation",  icon: CheckCircle },
   { id: "email",   label: "Proposal Email", icon: Mail },
 ];
 
 const DEFAULT_SETTINGS = {
+  // General Intro
+  welcomeHeroHeadline: "Welcome to the Experience.",
+  welcomeHeroSubheadline: "We are thrilled to be part of your special day. Please proceed to select your package and secure your date.",
+  coverImage: "",
+  // Signature Style
+  styleHeading: 'Candid. Timeless. Authentic.',
+  styleDescription: 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your portraits look beautiful decades from now.',
+  styleBullets: ['Natural light prioritization', 'Guided, movement-based posing', 'True-to-color editing aesthetic', 'Focus on genuine emotion'],
+  stylePhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop',
+  // What's Next
+  whatsNextHeading: 'What happens next?',
+  whatsNextSub: 'Booking your session is a seamless, 3-step process.',
+  whatsNextSteps: [
+    { title: 'Pick Your Date', description: 'View my real-time calendar and select the exact date and time that works for you.' },
+    { title: 'Sign Digitally', description: 'Review and sign your digital contract instantly to secure the legalities.' },
+    { title: 'Pay Retainer', description: 'Submit your non-refundable retainer securely. Your date is officially locked in!' },
+  ],
+  // Funnel Steps
   steps: [
     { title: "Choose Your Experience", subtitle: "Select the collection that perfectly fits your day. All packages include a pre-wedding consultation and timeline planning." },
     { title: "Tell Us About Your Day", subtitle: "Help us prepare the perfect agreement for your event." },
@@ -30,10 +52,10 @@ export default function BookingSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  // New addon form
+  // Input states for list additions
   const [newAddon, setNewAddon] = useState({ name: "", desc: "", price: "" });
-  // New payment method form
   const [newPayment, setNewPayment] = useState({ name: "", details: "", enabled: true });
+  const [newStyleBullet, setNewStyleBullet] = useState("");
 
   useEffect(() => {
     fetch("/api/funnel-settings")
@@ -153,6 +175,128 @@ export default function BookingSettingsPage() {
           );
         })}
       </div>
+
+      {/* GENERAL INTRO TAB */}
+      {tab === "general" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div className="glass-panel" style={{ padding: "1.5rem" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>Welcome Hero Section</h3>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>This is the first screen clients see when opening the proposal or booking link.</p>
+            
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label style={labelCls}>Headline</label>
+                <input style={inputCls} value={settings.welcomeHeroHeadline} onChange={e => setSettings(s => ({ ...s, welcomeHeroHeadline: e.target.value }))} />
+              </div>
+              <div>
+                <label style={labelCls}>Subheadline</label>
+                <textarea style={{ ...inputCls, resize: 'vertical' }} rows={3} value={settings.welcomeHeroSubheadline} onChange={e => setSettings(s => ({ ...s, welcomeHeroSubheadline: e.target.value }))} />
+              </div>
+              <div>
+                <ImageDropzone 
+                  label="Hero Cover Photo (Desktop / Landscape recommended)" 
+                  value={settings.coverImage || ""} 
+                  onChange={val => setSettings(s => ({ ...s, coverImage: val }))}
+                  aspectRatio="video"
+                  maxDimension={1920}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STYLE TAB */}
+      {tab === "style" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div className="glass-panel" style={{ padding: "1.5rem" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>Signature Style Section</h3>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>This section appears after the Hero to explain your photographic approach.</p>
+            
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label style={labelCls}>Heading</label>
+                <input style={inputCls} value={settings.styleHeading} onChange={e => setSettings(s => ({ ...s, styleHeading: e.target.value }))} />
+              </div>
+              <div>
+                <label style={labelCls}>Description</label>
+                <textarea style={{ ...inputCls, resize: 'vertical' }} rows={4} value={settings.styleDescription} onChange={e => setSettings(s => ({ ...s, styleDescription: e.target.value }))} />
+              </div>
+              <div>
+                <ImageDropzone 
+                  label="Style Photo" 
+                  value={settings.stylePhotoUrl || ""} 
+                  onChange={val => setSettings(s => ({ ...s, stylePhotoUrl: val }))}
+                  aspectRatio="auto"
+                  maxDimension={800}
+                />
+                <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
+              </div>
+              <div>
+                <label style={labelCls}>Style Bullets</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+                  {(settings.styleBullets || []).map((bullet: string, idx: number) => (
+                    <div key={idx} style={{ display: 'flex', gap: 8 }}>
+                      <input style={inputCls} value={bullet} onChange={e => {
+                        const b = [...settings.styleBullets]; b[idx] = e.target.value; setSettings(s => ({ ...s, styleBullets: b }));
+                      }} />
+                      <button onClick={() => {
+                        const b = [...settings.styleBullets]; b.splice(idx, 1); setSettings(s => ({ ...s, styleBullets: b }));
+                      }} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 8, color: "#ef4444", cursor: "pointer", padding: "0 12px" }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setSettings(s => ({ ...s, styleBullets: [...(s.styleBullets || []), 'New bullet point'] }))} style={{ background: "var(--background)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  + Add Bullet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WHATS NEXT TAB */}
+      {tab === "whatsnext" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div className="glass-panel" style={{ padding: "1.5rem" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>What's Next Section</h3>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>Configure the 3-step process shown at the end of the Welcome Guide.</p>
+            
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ flex: 1 }}>
+                <label style={labelCls}>Section Heading</label>
+                <input style={inputCls} value={settings.whatsNextHeading} onChange={e => setSettings(s => ({ ...s, whatsNextHeading: e.target.value }))} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={labelCls}>Section Subheading</label>
+                <input style={inputCls} value={settings.whatsNextSub} onChange={e => setSettings(s => ({ ...s, whatsNextSub: e.target.value }))} />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 16 }}>
+              {(settings.whatsNextSteps || []).map((step: any, idx: number) => (
+                <div key={idx} style={{ background: "var(--background)", border: "1px solid var(--border)", borderRadius: 12, padding: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--primary)", marginBottom: 12 }}>STEP {idx + 1}</div>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={labelCls}>Title</label>
+                    <input style={inputCls} value={step.title} onChange={e => {
+                      const ws = [...settings.whatsNextSteps]; ws[idx].title = e.target.value; setSettings(s => ({ ...s, whatsNextSteps: ws }));
+                    }} />
+                  </div>
+                  <div>
+                    <label style={labelCls}>Description</label>
+                    <textarea style={{ ...inputCls, resize: 'vertical' }} rows={3} value={step.description} onChange={e => {
+                      const ws = [...settings.whatsNextSteps]; ws[idx].description = e.target.value; setSettings(s => ({ ...s, whatsNextSteps: ws }));
+                    }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* STEPS TAB */}
       {tab === "steps" && (

@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CreditCard, PenTool, Building2, Smartphone, Lock, ArrowRight } from 'lucide-react';
+import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CheckCircle2, CreditCard, PenTool, Building2, Smartphone, Lock, ArrowRight, Star, Calendar, FileSignature } from 'lucide-react';
 import SignaturePad from 'signature_pad';
 import PaymentInstruction from '@/components/PaymentInstruction';
 
@@ -431,67 +431,241 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
 
         {/* ── STEP 0: Welcome ── */}
         {step === 'welcome' && (
-          <header style={{
-            position: 'fixed',
-            inset: 0,
-            width: '100%',
-            height: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            backgroundColor: '#0f172a',
-            zIndex: 50
-          }}>
-            {session.Cover_Image && (
-              <img
-                src={session.Cover_Image}
-                alt="Hero"
-                style={{
-                  position: 'absolute', inset: 0, width: '100%', height: '100%',
-                  objectFit: 'cover', objectPosition: 'center',
-                }}
-              />
-            )}
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: session.Cover_Image
-                ? 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.65) 100%)'
-                : 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)',
-            }} />
-            <div style={{
-              position: 'relative', zIndex: 10, textAlign: 'center',
-              padding: '8rem 1.5rem 5rem', maxWidth: '800px', margin: '0 auto',
+          <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', margin: '-3rem -1rem', width: 'calc(100% + 2rem)' }}>
+            <header style={{
+              position: 'relative',
+              width: '100%',
+              minHeight: '100vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              backgroundColor: '#0f172a',
+              zIndex: 50
             }}>
-              <h1 style={{
-                fontWeight: 900, letterSpacing: '-0.04em', color: 'white',
-                marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 6vw, 4rem)', lineHeight: 1.1,
+              {session.Cover_Image && (
+                <img
+                  src={session.Cover_Image}
+                  alt="Hero"
+                  style={{
+                    position: 'absolute', inset: 0, width: '100%', height: '100%',
+                    objectFit: 'cover', objectPosition: 'center',
+                  }}
+                />
+              )}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: session.Cover_Image
+                  ? 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.65) 100%)'
+                  : 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)',
+              }} />
+              <div style={{
+                position: 'relative', zIndex: 10, textAlign: 'center',
+                padding: '8rem 1.5rem 5rem', maxWidth: '800px', margin: '0 auto',
               }}>
-                Welcome to your {session.Session_Type} Booking
-              </h1>
-              <p style={{
-                fontSize: '1.25rem', color: 'rgba(255,255,255,0.75)',
-                fontWeight: 400, lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem',
+                <h1 style={{
+                  fontWeight: 900, letterSpacing: '-0.04em', color: 'white',
+                  marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 6vw, 4rem)', lineHeight: 1.1,
+                }}>
+                  {funnelSettings?.welcomeHeroHeadline || `Welcome to your ${session.Session_Type} Booking`}
+                </h1>
+                <p style={{
+                  fontSize: '1.25rem', color: 'rgba(255,255,255,0.75)',
+                  fontWeight: 400, lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem',
+                }}>
+                  {funnelSettings?.welcomeHeroSubheadline || session.Description || 'We are thrilled to be part of your special day. Please proceed to select your package and secure your date.'}
+                </p>
+                <button
+                  onClick={() => {
+                    const hero = document.getElementById('funnel-scroll-target');
+                    if (hero) hero.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    fontSize: '1rem', fontWeight: 700, padding: '1rem 2rem',
+                    borderRadius: '9999px', backgroundColor: 'white', color: '#0f172a',
+                    textDecoration: 'none', boxShadow: '0 10px 30px -5px rgba(255,255,255,0.3)',
+                    border: 'none', cursor: 'pointer'
+                  }}
+                >
+                  Explore Details <ArrowRight size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }} />
+                </button>
+              </div>
+              <div style={{
+                position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+                color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600,
+                textTransform: 'uppercase', letterSpacing: '0.1em', zIndex: 10
               }}>
-                {session.Description || 'We are thrilled to be part of your special day. Please proceed to select your package and secure your date.'}
+                <span>Scroll to explore</span>
+                <div style={{
+                  width: '1px', height: '2rem',
+                  background: 'linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)',
+                }} />
+              </div>
+            </header>
+
+            <div id="funnel-scroll-target"></div>
+
+            {/* Feature / Style Section */}
+            <section style={{ backgroundColor: 'white', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', padding: '6rem 1.5rem' }}>
+              <div style={{ maxWidth: '1024px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
+                <div style={{ flex: '1 1 400px', height: '600px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+                  <img 
+                    src={funnelSettings?.stylePhotoUrl || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"}
+                    alt="Signature Style" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+                  />
+                </div>
+                <div style={{ flex: '1 1 400px' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>Our Signature Style</div>
+                  <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
+                    {funnelSettings?.styleHeading || 'Candid. Timeless. Authentic.'}
+                  </h2>
+                  <p style={{ color: '#475569', fontSize: '1.125rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+                    {funnelSettings?.styleDescription || 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your photos look beautiful decades from now.'}
+                  </p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {(funnelSettings?.styleBullets || [
+                      'Natural light prioritization',
+                      'Guided, movement-based posing',
+                      'True-to-color editing aesthetic',
+                      'Focus on genuine emotion'
+                    ]).map((item: string, idx: number) => (
+                      <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                        <CheckCircle2 size={20} style={{ color: '#0f172a', marginTop: '0.25rem' }} />
+                        <span style={{ color: '#334155', fontWeight: 500 }}>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* Pricing Transparency */}
+            {isWedding && session.Packages && session.Packages.length > 0 && (
+              <section style={{ maxWidth: '896px', margin: '0 auto', textAlign: 'center', padding: '6rem 1.5rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>The Investment</div>
+                <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
+                  Transparent, all-inclusive pricing.
+                </h2>
+                <p style={{ color: '#64748b', fontSize: '1.125rem', marginBottom: '4rem', maxWidth: '42rem', margin: '0 auto 4rem' }}>
+                  No hidden fees. Select the collection that best suits your vision for the big day.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(280px, 1fr))`, gap: '2rem', textAlign: 'left' }}>
+                  {session.Packages.map((pkg, idx) => {
+                    const isSelected = selectedPackage?.Package_ID === pkg.Package_ID;
+                    // Auto-feature the middle package if there are 3, otherwise the first one if there are 2, etc. (Just a visual heuristic)
+                    const isFeatured = idx === Math.floor(session.Packages.length / 2) && session.Packages.length > 1;
+                    return (
+                      <div 
+                        key={pkg.Package_ID} 
+                        onClick={() => setSelectedPackage(pkg)}
+                        style={{ 
+                          backgroundColor: isFeatured ? '#0f172a' : 'white', 
+                          color: isFeatured ? 'white' : '#1e293b', 
+                          padding: '2rem', 
+                          borderRadius: '1.5rem', 
+                          position: 'relative', 
+                          boxShadow: isSelected ? `0 0 0 4px #0f172a` : isFeatured ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : 'none', 
+                          border: isSelected ? `2px solid #0f172a` : '1px solid #e2e8f0',
+                          transform: isFeatured ? 'translateY(-1rem)' : 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease-in-out'
+                        }}
+                      >
+                        {isFeatured && (
+                          <div style={{ position: 'absolute', top: 0, right: '2rem', transform: 'translateY(-50%)', backgroundColor: '#facc15', color: '#713f12', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Star size={12}/> Most Popular
+                          </div>
+                        )}
+                        {isSelected && (
+                          <div style={{ position: 'absolute', top: '-0.75rem', left: '2rem', backgroundColor: '#0ea5e9', color: 'white', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '0.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                            <CheckCircle2 size={12}/> Selected
+                          </div>
+                        )}
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem', color: isFeatured ? 'white' : '#1e293b' }}>{pkg.Name}</h3>
+                        <div style={{ fontSize: '1.875rem', fontWeight: 900, marginBottom: '0.5rem', color: isFeatured ? 'white' : '#0f172a' }}>${pkg.Price}</div>
+                        <p style={{ color: isFeatured ? '#cbd5e1' : '#64748b', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 700 }}>{pkg.Duration}</p>
+                        
+                        {pkg.Items && (
+                          <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem', fontWeight: 500, color: isFeatured ? 'rgba(255,255,255,0.9)' : '#334155', marginBottom: '2rem' }}>
+                            {pkg.Items.split('\n').filter(Boolean).map((feature: string, fIdx: number) => (
+                              <li key={fIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', lineHeight: 1.4 }}>
+                                <CheckCircle2 size={16} color={isFeatured ? "rgba(255,255,255,0.3)" : "#cbd5e1"} style={{ flexShrink: 0, marginTop: '0.1rem' }}/> 
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* How It Works / The Triple Threat */}
+            <section style={{ backgroundColor: '#0f172a', color: 'white', padding: '6rem 1.5rem' }}>
+              <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+                  <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', marginBottom: '1rem' }}>
+                    {funnelSettings?.whatsNextHeading || "What happens next?"}
+                  </h2>
+                  <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>
+                    {funnelSettings?.whatsNextSub || 'Booking your session is a seamless, 3-step process.'}
+                  </p>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+                  {(funnelSettings?.whatsNextSteps || [
+                    { title: 'Tell Us About Your Day', description: 'Fill out your contact and event details to start the process.' },
+                    { title: 'Sign Digitally', description: 'Review and sign your digital contract instantly to secure the legalities.' },
+                    { title: 'Pay Retainer', description: 'Submit your non-refundable retainer securely. Your date is officially locked in!' },
+                  ]).map((stepItem: any, idx: number) => {
+                    const icons = [<Calendar key={0} size={100} />, <FileSignature key={1} size={100} />, <CreditCard key={2} size={100} />];
+                    return (
+                      <div key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '2rem', borderRadius: '1.5rem', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: 0, right: 0, padding: '2rem', opacity: 0.1 }}>
+                          {icons[idx % 3]}
+                        </div>
+                        <div style={{ width: '3rem', height: '3rem', borderRadius: '1rem', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', marginBottom: '1.5rem', fontWeight: 900, fontSize: '1.25rem', position: 'relative', zIndex: 10 }}>{idx + 1}</div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.75rem', position: 'relative', zIndex: 10 }}>{stepItem.title}</h3>
+                        <p style={{ color: '#94a3b8', lineHeight: 1.6, fontSize: '0.875rem', position: 'relative', zIndex: 10 }}>{stepItem.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
+            {/* Final CTA */}
+            <section style={{ backgroundColor: '#f8fafc', padding: '6rem 1.5rem', textAlign: 'center' }}>
+              <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
+                Ready to make it official?
+              </h2>
+              <p style={{ color: '#64748b', fontSize: '1.125rem', marginBottom: '2.5rem' }}>
+                Click below to continue and secure your session immediately.
               </p>
-              <button
+              <button 
                 onClick={() => {
-                  if (isWedding && session.Packages && session.Packages.length > 0) setStep('packages');
-                  else setStep('datetime');
+                  if (isWedding && session.Packages && session.Packages.length > 0 && !selectedPackage) {
+                    const hero = document.getElementById('funnel-scroll-target');
+                    if (hero) hero.scrollIntoView({ behavior: 'smooth' });
+                    alert("Please select a package first.");
+                  } else if (isWedding && session.Packages && session.Packages.length > 0) {
+                    setStep('packages');
+                  } else {
+                    setStep('datetime');
+                  }
                 }}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  fontSize: '1rem', fontWeight: 700, padding: '1rem 2rem',
-                  borderRadius: '9999px', backgroundColor: 'white', color: '#0f172a',
-                  textDecoration: 'none', boxShadow: '0 10px 30px -5px rgba(255,255,255,0.3)',
-                  border: 'none', cursor: 'pointer'
-                }}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '1.25rem', fontWeight: 800, padding: '1.25rem 2.5rem', borderRadius: '9999px', backgroundColor: '#0f172a', color: 'white', textDecoration: 'none', border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px 0 rgba(15, 23, 42, 0.4)' }}
               >
-                Book Your Session <ArrowRight size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }} />
+                Book Your Session Now
               </button>
-            </div>
-          </header>
+            </section>
+          </div>
         )}
 
         {/* ── STEP 1: Date & Time ── */}
