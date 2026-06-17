@@ -317,6 +317,46 @@ export default function BookingFunnel() {
                   );
                 })}
               </div>
+
+              {funnelSettings?.addons?.length > 0 && selectedPackage && (
+                <div style={{ marginTop: '3rem', textAlign: 'left', maxWidth: '600px', margin: '3rem auto 0' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', color: '#0f172a', textAlign: 'center' }}>Enhance Your Collection (Optional)</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {funnelSettings.addons.map((addon: any) => (
+                      <div 
+                        key={addon.id}
+                        onClick={() => {
+                          setSelectedAddons(prev => prev.includes(addon.id) ? prev.filter(id => id !== addon.id) : [...prev, addon.id]);
+                        }}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '1rem',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          backgroundColor: selectedAddons.includes(addon.id) ? '#f0fdf4' : 'white',
+                          borderColor: selectedAddons.includes(addon.id) ? '#22c55e' : '#e2e8f0',
+                          boxShadow: selectedAddons.includes(addon.id) ? '0 10px 15px -3px rgba(34, 197, 94, 0.1)' : 'none'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <div style={{
+                            width: 24, height: 24, borderRadius: 6,
+                            border: selectedAddons.includes(addon.id) ? 'none' : '2px solid #cbd5e1',
+                            backgroundColor: selectedAddons.includes(addon.id) ? '#22c55e' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}>
+                            {selectedAddons.includes(addon.id) && <Check size={16} color="white" />}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem' }}>{addon.name}</div>
+                            {addon.desc && <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>{addon.desc}</div>}
+                          </div>
+                        </div>
+                        <div style={{ fontWeight: 800, color: '#0d9488', fontSize: '1.1rem' }}>+${addon.price}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </section>
           )}
 
