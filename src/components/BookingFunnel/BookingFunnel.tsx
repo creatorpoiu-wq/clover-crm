@@ -25,10 +25,12 @@ export default function BookingFunnel() {
   const [contractHtml, setContractHtml] = useState('');
 
   useEffect(() => {
-    const userId = searchParams.get('userId');
+    const urlUserId = searchParams.get('userId');
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isCustomDomain = hostname && hostname !== 'localhost' && !hostname.includes('vercel.app');
 
-    const settingsFetch = userId
-      ? fetch(`/api/public-booking?type=settings&userId=${userId}`)
+    const settingsFetch = (urlUserId || isCustomDomain)
+      ? fetch(`/api/public-booking?type=settings&customDomain=${hostname}${urlUserId ? `&userId=${urlUserId}` : ''}`)
           .then(res => res.json())
           .then(data => { if (data.success) setFunnelSettings(data.settings); })
           .catch(() => {})
@@ -37,8 +39,8 @@ export default function BookingFunnel() {
           .then(data => { if (data.success) setFunnelSettings(data.settings); })
           .catch(() => {});
 
-    const pkgFetch = userId
-      ? fetch(`/api/public-booking?type=packages&userId=${userId}`)
+    const pkgFetch = (urlUserId || isCustomDomain)
+      ? fetch(`/api/public-booking?type=packages&customDomain=${hostname}${urlUserId ? `&userId=${urlUserId}` : ''}`)
           .then(res => res.json())
           .then(data => { 
             if (data.success) {
