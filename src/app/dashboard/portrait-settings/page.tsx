@@ -204,6 +204,8 @@ export default function PortraitSettingsPage() {
                 value={settings.welcomeHeroPhotoUrl} 
                 onChange={val => setSettings(s => ({ ...s, welcomeHeroPhotoUrl: val }))}
                 aspectRatio="video"
+                maxDimension={2000}
+                quality={0.95}
               />
               <p style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 0 0' }}>If no photo is uploaded, a dark gradient will be displayed instead.</p>
 
@@ -417,7 +419,8 @@ export default function PortraitSettingsPage() {
                 value={settings.stylePhotoUrl} 
                 onChange={val => setSettings(s => ({ ...s, stylePhotoUrl: val }))}
                 aspectRatio="auto"
-                maxDimension={800}
+                maxDimension={2000}
+                quality={0.95}
               />
               <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
             </div>

@@ -248,8 +248,9 @@ export default function BookingSettingsPage() {
                   label="Hero Cover Photo (Desktop / Landscape recommended)" 
                   value={settings.coverImage || ""} 
                   onChange={val => setSettings(s => ({ ...s, coverImage: val }))}
-                  aspectRatio="video"
-                  maxDimension={1920}
+                  aspectRatio="auto"
+                  maxDimension={2000}
+                  quality={0.95}
                 />
               </div>
             </div>
@@ -316,7 +317,8 @@ export default function BookingSettingsPage() {
                       value={settings.stylePhotoUrl || ""} 
                       onChange={val => setSettings(s => ({ ...s, stylePhotoUrl: val }))}
                       aspectRatio="auto"
-                      maxDimension={800}
+                      maxDimension={2000}
+                      quality={0.95}
                     />
                     <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
                   </div>
