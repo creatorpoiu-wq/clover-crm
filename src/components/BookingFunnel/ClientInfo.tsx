@@ -5,10 +5,11 @@ interface Props {
   data: any;
   setData: React.Dispatch<React.SetStateAction<any>>;
   onNext: () => void;
-  funnelSettings: any;
+  onBack?: () => void;
+  funnelSettings?: any;
 }
 
-export default function ClientInfo({ data, setData, onNext, funnelSettings }: Props) {
+export default function ClientInfo({ data, setData, onNext, onBack, funnelSettings }: Props) {
   const handleChange = (label: string, value: string) => {
     setData((prev: any) => ({ ...prev, [label]: value }));
   };
@@ -60,7 +61,15 @@ export default function ClientInfo({ data, setData, onNext, funnelSettings }: Pr
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: 24, marginTop: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: 24, marginTop: 20 }}>
+        {onBack ? (
+          <button 
+            onClick={onBack}
+            style={{ padding: '16px 24px', border: '1px solid #e5e7eb', background: 'transparent', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: 'pointer', color: '#4b5563' }}
+          >
+            Back
+          </button>
+        ) : <div />}
         <button 
           onClick={onNext}
           disabled={!isValid}
@@ -68,10 +77,10 @@ export default function ClientInfo({ data, setData, onNext, funnelSettings }: Pr
             background: isValid ? '#111827' : '#e5e7eb',
             color: isValid ? '#fff' : '#9ca3af',
             padding: '16px 32px', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 800,
-            cursor: isValid ? 'pointer' : 'not-allowed', transition: 'all 0.2s', width: '100%'
+            cursor: isValid ? 'pointer' : 'not-allowed', transition: 'all 0.2s', width: onBack ? 'auto' : '100%'
           }}
         >
-          Start Booking Proposal
+          Continue
         </button>
       </div>
     </div>

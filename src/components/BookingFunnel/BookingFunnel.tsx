@@ -10,7 +10,7 @@ import { Check, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BookingFunnel() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0); // 0 = Welcome, 1 = Client Info...
   const [loading, setLoading] = useState(true);
   const [packages, setPackages] = useState<any[]>([]);
   const [funnelSettings, setFunnelSettings] = useState<any>(null);
@@ -69,7 +69,7 @@ export default function BookingFunnel() {
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setCurrentStep(s => s - 1);
     }
@@ -120,11 +120,34 @@ export default function BookingFunnel() {
           <div style={{ textAlign: 'center', padding: '100px 0', color: '#6b7280' }}>Loading proposal...</div>
         ) : (
           <>
+            {currentStep === 0 && (
+              <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden', textAlign: 'center' }}>
+                {funnelSettings?.coverImage && (
+                  <div style={{ width: '100%', height: '250px', backgroundImage: `url(${funnelSettings.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                )}
+                <div style={{ padding: '3rem 2rem' }}>
+                  <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
+                    Welcome to your Booking Proposal
+                  </h2>
+                  <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto 2.5rem' }}>
+                    We are thrilled at the opportunity to work with you! Please proceed to complete your information, select your package, and finalize your booking.
+                  </p>
+                  <button 
+                    onClick={handleNext}
+                    style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', fontWeight: 700, backgroundColor: '#0f172a', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
+                  >
+                    Get Started <span style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }}>→</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {currentStep === 1 && (
               <ClientInfo 
                 data={questionnaireData} 
                 setData={setQuestionnaireData} 
-                onNext={handleNext} 
+                onNext={handleNext}
+                onBack={handleBack}
                 funnelSettings={funnelSettings}
               />
             )}
