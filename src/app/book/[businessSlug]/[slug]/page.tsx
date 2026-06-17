@@ -93,6 +93,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   const [form, setForm] = useState({ name: '', email: '', phone: '', notes: '' });
   
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [signature, setSignature] = useState('');
   const [showSigPad, setShowSigPad] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -166,10 +167,17 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   };
 
   const proceedFromDetails = () => {
+    const addonsTotal = selectedAddons.reduce((sum, id) => {
+      const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+      return sum + (addon ? Number(addon.price) : 0);
+    }, 0);
+    const basePrice = selectedPackage?.Price || session?.Price || 0;
+    const total = basePrice + addonsTotal;
+
     if (isWedding) {
       if (session?.Contract_Template) {
         setStep('contract');
-      } else if ((selectedPackage?.Price || 0) > 0 || (session?.Price && session.Price > 0)) {
+      } else if (total > 0) {
         setStep('payment');
       } else {
         handleSubmit();
@@ -179,7 +187,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         setStep('packages');
       } else if (session?.Contract_Template) {
         setStep('contract');
-      } else if (session?.Price && session.Price > 0) {
+      } else if (total > 0) {
         setStep('payment');
       } else {
         handleSubmit();
@@ -189,12 +197,18 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
 
   const proceedFromPackages = () => {
     if (!selectedPackage) return;
+    const addonsTotal = selectedAddons.reduce((sum, id) => {
+      const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+      return sum + (addon ? Number(addon.price) : 0);
+    }, 0);
+    const total = selectedPackage.Price + addonsTotal;
+
     if (isWedding) {
       setStep('datetime');
     } else {
       if (session?.Contract_Template) {
         setStep('contract');
-      } else if (selectedPackage.Price > 0 || (session?.Price && session.Price > 0)) {
+      } else if (total > 0) {
         setStep('payment');
       } else {
         handleSubmit();
@@ -207,8 +221,13 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
       alert("Please sign the contract.");
       return;
     }
-    const price = selectedPackage ? selectedPackage.Price : (session?.Price || 0);
-    if (price > 0) {
+    const addonsTotal = selectedAddons.reduce((sum, id) => {
+      const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+      return sum + (addon ? Number(addon.price) : 0);
+    }, 0);
+    const total = (selectedPackage ? selectedPackage.Price : (session?.Price || 0)) + addonsTotal;
+
+    if (total > 0) {
       setStep('payment');
     } else {
       handleSubmit();
@@ -220,8 +239,17 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     if (!session || !selectedDate || !selectedTime) return;
     
     setSubmitting(true);
-    const priceToPay = selectedPackage ? selectedPackage.Price : (session.Price || 0);
+    const addonsTotal = selectedAddons.reduce((sum, id) => {
+      const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+      return sum + (addon ? Number(addon.price) : 0);
+    }, 0);
+    const priceToPay = (selectedPackage ? selectedPackage.Price : (session.Price || 0)) + addonsTotal;
     
+    const addonNames = selectedAddons.map(id => funnelSettings?.addons?.find((a: any) => a.id === id)?.name).filter(Boolean);
+    const finalNotes = addonNames.length > 0 
+      ? `${form.notes}\n\nSelected Add-ons: ${addonNames.join(', ')}` 
+      : form.notes;
+
     const res = await fetch('/api/session-bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -233,7 +261,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         clientPhone: form.phone,
         bookedDate: selectedDate,
         bookedTime: selectedTime,
-        notes: form.notes,
+        notes: finalNotes,
         packageId: selectedPackage ? selectedPackage.Package_ID : null,
         contractHtml: session.Contract_Template ? getProcessedContractHtml() : null,
         signature: signature || null,
@@ -254,8 +282,17 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   const getProcessedContractHtml = () => {
     if (!session || !session.Contract_Template) return '';
     let html = session.Contract_Template;
-    const priceToPay = selectedPackage ? selectedPackage.Price : (session.Price || 0);
-    const pkgName = selectedPackage ? selectedPackage.Name : session.Session_Type;
+    
+    const addonsTotal = selectedAddons.reduce((sum, id) => {
+      const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+      return sum + (addon ? Number(addon.price) : 0);
+    }, 0);
+    const priceToPay = (selectedPackage ? selectedPackage.Price : (session.Price || 0)) + addonsTotal;
+    
+    const addonNames = selectedAddons.map(id => funnelSettings?.addons?.find((a: any) => a.id === id)?.name).filter(Boolean);
+    let pkgName = selectedPackage ? selectedPackage.Name : session.Session_Type;
+    if (addonNames.length > 0) pkgName += ` + ${addonNames.join(', ')}`;
+    
     const clientName = form.name || '[Client Name]';
     const displayDate = selectedDate ? formatDisplayDate(selectedDate) : '[Date]';
     const displayTime = isWedding && selectedTime ? getStartTimeFormatted(selectedTime) : (selectedTime || '[Time]');
@@ -631,11 +668,57 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                 </div>
               ))}
             </div>
-            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e2e8f0' }}>
+            
+            {funnelSettings?.addons?.length > 0 && selectedPackage && (
+              <div style={{ padding: '0 1.5rem 1.5rem' }}>
+                <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Add-ons (Optional)</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {funnelSettings.addons.map((addon: any) => (
+                    <div 
+                      key={addon.id}
+                      onClick={() => {
+                        setSelectedAddons(prev => prev.includes(addon.id) ? prev.filter(id => id !== addon.id) : [...prev, addon.id]);
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                        backgroundColor: selectedAddons.includes(addon.id) ? '#f0fdf4' : 'white',
+                        borderColor: selectedAddons.includes(addon.id) ? '#22c55e' : '#e2e8f0'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{
+                          width: 20, height: 20, borderRadius: 4,
+                          border: selectedAddons.includes(addon.id) ? 'none' : '2px solid #cbd5e1',
+                          backgroundColor: selectedAddons.includes(addon.id) ? '#22c55e' : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          {selectedAddons.includes(addon.id) && <Check size={14} color="white" />}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>{addon.name}</div>
+                          {addon.desc && <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>{addon.desc}</div>}
+                        </div>
+                      </div>
+                      <div style={{ fontWeight: 800, color: '#0d9488' }}>+${addon.price}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>
+                Total: ${((selectedPackage ? selectedPackage.Price : 0) + selectedAddons.reduce((sum, id) => {
+                  const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+                  return sum + (addon ? Number(addon.price) : 0);
+                }, 0)).toLocaleString()}
+              </div>
               <button
                 onClick={proceedFromPackages}
                 disabled={!selectedPackage}
-                style={{ width: '100%', padding: '0.85rem', border: 'none', borderRadius: '0.5rem', backgroundColor: selectedPackage ? '#0f172a' : '#cbd5e1', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: selectedPackage ? 'pointer' : 'not-allowed', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                style={{ padding: '0.85rem 2rem', border: 'none', borderRadius: '0.5rem', backgroundColor: selectedPackage ? '#0f172a' : '#cbd5e1', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: selectedPackage ? 'pointer' : 'not-allowed', textTransform: 'uppercase', letterSpacing: '0.05em' }}
               >
                 Continue
               </button>
