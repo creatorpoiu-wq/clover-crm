@@ -510,12 +510,39 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
             {/* Feature / Style Section */}
             <section style={{ backgroundColor: 'white', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', padding: '6rem 1.5rem' }}>
               <div style={{ maxWidth: '1024px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
-                <div style={{ flex: '1 1 400px', height: '600px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
-                  <img 
-                    src={funnelSettings?.stylePhotoUrl || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"}
-                    alt="Signature Style" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
-                  />
+                <div style={{ flex: '1 1 400px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+                  {funnelSettings?.styleMediaType === 'video' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+                      {funnelSettings?.styleVideo1Url && (
+                        <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%', borderRadius: '1rem', overflow: 'hidden' }}>
+                          <iframe 
+                            src={funnelSettings.styleVideo1Url} 
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                      {funnelSettings?.styleVideo2Url && (
+                        <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%', borderRadius: '1rem', overflow: 'hidden' }}>
+                          <iframe 
+                            src={funnelSettings.styleVideo2Url} 
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ height: '600px', width: '100%', position: 'relative' }}>
+                      <img 
+                        src={funnelSettings?.stylePhotoUrl || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"}
+                        alt="Signature Style" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div style={{ flex: '1 1 400px' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>Our Signature Style</div>
@@ -553,7 +580,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                   No hidden fees. Select the collection that best suits your vision for the big day.
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(280px, 1fr))`, gap: '2rem', textAlign: 'left' }}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8" style={{ textAlign: 'left' }}>
                   {session.Packages.map((pkg, idx) => {
                     const isSelected = selectedPackage?.Package_ID === pkg.Package_ID;
                     // Auto-feature the middle package if there are 3, otherwise the first one if there are 2, etc. (Just a visual heuristic)

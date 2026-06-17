@@ -23,7 +23,10 @@ const DEFAULT_SETTINGS = {
   styleHeading: 'Candid. Timeless. Authentic.',
   styleDescription: 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your portraits look beautiful decades from now.',
   styleBullets: ['Natural light prioritization', 'Guided, movement-based posing', 'True-to-color editing aesthetic', 'Focus on genuine emotion'],
+  styleMediaType: 'image',
   stylePhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop',
+  styleVideo1Url: '',
+  styleVideo2Url: '',
   // What's Next
   whatsNextHeading: 'What happens next?',
   whatsNextSub: 'Booking your session is a seamless, 3-step process.',
@@ -223,14 +226,53 @@ export default function BookingSettingsPage() {
                 <textarea style={{ ...inputCls, resize: 'vertical' }} rows={4} value={settings.styleDescription} onChange={e => setSettings(s => ({ ...s, styleDescription: e.target.value }))} />
               </div>
               <div>
-                <ImageDropzone 
-                  label="Style Photo" 
-                  value={settings.stylePhotoUrl || ""} 
-                  onChange={val => setSettings(s => ({ ...s, stylePhotoUrl: val }))}
-                  aspectRatio="auto"
-                  maxDimension={800}
-                />
-                <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
+                <label style={labelCls}>Media Type</label>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="mediaType" 
+                      value="image" 
+                      checked={settings.styleMediaType !== 'video'} 
+                      onChange={() => setSettings(s => ({ ...s, styleMediaType: 'image' }))} 
+                    />
+                    Signature Photo
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="mediaType" 
+                      value="video" 
+                      checked={settings.styleMediaType === 'video'} 
+                      onChange={() => setSettings(s => ({ ...s, styleMediaType: 'video' }))} 
+                    />
+                    Featured Videos (2)
+                  </label>
+                </div>
+
+                {settings.styleMediaType === 'video' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                      <label style={labelCls}>Video 1 URL (YouTube embed or .mp4)</label>
+                      <input style={inputCls} placeholder="e.g. https://www.youtube.com/embed/..." value={settings.styleVideo1Url || ''} onChange={e => setSettings(s => ({ ...s, styleVideo1Url: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label style={labelCls}>Video 2 URL (YouTube embed or .mp4)</label>
+                      <input style={inputCls} placeholder="e.g. https://www.youtube.com/embed/..." value={settings.styleVideo2Url || ''} onChange={e => setSettings(s => ({ ...s, styleVideo2Url: e.target.value }))} />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <ImageDropzone 
+                      label="Style Photo" 
+                      value={settings.stylePhotoUrl || ""} 
+                      onChange={val => setSettings(s => ({ ...s, stylePhotoUrl: val }))}
+                      aspectRatio="auto"
+                      maxDimension={800}
+                    />
+                    <div style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)' }}>Recommended: portrait/vertical orientation</div>
+                  </div>
+                )}
               </div>
               <div>
                 <label style={labelCls}>Style Bullets</label>
