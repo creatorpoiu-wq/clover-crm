@@ -71,6 +71,18 @@ export async function GET(req: NextRequest) {
         Step3_Subtitle: 'Please fill out any required fields and sign the agreement below.',
         Step4_Title: 'Complete Your Booking',
         Step4_Subtitle: 'Secure your date by submitting the 50% retainer.',
+        Welcome_Hero_Headline: 'Welcome to the Experience.',
+        Cover_Image: '',
+        Style_Heading: 'Candid. Timeless. Authentic.',
+        Style_Description: 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your photos look beautiful decades from now.',
+        Style_Photo_Url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop',
+        Style_Bullets: '["Natural light prioritization", "Guided, movement-based posing", "True-to-color editing aesthetic", "Focus on genuine emotion"]',
+        Style_Media_Type: 'image',
+        Style_Video1_Url: '',
+        Style_Video2_Url: '',
+        Whats_Next_Heading: 'What happens next?',
+        Whats_Next_Sub: 'Booking your session is a seamless, 3-step process.',
+        Whats_Next_Steps: '[{"title":"Tell Us About Your Day","description":"Fill out your contact and event details to start the process."},{"title":"Sign Digitally","description":"Review and sign your digital contract instantly to secure the legalities."},{"title":"Pay Retainer","description":"Submit your non-refundable retainer securely. Your date is officially locked in!"}]',
       };
 
       return NextResponse.json({
@@ -88,6 +100,18 @@ export async function GET(req: NextRequest) {
           confirmationMessage: row?.Confirmation_Message || 'Your deposit has been received. We are officially locked in!',
           questionnaireTemplateId: row?.Questionnaire_Template_ID || null,
           contractTemplateId: row?.Contract_Template_ID || null,
+          welcomeHeroHeadline: row?.Welcome_Hero_Headline || DEFAULTS.Welcome_Hero_Headline,
+          coverImage: row?.Cover_Image || DEFAULTS.Cover_Image,
+          styleHeading: row?.Style_Heading || DEFAULTS.Style_Heading,
+          styleDescription: row?.Style_Description || DEFAULTS.Style_Description,
+          stylePhotoUrl: row?.Style_Photo_Url || DEFAULTS.Style_Photo_Url,
+          styleBullets: row?.Style_Bullets ? JSON.parse(row.Style_Bullets) : JSON.parse(DEFAULTS.Style_Bullets),
+          styleMediaType: row?.Style_Media_Type || DEFAULTS.Style_Media_Type,
+          styleVideo1Url: row?.Style_Video1_Url || DEFAULTS.Style_Video1_Url,
+          styleVideo2Url: row?.Style_Video2_Url || DEFAULTS.Style_Video2_Url,
+          whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
+          whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
+          whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
         }
       });
     }
