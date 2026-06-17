@@ -15,6 +15,7 @@ const DEFAULTS = {
   Confirmation_Title: 'Booking Confirmed!',
   Confirmation_Message: 'Your deposit has been received and your contract is securely signed. We are officially locked in!',
   Welcome_Hero_Headline: 'Welcome to the Experience.',
+  Welcome_Hero_Subheadline: 'Thank you for inquiring! We are thrilled to be part of your special journey. This guide outlines our signature style and the simple process to secure your session.',
   Cover_Image: '',
   Style_Heading: 'Candid. Timeless. Authentic.',
   Style_Description: 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your photos look beautiful decades from now.',
@@ -60,6 +61,7 @@ export async function GET() {
       confirmationTitle: row?.Confirmation_Title || DEFAULTS.Confirmation_Title,
       confirmationMessage: row?.Confirmation_Message || DEFAULTS.Confirmation_Message,
       welcomeHeroHeadline: row?.Welcome_Hero_Headline || DEFAULTS.Welcome_Hero_Headline,
+      welcomeHeroSubheadline: row?.Welcome_Hero_Subheadline || DEFAULTS.Welcome_Hero_Subheadline,
       coverImage: row?.Cover_Image || DEFAULTS.Cover_Image,
       styleHeading: row?.Style_Heading || DEFAULTS.Style_Heading,
       styleDescription: row?.Style_Description || DEFAULTS.Style_Description,
@@ -88,7 +90,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { 
       steps, addons, paymentMethods, confirmationTitle, confirmationMessage,
-      welcomeHeroHeadline, coverImage, styleHeading, styleDescription, stylePhotoUrl, 
+      welcomeHeroHeadline, welcomeHeroSubheadline, coverImage, styleHeading, styleDescription, stylePhotoUrl, 
       styleBullets, styleMediaType, styleVideo1Url, styleVideo2Url,
       investmentHeadline, investmentDescription,
       whatsNextHeading, whatsNextSub, whatsNextSteps
@@ -117,6 +119,7 @@ export async function PUT(req: NextRequest) {
         Confirmation_Title: confirmationTitle || DEFAULTS.Confirmation_Title,
         Confirmation_Message: confirmationMessage || DEFAULTS.Confirmation_Message,
         Welcome_Hero_Headline: welcomeHeroHeadline || DEFAULTS.Welcome_Hero_Headline,
+        Welcome_Hero_Subheadline: welcomeHeroSubheadline || DEFAULTS.Welcome_Hero_Subheadline,
         Cover_Image: coverImage || DEFAULTS.Cover_Image,
         Style_Heading: styleHeading || DEFAULTS.Style_Heading,
         Style_Description: styleDescription || DEFAULTS.Style_Description,
