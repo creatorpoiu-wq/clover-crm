@@ -50,15 +50,29 @@ const DEFAULT_SETTINGS = {
 
 export default function BookingSettingsPage() {
   const [tab, setTab] = useState("steps");
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<typeof DEFAULT_SETTINGS & { userId?: string }>(DEFAULT_SETTINGS);
   const [emailSettings, setEmailSettings] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [customDomain, setCustomDomain] = useState("");
 
   // Input states for list additions
   const [newAddon, setNewAddon] = useState({ name: "", desc: "", price: "" });
   const [newPayment, setNewPayment] = useState({ name: "", details: "", enabled: true });
   const [newStyleBullet, setNewStyleBullet] = useState("");
+
+  const baseOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
+  const baseUrl = customDomain ? `https://${customDomain}` : baseOrigin;
+  const publicLink = settings.userId ? (customDomain ? `${baseUrl}/booking` : `${baseUrl}/booking?userId=${settings.userId}`) : null;
+
+  const copyLink = () => {
+    if (!publicLink) return;
+    navigator.clipboard.writeText(publicLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
 
   useEffect(() => {
     fetch("/api/funnel-settings")
@@ -68,6 +82,10 @@ export default function BookingSettingsPage() {
     fetch("/api/email-settings")
       .then(r => r.json())
       .then(d => { if (d.success) setEmailSettings(d.settings); });
+
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(d => { if (d.success && d.config?.customDomain) setCustomDomain(d.config.customDomain); });
   }, []);
 
   const showToast = (msg: string, type: "success" | "error") => {
@@ -160,6 +178,36 @@ export default function BookingSettingsPage() {
           <Save size={16} /> {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
+
+      {/* Public Link Banner */}
+      {publicLink && (
+        <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", borderRadius: 12, padding: "1.25rem 1.5rem", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", marginBottom: 4 }}>
+              📎 Your Public Booking Page
+            </div>
+            <div style={{ fontFamily: "monospace", fontSize: 13, color: "#e2e8f0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {publicLink}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={copyLink}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: copied ? "#10b981" : "rgba(255,255,255,0.1)", color: "white", transition: "all 0.2s", whiteSpace: "nowrap" }}
+            >
+              {copied ? "✓ Copied!" : "Copy Link"}
+            </button>
+            <a
+              href={publicLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: "var(--primary)", color: "white", textDecoration: "none", whiteSpace: "nowrap" }}
+            >
+              Preview ↗
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Tab Nav */}
       <div style={{ display: "flex", gap: 4, marginBottom: "2rem", borderBottom: "2px solid var(--border)", paddingBottom: 0 }}>

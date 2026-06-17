@@ -69,6 +69,7 @@ export async function GET() {
       whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
       whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
       whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
+      userId: userAuth.user.id,
     };
 
     return NextResponse.json({ success: true, settings });

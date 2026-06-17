@@ -75,7 +75,7 @@ export default function PortraitSettingsPage() {
 
   const baseOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://clover-crm.vercel.app';
   const baseUrl = customDomain ? `https://${customDomain}` : baseOrigin;
-  const publicLink = settings.userId ? `${baseUrl}/portrait?userId=${settings.userId}` : null;
+  const publicLink = settings.userId ? (customDomain ? `${baseUrl}/portrait` : `${baseUrl}/portrait?userId=${settings.userId}`) : null;
 
   const copyLink = () => {
     if (!publicLink) return;
