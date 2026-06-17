@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CheckCircle2, CreditCard, PenTool, Building2, Smartphone, Lock, ArrowRight, Star, Calendar, FileSignature } from 'lucide-react';
 import SignaturePad from 'signature_pad';
+import { getEmbedUrl } from '@/utils/embed';
 import PaymentInstruction from '@/components/PaymentInstruction';
 
 interface TimeSlot {
@@ -540,7 +541,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                         <div style={{ borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
                           <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%' }}>
                             <iframe 
-                              src={funnelSettings.styleVideo1Url} 
+                              src={getEmbedUrl(funnelSettings.styleVideo1Url)} 
                               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                               allowFullScreen
@@ -552,7 +553,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                         <div style={{ borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
                           <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%' }}>
                             <iframe 
-                              src={funnelSettings.styleVideo2Url} 
+                              src={getEmbedUrl(funnelSettings.styleVideo2Url)} 
                               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                               allowFullScreen

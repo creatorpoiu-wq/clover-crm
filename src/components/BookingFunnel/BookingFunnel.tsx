@@ -8,6 +8,7 @@ import DigitalContract from './DigitalContract';
 import PaymentCheckout from './PaymentCheckout';
 import { Check, ArrowLeft, ArrowRight, Star, CheckCircle2, Calendar, FileSignature, CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { getEmbedUrl } from '@/utils/embed';
 
 export default function BookingFunnel() {
   const [currentStep, setCurrentStep] = useState(0); // 0 = Welcome, 1 = Client Info...
@@ -227,7 +228,7 @@ export default function BookingFunnel() {
                       <div style={{ borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
                         <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%' }}>
                           <iframe 
-                            src={funnelSettings.styleVideo1Url} 
+                            src={getEmbedUrl(funnelSettings.styleVideo1Url)} 
                             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                             allowFullScreen
@@ -239,7 +240,7 @@ export default function BookingFunnel() {
                       <div style={{ borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
                         <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%' }}>
                           <iframe 
-                            src={funnelSettings.styleVideo2Url} 
+                            src={getEmbedUrl(funnelSettings.styleVideo2Url)} 
                             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                             allowFullScreen
