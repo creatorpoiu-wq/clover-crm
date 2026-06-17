@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CreditCard, PenTool, Building2, Smartphone, Lock } from 'lucide-react';
+import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CreditCard, PenTool, Building2, Smartphone, Lock, ArrowRight } from 'lucide-react';
 import SignaturePad from 'signature_pad';
 import PaymentInstruction from '@/components/PaymentInstruction';
 
@@ -85,7 +85,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [funnelSettings, setFunnelSettings] = useState<any>(null);
 
-  type StepType = 'datetime' | 'details' | 'packages' | 'contract' | 'payment' | 'confirm';
+  type StepType = 'welcome' | 'datetime' | 'details' | 'packages' | 'contract' | 'payment' | 'confirm';
   const [step, setStep] = useState<StepType>('datetime');
   const [calMonth, setCalMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -109,8 +109,10 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         if (d.success && d.session) {
           setSession(d.session);
           const _isWedding = d.session.Service_Type?.toLowerCase().includes('wedding') || d.session.Session_Type?.toLowerCase().includes('wedding');
-          if (_isWedding && d.session.Packages && d.session.Packages.length > 0) {
-            setStep('packages');
+          if (_isWedding) {
+            setStep('welcome');
+          } else if (d.session.Packages && d.session.Packages.length > 0) {
+            // Unchanged for non-wedding sessions with packages
           }
           fetch(`/api/availability?userId=${d.session.user_id}`)
             .then(r => r.json())
@@ -388,11 +390,36 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
           {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
         </div>
 
+        {/* ── STEP 0: Welcome ── */}
+        {step === 'welcome' && (
+          <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden', textAlign: 'center', padding: '3rem 2rem' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
+              Welcome to your {session.Session_Type} Booking
+            </h2>
+            <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto 2.5rem' }}>
+              {session.Description || 'We are thrilled to be part of your special day. Please proceed to select your package and secure your date.'}
+            </p>
+            <button 
+              onClick={() => {
+                if (isWedding && session.Packages && session.Packages.length > 0) setStep('packages');
+                else setStep('datetime');
+              }}
+              style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', fontWeight: 700, backgroundColor: '#0f172a', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
+            >
+              Get Started <ArrowRight size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }} />
+            </button>
+          </div>
+        )}
+
         {/* ── STEP 1: Date & Time ── */}
         {step === 'datetime' && (
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {isWedding && <button onClick={() => setStep('packages')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>}
+              {isWedding && session.Packages && session.Packages.length > 0 ? (
+                <button onClick={() => setStep('packages')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
+              ) : (
+                <button onClick={() => setStep('welcome')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
+              )}
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Select Date & Time</h3>
             </div>
             
@@ -570,7 +597,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         {step === 'packages' && (
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {!isWedding && <button onClick={() => setStep('details')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>}
+              <button onClick={() => isWedding ? setStep('welcome') : setStep('details')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Select a Package</h3>
             </div>
             
