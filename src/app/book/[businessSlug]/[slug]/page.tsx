@@ -509,63 +509,94 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
 
             {/* Feature / Style Section */}
             <section style={{ backgroundColor: 'white', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', padding: '6rem 1.5rem' }}>
-              <div style={{ maxWidth: '1024px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
-                <div style={{ flex: '1 1 400px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
-                  {funnelSettings?.styleMediaType === 'video' ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+              <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
+                {funnelSettings?.styleMediaType === 'video' ? (
+                  <div>
+                    <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>Our Signature Style</div>
+                      <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
+                        {funnelSettings?.styleHeading || 'Candid. Timeless. Authentic.'}
+                      </h2>
+                      <p style={{ color: '#475569', fontSize: '1.125rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '48rem', margin: '0 auto 2rem' }}>
+                        {funnelSettings?.styleDescription || 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your photos look beautiful decades from now.'}
+                      </p>
+                      <ul style={{ listStyle: 'none', padding: 0, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.5rem', maxWidth: '56rem' }}>
+                        {(funnelSettings?.styleBullets || [
+                          'Natural light prioritization',
+                          'Guided, movement-based posing',
+                          'True-to-color editing aesthetic',
+                          'Focus on genuine emotion'
+                        ]).map((item: string, idx: number) => (
+                          <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <CheckCircle2 size={18} style={{ color: '#0f172a' }} />
+                            <span style={{ color: '#334155', fontWeight: 500 }}>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
                       {funnelSettings?.styleVideo1Url && (
-                        <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%', borderRadius: '1rem', overflow: 'hidden' }}>
-                          <iframe 
-                            src={funnelSettings.styleVideo1Url} 
-                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowFullScreen
-                          />
+                        <div style={{ borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+                          <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%' }}>
+                            <iframe 
+                              src={funnelSettings.styleVideo1Url} 
+                              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                              allowFullScreen
+                            />
+                          </div>
                         </div>
                       )}
                       {funnelSettings?.styleVideo2Url && (
-                        <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%', borderRadius: '1rem', overflow: 'hidden' }}>
-                          <iframe 
-                            src={funnelSettings.styleVideo2Url} 
-                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowFullScreen
-                          />
+                        <div style={{ borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+                          <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%' }}>
+                            <iframe 
+                              src={funnelSettings.styleVideo2Url} 
+                              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} 
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                              allowFullScreen
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div style={{ height: '600px', width: '100%', position: 'relative' }}>
-                      <img 
-                        src={funnelSettings?.stylePhotoUrl || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"}
-                        alt="Signature Style" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
-                      />
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
+                    <div style={{ flex: '1 1 400px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+                      <div style={{ height: '600px', width: '100%', position: 'relative' }}>
+                        <img 
+                          src={funnelSettings?.stylePhotoUrl || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"}
+                          alt="Signature Style" 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-                <div style={{ flex: '1 1 400px' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>Our Signature Style</div>
-                  <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
-                    {funnelSettings?.styleHeading || 'Candid. Timeless. Authentic.'}
-                  </h2>
-                  <p style={{ color: '#475569', fontSize: '1.125rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-                    {funnelSettings?.styleDescription || 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your photos look beautiful decades from now.'}
-                  </p>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {(funnelSettings?.styleBullets || [
-                      'Natural light prioritization',
-                      'Guided, movement-based posing',
-                      'True-to-color editing aesthetic',
-                      'Focus on genuine emotion'
-                    ]).map((item: string, idx: number) => (
-                      <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                        <CheckCircle2 size={20} style={{ color: '#0f172a', marginTop: '0.25rem' }} />
-                        <span style={{ color: '#334155', fontWeight: 500 }}>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                    <div style={{ flex: '1 1 400px' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94a3b8', marginBottom: '1rem' }}>Our Signature Style</div>
+                      <h2 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: '1.5rem' }}>
+                        {funnelSettings?.styleHeading || 'Candid. Timeless. Authentic.'}
+                      </h2>
+                      <p style={{ color: '#475569', fontSize: '1.125rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+                        {funnelSettings?.styleDescription || 'We specialize in capturing raw, authentic moments rather than stiff poses. Our editing style relies on true-to-life colors with a subtle cinematic warmth, ensuring your photos look beautiful decades from now.'}
+                      </p>
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {(funnelSettings?.styleBullets || [
+                          'Natural light prioritization',
+                          'Guided, movement-based posing',
+                          'True-to-color editing aesthetic',
+                          'Focus on genuine emotion'
+                        ]).map((item: string, idx: number) => (
+                          <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                            <CheckCircle2 size={20} style={{ color: '#0f172a', marginTop: '0.25rem' }} />
+                            <span style={{ color: '#334155', fontWeight: 500 }}>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 
