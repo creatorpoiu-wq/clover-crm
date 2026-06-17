@@ -168,9 +168,9 @@ export default function PortraitContract({
           Digital Signature <span style={{ color: '#ef4444' }}>*</span>
         </label>
 
-        {contactName && (
+        {contactName !== '[Client Name]' && (
           <div style={{ marginBottom: '1rem', fontSize: '1rem', color: '#475569', fontWeight: 600 }}>
-            Signing on behalf of: <span style={{ color: '#0f172a', fontWeight: 800 }}>{contactName}</span>
+            Signee: <span style={{ color: '#0f172a', fontWeight: 800 }}>{contactName}</span>
           </div>
         )}
         

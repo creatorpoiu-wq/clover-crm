@@ -245,12 +245,40 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     let html = session.Contract_Template;
     const priceToPay = selectedPackage ? selectedPackage.Price : (session.Price || 0);
     const pkgName = selectedPackage ? selectedPackage.Name : session.Session_Type;
-    
-    html = html.replace(/\[CLIENT_NAME\]/g, form.name || '[Client Name]');
-    html = html.replace(/\[DATE\]/g, selectedDate ? formatDisplayDate(selectedDate) : '[Date]');
-    html = html.replace(/\[TIME\]/g, selectedTime || '[Time]');
-    html = html.replace(/\[PACKAGE_NAME\]/g, pkgName);
-    html = html.replace(/\[PRICE\]/g, `$${priceToPay.toFixed(2)}`);
+    const clientName = form.name || '[Client Name]';
+    const displayDate = selectedDate ? formatDisplayDate(selectedDate) : '[Date]';
+    const displayTime = selectedTime || '[Time]';
+    const formattedPrice = `$${priceToPay.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+    const replacements: Record<string, string> = {
+      'CLIENT_NAME': clientName,
+      'CLIENT NAME': clientName,
+      'NAME': clientName,
+      'DATE': displayDate,
+      'TIME': displayTime,
+      'PACKAGE_NAME': pkgName,
+      'PACKAGE NAME': pkgName,
+      'PACKAGE': pkgName,
+      'PRICE': formattedPrice,
+      'TOTAL': formattedPrice,
+      'AMOUNT': formattedPrice,
+      'RETAINER': `$${(priceToPay * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      'DEPOSIT': `$${(priceToPay * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+    };
+
+    // 1. Replace [VAR] and {VAR} tags
+    Object.entries(replacements).forEach(([key, val]) => {
+      const regex1 = new RegExp(`\\[${key}\\]`, 'gi');
+      const regex2 = new RegExp(`\\{${key}\\}`, 'gi');
+      html = html.replace(regex1, val).replace(regex2, val);
+    });
+
+    // 2. Replace Builder Variables (<span data-variable="true" label="VAR">)
+    Object.entries(replacements).forEach(([key, val]) => {
+      const regex = new RegExp(`<span[^>]*data-variable="true"[^>]*label="${key}"[^>]*>.*?<\\/span>`, 'gi');
+      html = html.replace(regex, `<strong style="color:#0f172a; font-weight:800;">${val}</strong>`);
+    });
+
     return html;
   };
 
