@@ -108,23 +108,24 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     const customDomain = window.location.hostname;
     fetch(`/api/sessions?customDomain=${customDomain}&slug=${resolvedParams.slug}`)
       .then(r => r.json())
-      .then(d => {
+      .then(async d => {
         if (d.success && d.session) {
           setSession(d.session);
           const _isWedding = d.session.Service_Type?.toLowerCase().includes('wedding') || d.session.Session_Type?.toLowerCase().includes('wedding');
           if (_isWedding) {
             setStep('welcome');
-          } else if (d.session.Packages && d.session.Packages.length > 0) {
-            // Unchanged for non-wedding sessions with packages
           }
-          fetch(`/api/availability?userId=${d.session.user_id}`)
-            .then(r => r.json())
-            .then(av => { if (av.success) setBlockedDates(av.blockedDates || []); });
           
-          fetch(`/api/public-booking?type=settings&userId=${d.session.user_id}`)
-            .then(r => r.json())
-            .then(fData => { if (fData.success) setFunnelSettings(fData.settings); })
-            .catch(() => {});
+          const avFetch = fetch(`/api/availability?userId=${d.session.user_id}`).then(r => r.json());
+          const fsFetch = fetch(`/api/public-booking?type=settings&userId=${d.session.user_id}`).then(r => r.json());
+
+          try {
+            const [avData, fData] = await Promise.all([avFetch, fsFetch]);
+            if (avData.success) setBlockedDates(avData.blockedDates || []);
+            if (fData.success) setFunnelSettings(fData.settings);
+          } catch (e) {
+            console.error('Error fetching supplementary data:', e);
+          }
         } else {
           setNotFound(true);
         }
