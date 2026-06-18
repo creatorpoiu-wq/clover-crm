@@ -29,6 +29,7 @@ export default function MarketingDashboard() {
   const [popups, setPopups] = useState<any[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [customDomain, setCustomDomain] = useState("");
+  const [userId, setUserId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [subSearch, setSubSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -36,6 +37,7 @@ export default function MarketingDashboard() {
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [embedCopied, setEmbedCopied] = useState(false);
 
   const router = useRouter();
   const supabase = createClient();
@@ -46,6 +48,7 @@ export default function MarketingDashboard() {
     setIsLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
+    setUserId(user.id);
 
     const [campaignRes, popupRes, settingsRes, subRes] = await Promise.all([
       supabase.from("Marketing_Campaigns").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -355,6 +358,39 @@ export default function MarketingDashboard() {
 
       ) : activeTab === "subscribers" ? (
         <div>
+          {/* ── Embed snippet banner ── */}
+          {userId && (() => {
+            const siteBase = customDomain ? `https://${customDomain}` : (typeof window !== "undefined" ? window.location.origin : "https://clover-crm.vercel.app");
+            const snippet = `<script src="${siteBase}/api/newsletter-widget/${userId}"></script>`;
+            return (
+              <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", borderRadius: "0.75rem", padding: "1.25rem 1.5rem", marginBottom: "1.5rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <div>
+                    <p style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#64748b", margin: "0 0 0.25rem" }}>📋 Website Footer Widget</p>
+                    <p style={{ color: "#94a3b8", fontSize: "0.8rem", margin: 0 }}>Paste this into your website's HTML where you want the signup form to appear.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(snippet);
+                      setEmbedCopied(true);
+                      setTimeout(() => setEmbedCopied(false), 2500);
+                    }}
+                    style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "0.8rem", background: embedCopied ? "#10b981" : "rgba(255,255,255,0.1)", color: "white", transition: "all 0.2s", whiteSpace: "nowrap" }}
+                  >
+                    {embedCopied ? "✓ Copied!" : "Copy Code"}
+                  </button>
+                </div>
+                <div
+                  onClick={() => { navigator.clipboard.writeText(snippet); setEmbedCopied(true); setTimeout(() => setEmbedCopied(false), 2500); }}
+                  style={{ marginTop: "0.75rem", background: "rgba(0,0,0,0.3)", borderRadius: "0.5rem", padding: "0.75rem 1rem", fontFamily: "monospace", fontSize: "0.78rem", color: "#a5f3fc", wordBreak: "break-all", cursor: "pointer", lineHeight: 1.6 }}
+                  title="Click to copy"
+                >
+                  {snippet}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* ── Stats bar ── */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
             {[
