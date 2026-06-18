@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     let targetUserId = userId;
     if (!targetUserId && customDomain) {
-      const { data: appSettings } = await supabase.from('App_Settings').select('user_id').eq('Custom_Domain', customDomain).single();
+      const { data: appSettings } = await supabase.from('AppConfig').select('user_id').eq('Custom_Domain', customDomain).single();
       if (appSettings) targetUserId = appSettings.user_id;
     }
 
