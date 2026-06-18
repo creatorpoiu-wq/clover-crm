@@ -22,7 +22,6 @@ const DEFAULT_SETTINGS = {
   welcomeHeroHeadline: 'Welcome to the Experience.',
   welcomeHeroSubheadline: 'Thank you for inquiring! This guide outlines our signature style, transparent pricing, and the simple three-step process to secure your session.',
   welcomeHeroPhotoUrl: '',
-  aboutText: "",
   sessionTypes: ["Family Portrait", "Maternity", "Newborn", "Couples/Engagement", "Senior Portraits", "Headshots/Branding"],
   retainerAmount: 100,
   customQuestions: [] as any[],
@@ -229,10 +228,6 @@ export default function PortraitSettingsPage() {
             <div>
               <label style={labelCls}>Inquiry Subheadline</label>
               <input style={inputCls} value={settings.heroSubheadline} onChange={e => setSettings(s => ({ ...s, heroSubheadline: e.target.value }))} />
-            </div>
-            <div>
-              <label style={labelCls}>About Text (Optional)</label>
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={4} value={settings.aboutText} onChange={e => setSettings(s => ({ ...s, aboutText: e.target.value }))} />
             </div>
           </div>
         )}

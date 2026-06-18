@@ -79,7 +79,6 @@ export async function GET() {
       welcomeHeroHeadline:     row?.Welcome_Hero_Headline    || DEFAULTS.welcomeHeroHeadline,
       welcomeHeroSubheadline:  row?.Welcome_Hero_Subheadline || DEFAULTS.welcomeHeroSubheadline,
       welcomeHeroPhotoUrl:     row?.Welcome_Hero_Photo_URL   || DEFAULTS.welcomeHeroPhotoUrl,
-      aboutText:               row?.About_Text               || DEFAULTS.aboutText,
       sessionTypes:      parseJSON(row?.Session_Types,      DEFAULTS.sessionTypes),
       retainerAmount:    row?.Retainer_Amount    || DEFAULTS.retainerAmount,
       customQuestions:   parseJSON(row?.Custom_Questions,   DEFAULTS.customQuestions),
@@ -122,7 +121,7 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const {
-      heroHeadline, heroSubheadline, welcomeHeroHeadline, welcomeHeroSubheadline, welcomeHeroPhotoUrl, aboutText, sessionTypes, retainerAmount,
+      heroHeadline, heroSubheadline, welcomeHeroHeadline, welcomeHeroSubheadline, welcomeHeroPhotoUrl, sessionTypes, retainerAmount,
       customQuestions, budgetRanges, steps, contractTemplateId, confirmationTitle, confirmationMessage,
       styleHeading, styleDescription, styleBullets, stylePhotoUrl,
       packages, whatsNextHeading, whatsNextSub, whatsNextSteps,
@@ -138,7 +137,6 @@ export async function PUT(req: NextRequest) {
       Welcome_Hero_Headline:    welcomeHeroHeadline    || DEFAULTS.welcomeHeroHeadline,
       Welcome_Hero_Subheadline: welcomeHeroSubheadline || DEFAULTS.welcomeHeroSubheadline,
       Welcome_Hero_Photo_URL:   welcomeHeroPhotoUrl    ?? DEFAULTS.welcomeHeroPhotoUrl,
-      About_Text:               aboutText              ?? DEFAULTS.aboutText,
       Session_Types:      JSON.stringify(sessionTypes      ?? DEFAULTS.sessionTypes),
       Retainer_Amount:    retainerAmount    ?? DEFAULTS.retainerAmount,
       Custom_Questions:   JSON.stringify(customQuestions   ?? DEFAULTS.customQuestions),

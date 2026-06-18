@@ -187,7 +187,6 @@ export async function GET(req: NextRequest) {
           welcomeHeroHeadline:   row?.Welcome_Hero_Headline    || 'Welcome to the Experience.',
           welcomeHeroSubheadline: row?.Welcome_Hero_Subheadline || 'Thank you for inquiring! This guide outlines our signature style, transparent pricing, and the simple three-step process to secure your session.',
           welcomeHeroPhotoUrl:   row?.Welcome_Hero_Photo_URL   || '',
-          aboutText:             row?.About_Text               || '',
           sessionTypes:    safeJSON(row?.Session_Types,    ['Family Portrait','Maternity','Newborn','Couples/Engagement','Senior Portraits','Headshots/Branding']),
           retainerAmount:  row?.Retainer_Amount  || 100,
           // Custom inquiry questions
