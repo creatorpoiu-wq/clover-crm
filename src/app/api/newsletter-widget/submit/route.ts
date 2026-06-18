@@ -7,17 +7,32 @@ function getServiceClient() {
   return createServiceClient(url, key);
 }
 
+// CORS headers — allow any external website to POST to this endpoint
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// Handle preflight requests sent by browsers before a cross-origin POST
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { userId, email, firstName, lastName } = await req.json();
 
     if (!userId || !email || !email.includes('@')) {
-      return NextResponse.json({ success: false, error: 'Valid email and userId are required.' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Valid email and userId are required.' },
+        { status: 400, headers: CORS_HEADERS }
+      );
     }
 
     const supabase = getServiceClient();
 
-    // Upsert subscriber (safe if email already exists for this user)
+    // Upsert subscriber — safe if the email already exists for this user
     const { error } = await supabase
       .from('Newsletter_Subscribers')
       .upsert(
@@ -33,9 +48,12 @@ export async function POST(req: NextRequest) {
       );
 
     if (error) throw error;
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: CORS_HEADERS });
   } catch (err: any) {
     console.error('Newsletter widget submit error:', err);
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500, headers: CORS_HEADERS }
+    );
   }
 }
