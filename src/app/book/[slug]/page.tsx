@@ -410,34 +410,12 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
   if (notFound || !session) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc' }}><p style={{ color: '#ef4444', fontWeight: 600 }}>Session not found or unavailable.</p></div>;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '3rem 1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        
-        {/* Header Header */}
-        {step !== 'welcome' && (
-          <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-            {session.Cover_Image && (
-              <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '4px solid white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-                {session.Cover_Image.match(/\.(mp4|webm|ogg)$/i) ? (
-                  <video src={session.Cover_Image} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                )}
-              </div>
-            )}
-            <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{session.Session_Type}</h1>
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
-              {!isWedding && `${session.Duration_Minutes} Minutes `}
-              {session.Location ? (!isWedding ? `· ${session.Location}` : session.Location) : ''}
-            </p>
-            {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
-          </div>
-        )}
-
-        {/* ── STEP 0: Welcome ── */}
-        {step === 'welcome' && (
-          <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', margin: '-3rem -1rem', width: 'calc(100% + 2rem)' }}>
-            <header style={{
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: step === 'welcome' ? 0 : '3rem 1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      
+      {/* ── STEP 0: Welcome ── */}
+      {step === 'welcome' && (
+        <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', width: '100%' }}>
+          <header style={{
               position: 'relative',
               width: '100%',
               minHeight: '100vh',
@@ -768,8 +746,31 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                 Book Your Session Now
               </button>
             </section>
-          </div>
-        )}
+        </div>
+      )}
+
+      {/* ── OTHER STEPS ── */}
+      {step !== 'welcome' && (
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+
+        {/* Header Header */}
+        <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+          {session.Cover_Image && (
+            <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '4px solid white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+              {session.Cover_Image.match(/\.(mp4|webm|ogg)$/i) ? (
+                <video src={session.Cover_Image} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <img src={session.Cover_Image} alt={session.Session_Type} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
+            </div>
+          )}
+          <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{session.Session_Type}</h1>
+          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
+            {!isWedding && `${session.Duration_Minutes} Minutes `}
+            {session.Location ? (!isWedding ? `· ${session.Location}` : session.Location) : ''}
+          </p>
+          {session.Description && <p style={{ margin: '1rem auto 0', color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, maxWidth: '400px' }}>{session.Description}</p>}
+        </div>
 
         {/* ── STEP 1: Date & Time ── */}
         {step === 'datetime' && (
@@ -1272,6 +1273,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
