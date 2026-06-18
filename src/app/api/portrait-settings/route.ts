@@ -14,8 +14,6 @@ const DEFAULTS = {
   retainerAmount: 100,
   // Custom inquiry form questions
   customQuestions: [] as any[],
-  // Budget ranges
-  budgetRanges: ['Under $500', '$500 - $1,000', '$1,000 - $2,000', '$2,000+'] as string[],
   // Step headings (for /portrait/book funnel)
   steps: [
     { title: 'Choose Your Experience', subtitle: 'Select the date and time for your portrait session.' },
@@ -82,7 +80,6 @@ export async function GET() {
       sessionTypes:      parseJSON(row?.Session_Types,      DEFAULTS.sessionTypes),
       retainerAmount:    row?.Retainer_Amount    || DEFAULTS.retainerAmount,
       customQuestions:   parseJSON(row?.Custom_Questions,   DEFAULTS.customQuestions),
-      budgetRanges:      parseJSON(row?.Budget_Ranges,       DEFAULTS.budgetRanges),
       steps: [
         { title: row?.Step1_Title || DEFAULTS.steps[0].title, subtitle: row?.Step1_Subtitle || DEFAULTS.steps[0].subtitle },
         { title: row?.Step2_Title || DEFAULTS.steps[1].title, subtitle: row?.Step2_Subtitle || DEFAULTS.steps[1].subtitle },
@@ -122,7 +119,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const {
       heroHeadline, heroSubheadline, welcomeHeroHeadline, welcomeHeroSubheadline, welcomeHeroPhotoUrl, sessionTypes, retainerAmount,
-      customQuestions, budgetRanges, steps, contractTemplateId, confirmationTitle, confirmationMessage,
+      customQuestions, steps, contractTemplateId, confirmationTitle, confirmationMessage,
       styleHeading, styleDescription, styleBullets, stylePhotoUrl,
       packages, whatsNextHeading, whatsNextSub, whatsNextSteps,
       paymentMethods, paymentInstructions, venmoHandle, paypalLink, zelleContact,
@@ -140,7 +137,6 @@ export async function PUT(req: NextRequest) {
       Session_Types:      JSON.stringify(sessionTypes      ?? DEFAULTS.sessionTypes),
       Retainer_Amount:    retainerAmount    ?? DEFAULTS.retainerAmount,
       Custom_Questions:   JSON.stringify(customQuestions   ?? DEFAULTS.customQuestions),
-      Budget_Ranges:      JSON.stringify(budgetRanges      ?? DEFAULTS.budgetRanges),
       Step1_Title:        s1?.title         || DEFAULTS.steps[0].title,
       Step1_Subtitle:     s1?.subtitle      || DEFAULTS.steps[0].subtitle,
       Step2_Title:        s2?.title         || DEFAULTS.steps[1].title,

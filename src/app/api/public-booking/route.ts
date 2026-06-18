@@ -191,8 +191,6 @@ export async function GET(req: NextRequest) {
           retainerAmount:  row?.Retainer_Amount  || 100,
           // Custom inquiry questions
           customQuestions: safeJSON(row?.Custom_Questions, []),
-          // Budget ranges for the inquiry form
-          budgetRanges: safeJSON(row?.Budget_Ranges, ['Under $500', '$500 - $1,000', '$1,000 - $2,000', '$2,000+']),
           // Book funnel step headings
           steps: [
             { title: row?.Step1_Title || 'Choose Your Experience',      subtitle: row?.Step1_Subtitle || 'Select the date and time for your portrait session.' },
