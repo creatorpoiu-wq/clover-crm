@@ -85,7 +85,6 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
         showMonthDropdown
         dropdownMode="select"
         withPortal={isMobile}
-        popperPlacement="bottom-start"
         popperModifiers={[
           {
             name: "preventOverflow",
@@ -100,7 +99,7 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
               fallbackPlacements: ["bottom-end", "top-start", "top-end"],
             },
           }
-        ]}
+        ] as any}
         onCalendarOpen={() => {
           setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
         }}
