@@ -175,16 +175,17 @@ export default function BookingFunnel() {
             }} />
             <div style={{
               position: 'relative', zIndex: 10, textAlign: 'center',
-              padding: '8rem 1.5rem 5rem', maxWidth: '800px', margin: '0 auto',
+              padding: '8rem 2.5rem 5rem', maxWidth: '800px', margin: '0 auto',
+              width: '100%', boxSizing: 'border-box'
             }}>
               <h1 style={{
                 fontWeight: 900, letterSpacing: '-0.04em', color: 'white',
-                marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 6vw, 4rem)', lineHeight: 1.1,
+                marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 8vw, 4rem)', lineHeight: 1.1,
               }}>
                 {funnelSettings?.welcomeHeroHeadline || "Welcome to the Experience."}
               </h1>
               <p style={{
-                fontSize: '1.25rem', color: 'rgba(255,255,255,0.75)',
+                fontSize: 'clamp(1.05rem, 4vw, 1.25rem)', color: 'rgba(255,255,255,0.75)',
                 fontWeight: 400, lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem',
               }}>
                 {funnelSettings?.welcomeHeroSubheadline || "Thank you for inquiring! We are thrilled to be part of your special journey. This guide outlines our signature style and the simple process to secure your session."}
