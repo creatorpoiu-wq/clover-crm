@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, CheckCircle2, FileText, CreditCard, Landmark, Wallet, AlertCircle } from 'lucide-react';
+import PayPalCheckoutButton from '../PayPalCheckoutButton';
 
 interface RetainerCheckoutProps {
   userId: string;
@@ -27,30 +28,62 @@ export default function RetainerCheckout({
   const retainerAmount = vendorInfo?.retainerAmount ? Number(vendorInfo.retainerAmount) : 100;
   const balanceDue = packageTotal > retainerAmount ? packageTotal - retainerAmount : 0;
 
-  // Placeholder Payment Methods (modeled after the Invoice Builder)
-  const paymentMethods = [
-    {
+  const [selectedMethod, setSelectedMethod] = useState('');
+
+  // Re-map payment methods based on what's active in vendorInfo
+  const activeMethods = vendorInfo?.paymentMethods || [];
+  const hasPaypal = vendorInfo?.paypalClientId && activeMethods.includes('PayPal');
+
+  // Filter or build the methods list
+  const paymentMethodsList = [];
+  if (activeMethods.includes('Bank Transfer') || activeMethods.includes('Bank Transfer (BACS / Wire)')) {
+    paymentMethodsList.push({
       id: 'bank',
-      name: 'Bank Transfer (BACS / Wire)',
+      name: 'Bank Transfer',
       icon: <Landmark size={20} />,
-      details: "Bank Name: National Bank\nAccount Name: Clover Studios\nAccount Number: 12345678\nRouting/Sort Code: 12-34-56"
-    },
-    {
+      details: vendorInfo?.paymentInstructions || "Please contact the studio for bank transfer details."
+    });
+  }
+  if (activeMethods.includes('Credit Card (Stripe)')) {
+    paymentMethodsList.push({
       id: 'card',
-      name: 'Credit Card (Stripe Placeholder)',
+      name: 'Credit Card (Stripe)',
       icon: <CreditCard size={20} />,
       details: "You will be redirected to a secure Stripe checkout page to complete your payment.",
       isPlaceholder: true
-    },
-    {
-      id: 'digital',
-      name: 'Digital Wallet (PayPal / Venmo)',
+    });
+  }
+  if (hasPaypal) {
+    paymentMethodsList.push({
+      id: 'paypal',
+      name: 'PayPal',
       icon: <Wallet size={20} />,
-      details: "PayPal: payments@cloverstudios.com\nVenmo: @CloverStudios"
-    }
-  ];
+      details: "Checkout securely with PayPal."
+    });
+  }
+  if (activeMethods.includes('Venmo') || activeMethods.includes('Zelle') || activeMethods.includes('Cash App')) {
+    paymentMethodsList.push({
+      id: 'digital',
+      name: 'Digital Wallet (Venmo / Zelle / Cash App)',
+      icon: <Wallet size={20} />,
+      details: `Venmo: ${vendorInfo?.venmoHandle || 'N/A'}\nZelle: ${vendorInfo?.zelleContact || 'N/A'}`
+    });
+  }
 
-  const [selectedMethod, setSelectedMethod] = useState(paymentMethods[0].id);
+  // Fallback if none configured
+  if (paymentMethodsList.length === 0) {
+    paymentMethodsList.push({
+      id: 'manual',
+      name: 'Manual / Invoice Later',
+      icon: <FileText size={20} />,
+      details: "We will send you an invoice manually."
+    });
+  }
+
+  // Initialize selectedMethod if empty
+  if (!selectedMethod && paymentMethodsList.length > 0) {
+    setSelectedMethod(paymentMethodsList[0].id);
+  }
 
   const handleComplete = async () => {
     setIsSubmitting(true);
@@ -167,7 +200,7 @@ export default function RetainerCheckout({
           </h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {paymentMethods.map(method => (
+            {paymentMethodsList.map(method => (
               <div 
                 key={method.id}
                 onClick={() => setSelectedMethod(method.id)}
@@ -209,14 +242,30 @@ export default function RetainerCheckout({
         >
           <ArrowLeft size={18} /> Back
         </button>
-        <button
-          onClick={handleComplete}
-          disabled={isSubmitting}
-          className="btn btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', cursor: isSubmitting ? 'wait' : 'pointer', backgroundColor: themeColor, border: 'none', opacity: isSubmitting ? 0.7 : 1 }}
-        >
-          {isSubmitting ? 'Processing...' : 'Confirm Payment & Book'} <CheckCircle2 size={18} />
-        </button>
+        
+        {selectedMethod === 'paypal' ? (
+          <div style={{ minWidth: 300 }}>
+            <PayPalCheckoutButton 
+              clientId={vendorInfo?.paypalClientId} 
+              amount={retainerAmount} 
+              description={`Retainer for ${selectedPackage?.name || 'Portrait Session'}`}
+              onSuccess={(details) => {
+                // Details will contain PayPal order capture response
+                handleComplete();
+              }}
+              onError={(err) => setError("PayPal payment failed. Please try again or use another method.")}
+            />
+          </div>
+        ) : (
+          <button
+            onClick={handleComplete}
+            disabled={isSubmitting}
+            className="btn btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', cursor: isSubmitting ? 'wait' : 'pointer', backgroundColor: themeColor, border: 'none', opacity: isSubmitting ? 0.7 : 1 }}
+          >
+            {isSubmitting ? 'Processing...' : 'Confirm Payment & Book'} <CheckCircle2 size={18} />
+          </button>
+        )}
       </div>
     </div>
   );

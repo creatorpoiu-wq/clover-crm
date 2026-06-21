@@ -27,6 +27,8 @@ function SettingsInner() {
   const [domainStatus, setDomainStatus] = useState<any>(null);
   const [savingDomain, setSavingDomain] = useState(false);
   const [checkingDomain, setCheckingDomain] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [domainAvailable, setDomainAvailable] = useState<boolean | null>(null);
   const [message, setMessage] = useState<{type: "success" | "error", text: string} | null>(null);
 
   // Account Security state
@@ -54,6 +56,9 @@ function SettingsInner() {
   const [twilioAuthToken, setTwilioAuthToken] = useState("");
   const [twilioPhone, setTwilioPhone] = useState("");
   const [testingSms, setTestingSms] = useState(false);
+
+  // Payment Gateways
+  const [paypalClientId, setPaypalClientId] = useState("");
 
   // Reset CRM state
   const [showResetModal, setShowResetModal] = useState(false);
@@ -92,6 +97,7 @@ function SettingsInner() {
           setTwilioAuthToken(data.config.twilioAuthToken || "");
           setTwilioPhone(data.config.twilioPhone || "");
           setBusinessSlug(data.config.businessSlug || "");
+          setPaypalClientId(data.config.paypalClientId || "");
           if (data.config.customDomain) {
             setCustomDomain(data.config.customDomain);
             handleCheckDomain(data.config.customDomain);
@@ -106,6 +112,29 @@ function SettingsInner() {
       if (user?.email) setLoginEmail(user.email);
     });
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!customDomain || !customDomain.includes('.')) {
+      setDomainAvailable(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsCheckingAvailability(true);
+      try {
+        const res = await fetch(`/api/settings/domain/check?domain=${customDomain}`);
+        if (res.ok) {
+          const data = await res.json();
+          setDomainAvailable(data.available);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsCheckingAvailability(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [customDomain]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +154,8 @@ function SettingsInner() {
           twilioSid,
           twilioAuthToken,
           twilioPhone,
-          businessSlug
+          businessSlug,
+          paypalClientId
         })
       });
       if (res.ok) setMessage({ type: "success", text: "Settings saved successfully!" });
@@ -746,6 +776,36 @@ function SettingsInner() {
           </form>
         </div>
         )}
+
+        {/* Payment Gateways */}
+        {activeTab === 'integrations' && (
+        <div className="glass-panel" style={{ padding: "2rem" }}>
+          <div className="flex items-center gap-2 section-header">
+            <ShieldCheck size={20} className="text-[var(--primary)]" />
+            <h2>Payment Gateways</h2>
+          </div>
+
+          <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "1.5rem" }}>
+            Connect your payment gateways to allow clients to pay invoices and retainers directly from their portal.
+          </p>
+
+          <form onSubmit={handleSave} className="space-y-4 mb-6">
+            <div>
+              <label style={labelStyle}>PayPal Client ID</label>
+              <input type="text" style={inputStyle} value={paypalClientId}
+                onChange={e => setPaypalClientId(e.target.value)} placeholder="AYxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+              <p style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.4rem" }}>
+                Find this in your <a href="https://developer.paypal.com/dashboard/applications/live" target="_blank" rel="noreferrer" style={{ color: "var(--primary)", textDecoration: "underline" }}>PayPal Developer Dashboard</a>. Leave blank to disable PayPal checkout.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button type="submit" className="btn btn-primary" style={{ width: "auto" }} disabled={saving}>
+                {saving ? "Saving..." : "Save Gateways"}
+              </button>
+            </div>
+          </form>
+        </div>
+        )}
       </div>
 
         {/* Custom Domains */}
@@ -764,9 +824,22 @@ function SettingsInner() {
               <label style={labelStyle}>Your Custom Domain</label>
               <input type="text" style={inputStyle} value={customDomain}
                 onChange={e => setCustomDomain(e.target.value)} placeholder="portal.yourdomain.com" />
+              {isCheckingAvailability && (
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.25rem' }}>Checking availability...</div>
+              )}
+              {domainAvailable === false && !isCheckingAvailability && (
+                <div style={{ fontSize: '0.75rem', color: 'var(--status-red)', marginTop: '0.25rem', fontWeight: 600 }}>
+                  Not available or already taken
+                </div>
+              )}
+              {domainAvailable === true && !isCheckingAvailability && customDomain.includes('.') && (
+                <div style={{ fontSize: '0.75rem', color: 'var(--status-green)', marginTop: '0.25rem', fontWeight: 600 }}>
+                  Domain is available!
+                </div>
+              )}
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button type="submit" className="btn btn-primary" style={{ width: "auto" }} disabled={savingDomain}>
+              <button type="submit" className="btn btn-primary" style={{ width: "auto" }} disabled={savingDomain || domainAvailable === false || isCheckingAvailability}>
                 {savingDomain ? "Saving..." : "Add Domain"}
               </button>
               {customDomain && (

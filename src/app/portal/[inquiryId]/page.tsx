@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Calendar, FileText, DollarSign, CheckCircle2, Clock, MessageSquare, ListTodo, DownloadCloud, Send, ExternalLink, Menu, X, ArrowRight } from 'lucide-react';
+import PayPalCheckoutButton from '@/components/PayPalCheckoutButton';
 
 export default function ClientPortal() {
   const params = useParams();
@@ -14,6 +15,7 @@ export default function ClientPortal() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [feedbackNotes, setFeedbackNotes] = useState<any>({});
   const [toastMsg, setToastMsg] = useState('');
+  const [payingInvoice, setPayingInvoice] = useState<any>(null);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -91,6 +93,26 @@ export default function ClientPortal() {
     }
   };
 
+  const handleInvoicePayment = async (details: any) => {
+    if (!payingInvoice) return;
+    try {
+      const res = await fetch('/api/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_paid', inquiryId, payload: { invoiceId: payingInvoice.Invoice_ID } })
+      });
+      if (res.ok) {
+        showToast('Payment successful!');
+        setPayingInvoice(null);
+        fetchPortalData();
+      } else {
+        alert('Payment verification failed.');
+      }
+    } catch (err) {
+      alert('Error verifying payment.');
+    }
+  };
+
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#64748b' }}>Loading your portal...</div>;
   if (error || !data) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#ef4444' }}>{error}</div>;
 
@@ -123,10 +145,10 @@ export default function ClientPortal() {
       items.push({ text: `Review ${pendingProposals[0].Contract_Title}`, tab: 'documents' });
     }
     if (pendingContracts.length > 0) {
-      items.push({ text: `Sign ${pendingContracts[0].Contract_Title}`, tab: 'documents' });
+      items.push({ text: `Sign ${pendingContracts[0].Contract_Title}`, tab: 'documents', action: () => window.open(`/sign/${pendingContracts[0].Sign_Token}`, '_blank') });
     }
     if (pendingInvoices.length > 0) {
-      items.push({ text: `Pay Invoice #${pendingInvoices[0].Invoice_ID}`, tab: 'documents' });
+      items.push({ text: `Pay Invoice #${pendingInvoices[0].Invoice_ID}`, tab: 'documents', action: () => setPayingInvoice(pendingInvoices[0]) });
     }
     
     if (items.length === 0) {
@@ -143,7 +165,7 @@ export default function ClientPortal() {
         {items.map((item, idx) => (
           <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, borderLeft: `4px solid ${brandColor}` }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{item.text}</div>
-            <button onClick={() => setActiveTab(item.tab)} style={{ background: 'none', border: 'none', color: brandColor, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600 }}>
+            <button onClick={item.action || (() => setActiveTab(item.tab))} style={{ background: 'none', border: 'none', color: brandColor, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600 }}>
               View <ArrowRight size={14} />
             </button>
           </div>
@@ -491,8 +513,8 @@ export default function ClientPortal() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                           <span style={{ fontSize: 13, fontWeight: 600, color: inv.Status === 'Paid' ? '#10b981' : '#f59e0b' }}>{inv.Status}</span>
-                          {inv.Status !== 'Paid' && (
-                            <a href={`/invoice/${inv.Invoice_ID}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Pay Now</a>
+                          {inv.Status !== 'Paid' && vendor.paypalClientId && (
+                            <button onClick={() => setPayingInvoice(inv)} style={{ padding: '8px 16px', background: brandColor, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Pay via PayPal</button>
                           )}
                         </div>
                       </div>
@@ -629,9 +651,31 @@ export default function ClientPortal() {
 
       {/* Toast Notification */}
       {toastMsg && (
-        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#10b981', color: '#fff', padding: '12px 24px', borderRadius: 8, fontWeight: 600, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 100, animation: 'fadeIn 0.3s ease-in-out' }}>
-          <CheckCircle2 size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: 8 }} />
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#fff', padding: '12px 24px', borderRadius: 30, fontSize: 14, fontWeight: 600, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100 }}>
           {toastMsg}
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {payingInvoice && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
+          <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '400px', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+            <button 
+              onClick={() => setPayingInvoice(null)} 
+              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+            >
+              <X size={20} />
+            </button>
+            <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 800, color: '#0f172a' }}>Pay Invoice #{payingInvoice.Invoice_ID}</h3>
+            <p style={{ margin: '0 0 24px', fontSize: 14, color: '#64748b' }}>Complete your payment of <strong>${payingInvoice.Total_Amount}</strong> securely via PayPal.</p>
+            <PayPalCheckoutButton 
+              clientId={vendor.paypalClientId} 
+              amount={Number(payingInvoice.Total_Amount)} 
+              description={`Invoice #${payingInvoice.Invoice_ID}`}
+              onSuccess={handleInvoicePayment}
+              onError={(err) => alert("PayPal payment failed. Please try again or use another method.")}
+            />
+          </div>
         </div>
       )}
     </div>

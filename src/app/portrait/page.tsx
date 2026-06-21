@@ -16,6 +16,7 @@ function PortraitBookingContent() {
 
   // Form State
   const [step, setStep] = useState(1);
+  const [isOtherSession, setIsOtherSession] = useState(false);
   const [formData, setFormData] = useState({
     sessionType: '',
     preferredDates: '',
@@ -256,14 +257,17 @@ function PortraitBookingContent() {
                   {availableSessionTypes.map((type: string) => (
                     <button
                       key={type}
-                      onClick={() => setFormData({ ...formData, sessionType: type })}
+                      onClick={() => {
+                        setFormData({ ...formData, sessionType: type });
+                        setIsOtherSession(false);
+                      }}
                       style={{
                         padding: '1.25rem 1rem',
                         borderRadius: '1rem',
-                        border: `2px solid ${formData.sessionType === type ? themeColor : '#e2e8f0'}`,
-                        backgroundColor: formData.sessionType === type ? `${themeColor}0a` : 'white',
-                        color: formData.sessionType === type ? themeColor : '#475569',
-                        fontWeight: formData.sessionType === type ? 700 : 500,
+                        border: `2px solid ${!isOtherSession && formData.sessionType === type ? themeColor : '#e2e8f0'}`,
+                        backgroundColor: !isOtherSession && formData.sessionType === type ? `${themeColor}0a` : 'white',
+                        color: !isOtherSession && formData.sessionType === type ? themeColor : '#475569',
+                        fontWeight: !isOtherSession && formData.sessionType === type ? 700 : 500,
                         fontSize: '1rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
@@ -277,14 +281,17 @@ function PortraitBookingContent() {
                     </button>
                   ))}
                   <button
-                    onClick={() => setFormData({ ...formData, sessionType: 'Other' })}
+                    onClick={() => {
+                      setFormData({ ...formData, sessionType: '' });
+                      setIsOtherSession(true);
+                    }}
                     style={{
                       padding: '1.25rem 1rem',
                       borderRadius: '1rem',
-                      border: `2px solid ${formData.sessionType === 'Other' ? themeColor : '#e2e8f0'}`,
-                      backgroundColor: formData.sessionType === 'Other' ? `${themeColor}0a` : 'white',
-                      color: formData.sessionType === 'Other' ? themeColor : '#475569',
-                      fontWeight: formData.sessionType === 'Other' ? 700 : 500,
+                      border: `2px solid ${isOtherSession ? themeColor : '#e2e8f0'}`,
+                      backgroundColor: isOtherSession ? `${themeColor}0a` : 'white',
+                      color: isOtherSession ? themeColor : '#475569',
+                      fontWeight: isOtherSession ? 700 : 500,
                       fontSize: '1rem',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
@@ -296,11 +303,12 @@ function PortraitBookingContent() {
                     Other / Custom
                   </button>
                 </div>
-                {formData.sessionType === 'Other' && (
+                {isOtherSession && (
                   <div style={{ marginTop: '1rem' }}>
                     <input 
                       type="text" 
                       placeholder="Please specify..." 
+                      value={formData.sessionType}
                       className="input-field" 
                       style={{ fontSize: '1rem', padding: '1rem' }}
                       onChange={(e) => setFormData({ ...formData, sessionType: e.target.value })}

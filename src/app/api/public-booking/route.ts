@@ -57,17 +57,28 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, contract });
     }
 
+    // ── Contract Template Fetch (for public booking funnels) ───────────────
+    if (type === 'contract_template' && searchParams.get('templateId')) {
+      const { data: template, error } = await supabase
+        .from('Contract_Templates')
+        .select('*')
+        .eq('Template_ID', searchParams.get('templateId'))
+        .single();
+        
+      if (error) throw error;
+      return NextResponse.json({ success: true, template });
+    }
+
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: 'Missing userId or customDomain' }, { status: 400 });
     }
 
     // ── Booking Settings (includes questionnaire & contract template IDs) ─────
     if (type === 'settings') {
-      const { data: row } = await supabase
-        .from('Booking_Settings')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .single();
+      const [{ data: row }, { data: appConfig }] = await Promise.all([
+        supabase.from('Booking_Settings').select('*').eq('user_id', targetUserId).single(),
+        supabase.from('AppConfig').select('Paypal_Client_Id').eq('user_id', targetUserId).single(),
+      ]);
 
       const DEFAULTS = {
         Step1_Title: 'Choose Your Experience',
@@ -127,6 +138,7 @@ export async function GET(req: NextRequest) {
           whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
           whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
           whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
+          paypalClientId: appConfig?.Paypal_Client_Id || null,
         },
         userId: targetUserId
       });
@@ -168,7 +180,7 @@ export async function GET(req: NextRequest) {
 
       const [{ data: row }, { data: appConfig }] = await Promise.all([
         supabase.from('Portrait_Settings').select('*').eq('user_id', targetUserId).single(),
-        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User, Website').eq('user_id', targetUserId).single(),
+        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User, Website, Paypal_Client_Id').eq('user_id', targetUserId).single(),
       ]);
 
       return NextResponse.json({
@@ -225,6 +237,7 @@ export async function GET(req: NextRequest) {
           venmoHandle:         row?.Venmo_Handle         || '',
           paypalLink:          row?.Paypal_Link          || '',
           zelleContact:        row?.Zelle_Contact        || '',
+          paypalClientId:      appConfig?.Paypal_Client_Id || null,
         },
         userId: targetUserId
       });

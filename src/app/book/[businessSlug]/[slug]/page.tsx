@@ -4,6 +4,7 @@ import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CheckCirc
 import SignaturePad from 'signature_pad';
 import { getEmbedUrl } from '@/utils/embed';
 import PaymentInstruction from '@/components/PaymentInstruction';
+import PayPalCheckoutButton from '@/components/PayPalCheckoutButton';
 
 interface TimeSlot {
   Slot_ID: number;
@@ -121,7 +122,15 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
           try {
             const [avData, fData] = await Promise.all([avFetch, fsFetch]);
             if (avData.success) setBlockedDates(avData.blockedDates || []);
-            if (fData.success) setFunnelSettings(fData.settings);
+            if (fData.success) {
+              setFunnelSettings(fData.settings);
+              if (!d.session.Contract_Template && fData.settings.contractTemplateId) {
+                const ctFetch = await fetch(`/api/public-booking?type=contract_template&templateId=${fData.settings.contractTemplateId}`).then(r => r.json());
+                if (ctFetch.success && ctFetch.template) {
+                  setSession(prev => prev ? { ...prev, Contract_Template: ctFetch.template.Content } : prev);
+                }
+              }
+            }
           } catch (e) {
             console.error('Error fetching supplementary data:', e);
           }
@@ -772,11 +781,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         {step === 'datetime' && (
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {isWedding && session.Packages && session.Packages.length > 0 ? (
-                <button onClick={() => setStep('packages')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
-              ) : (
-                <button onClick={() => setStep('welcome')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
-              )}
+              <button onClick={() => setStep('welcome')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Select Date & Time</h3>
             </div>
             
@@ -1131,6 +1136,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <button onClick={() => {
                 if (session.Contract_Template) setStep('contract');
+                else if (isWedding) setStep('details');
                 else if (session.Packages && session.Packages.length > 0) setStep('packages');
                 else setStep('details');
               }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><ChevronLeft size={18} /></button>
@@ -1214,19 +1220,39 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                   </div>
                 )}
                 
-                <div style={{ marginTop: '1.5rem' }}>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    style={{ width: '100%', padding: '0.85rem', border: 'none', borderRadius: '0.5rem', backgroundColor: '#0f172a', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                  >
-                    {submitting ? 'Processing...' : isCardMethod ? `Pay $${(selectedPackage ? selectedPackage.Price : (session.Price || 0)).toFixed(2)}` : 'I Have Sent Payment'}
-                    {!submitting && <Lock size={16} />}
-                  </button>
-                  <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-                    <Lock size={12} /> Secure encrypted checkout
-                  </p>
-                </div>
+                {activeMethodId === 'paypal' ? (
+                  <div style={{ marginTop: '1.5rem', minWidth: 300 }}>
+                    <PayPalCheckoutButton 
+                      clientId={funnelSettings?.paypalClientId} 
+                      amount={(selectedPackage ? selectedPackage.Price : (session.Price || 0)) + selectedAddons.reduce((sum, id) => {
+                        const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+                        return sum + (addon ? Number(addon.price) : 0);
+                      }, 0)} 
+                      description={`Payment for ${selectedPackage ? selectedPackage.Name : session.Session_Type}`}
+                      onSuccess={(details) => {
+                        handleSubmit();
+                      }}
+                      onError={(err) => alert("PayPal payment failed. Please try again or use another method.")}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ marginTop: '1.5rem' }}>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      style={{ width: '100%', padding: '0.85rem', border: 'none', borderRadius: '0.5rem', backgroundColor: '#0f172a', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    >
+                      {submitting ? 'Processing...' : isCardMethod ? `Pay $${((selectedPackage ? selectedPackage.Price : (session.Price || 0)) + selectedAddons.reduce((sum, id) => {
+                        const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+                        return sum + (addon ? Number(addon.price) : 0);
+                      }, 0)).toFixed(2)}` : 'I Have Sent Payment'}
+                      {!submitting && <Lock size={16} />}
+                    </button>
+                    <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+                      <Lock size={12} /> Secure encrypted checkout
+                    </p>
+                  </div>
+                )}
               </form>
             </div>
           </div>

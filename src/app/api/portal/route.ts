@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     // 6. Fetch Vendor Branding (AppConfig)
     const { data: config } = await supabase
       .from('AppConfig')
-      .select('Company_Name, Business_Logo, Brand_Color')
+      .select('Company_Name, Business_Logo, Brand_Color, Paypal_Client_Id')
       .eq('user_id', userId)
       .single();
 
@@ -92,7 +92,8 @@ export async function GET(req: NextRequest) {
           id: inquiry.user_id,
           companyName: config?.Company_Name || 'Your Photographer',
           businessLogo: config?.Business_Logo || null,
-          brandColor: config?.Brand_Color || '#0f172a'
+          brandColor: config?.Brand_Color || '#0f172a',
+          paypalClientId: config?.Paypal_Client_Id || null
         },
         client: {
           name: Array.isArray((inquiry as any).Contacts) ? (inquiry as any).Contacts[0]?.Name : (inquiry as any).Contacts?.Name,
@@ -154,6 +155,31 @@ export async function POST(req: NextRequest) {
       const { error } = await supabase.from('Inquiries').update({
         Questionnaire_Data: questionnaireData
       }).eq('Inquiry_ID', inquiryId);
+      if (error) throw error;
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === 'mark_paid') {
+      const { invoiceId } = payload;
+      if (!invoiceId) return NextResponse.json({ success: false, error: 'Missing invoiceId' }, { status: 400 });
+
+      // Verify the invoice belongs to this inquiry to prevent unauthorized updates
+      const { data: invoiceCheck, error: checkError } = await supabase
+        .from('Invoices')
+        .select('Invoice_ID')
+        .eq('Invoice_ID', invoiceId)
+        .eq('Inquiry_ID', inquiryId)
+        .single();
+        
+      if (checkError || !invoiceCheck) {
+        return NextResponse.json({ success: false, error: 'Invalid invoice or unauthorized' }, { status: 403 });
+      }
+
+      const { error } = await supabase
+        .from('Invoices')
+        .update({ Status: 'Paid' })
+        .eq('Invoice_ID', invoiceId);
+        
       if (error) throw error;
       return NextResponse.json({ success: true });
     }

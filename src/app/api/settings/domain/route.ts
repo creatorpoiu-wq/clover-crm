@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 const VERCEL_API_URL = 'https://api.vercel.com';
 
@@ -23,6 +24,21 @@ export async function POST(req: NextRequest) {
 
     if (!projectId || !token) {
       return NextResponse.json({ error: 'Vercel API credentials missing in environment variables.' }, { status: 500 });
+    }
+
+    // Check if domain is taken globally
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const adminClient = createAdminClient(supabaseUrl, supabaseKey);
+
+    const { data: existingData } = await adminClient
+      .from('AppConfig')
+      .select('user_id')
+      .eq('Custom_Domain', domain)
+      .single();
+
+    if (existingData && existingData.user_id !== user.id) {
+      return NextResponse.json({ error: 'Not available or already taken' }, { status: 400 });
     }
 
     // 1. Add domain to Vercel

@@ -44,12 +44,11 @@ export default function PortraitContract({
         .finally(() => setLoading(false));
     } else if (vendorInfo?.contractTemplateId) {
       // Use the contract template defined in Portrait Settings
-      fetch('/api/contract-templates')
+      fetch(`/api/public-booking?type=contract_template&templateId=${vendorInfo.contractTemplateId}`)
         .then(res => res.json())
         .then(data => {
-          const matched = data.templates?.find((t: any) => t.Template_ID === vendorInfo.contractTemplateId);
-          if (matched) {
-            setTemplate(matched);
+          if (data.success && data.template) {
+            setTemplate(data.template);
           }
         })
         .finally(() => setLoading(false));
