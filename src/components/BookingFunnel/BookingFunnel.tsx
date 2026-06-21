@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ClientInfo from './ClientInfo';
-import PackageSelection from './PackageSelection';
 import EventQuestionnaire from './EventQuestionnaire';
 import DigitalContract from './DigitalContract';
 import PaymentCheckout from './PaymentCheckout';
@@ -77,10 +76,10 @@ export default function BookingFunnel() {
     Promise.all([pkgFetch, settingsFetch]).finally(() => setLoading(false));
   }, [searchParams]);
 
-  const steps = ['Client Info', 'Packages', 'Questionnaire', 'Contract', 'Payment'];
+  const steps = ['Client Info', 'Questionnaire', 'Contract', 'Payment'];
 
   const handleNext = () => {
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setCurrentStep(s => s + 1);
     }
@@ -494,21 +493,8 @@ export default function BookingFunnel() {
                 funnelSettings={funnelSettings}
               />
             )}
-
-            {currentStep === 2 && (
-              <PackageSelection 
-                packages={packages} 
-                selectedPackage={selectedPackage} 
-                setSelectedPackage={setSelectedPackage} 
-                selectedAddons={selectedAddons} 
-                setSelectedAddons={setSelectedAddons} 
-                onNext={handleNext}
-                onBack={handleBack}
-                funnelSettings={funnelSettings}
-              />
-            )}
             
-            {currentStep === 3 && (
+            {currentStep === 2 && (
               <EventQuestionnaire 
                 data={questionnaireData} 
                 setData={setQuestionnaireData} 
@@ -518,7 +504,7 @@ export default function BookingFunnel() {
               />
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 3 && (
               <DigitalContract 
                 questionnaire={questionnaireData} 
                 pkg={selectedPackage} 
@@ -532,7 +518,7 @@ export default function BookingFunnel() {
               />
             )}
 
-            {currentStep === 5 && (
+            {currentStep === 4 && (
               <PaymentCheckout 
                 questionnaire={questionnaireData} 
                 pkg={selectedPackage} 
