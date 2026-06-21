@@ -85,6 +85,22 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
         showMonthDropdown
         dropdownMode="select"
         withPortal={isMobile}
+        popperPlacement="bottom-start"
+        popperModifiers={[
+          {
+            name: "preventOverflow",
+            options: {
+              padding: 8,
+              altAxis: true,
+            },
+          },
+          {
+            name: "flip",
+            options: {
+              fallbackPlacements: ["bottom-end", "top-start", "top-end"],
+            },
+          }
+        ]}
         onCalendarOpen={() => {
           setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
         }}
@@ -176,6 +192,9 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
         }
         .react-datepicker__navigation:hover *::before {
           border-color: #0f172a;
+        }
+        .react-datepicker-popper {
+          z-index: 9999 !important;
         }
       `}</style>
     </div>
