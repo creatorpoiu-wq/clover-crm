@@ -11,6 +11,7 @@ interface Props {
   contractHtml: string;
   onBack: () => void;
   funnelSettings: any;
+  userId?: string | null;
 }
 
 // Default payment methods when none are configured
@@ -29,8 +30,10 @@ function PaymentIcon({ iconId }: { iconId: string }) {
 
 import { useSearchParams } from 'next/navigation';
 
-export default function PaymentCheckout({ questionnaire, pkg, addons, signature, contractHtml, onBack, funnelSettings }: Props) {
+export default function PaymentCheckout({ questionnaire, pkg, addons, signature, contractHtml, onBack, funnelSettings, userId: propUserId }: Props) {
   const searchParams = useSearchParams();
+  // Resolve userId: prop (from custom-domain funnel) takes priority, then URL param (proposal link)
+  const userId = propUserId || searchParams.get('userId');
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -69,7 +72,7 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
     setIsProcessing(true);
     try {
       const payload = {
-        userId: searchParams.get('userId'),
+        userId,
         contractId: searchParams.get('contractId'),
         questionnaire,
         pkg,

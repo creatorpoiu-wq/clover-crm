@@ -15,6 +15,7 @@ export default function BookingFunnel() {
   const [loading, setLoading] = useState(true);
   const [packages, setPackages] = useState<any[]>([]);
   const [funnelSettings, setFunnelSettings] = useState<any>(null);
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
   const searchParams = useSearchParams();
   
   // Funnel State
@@ -29,14 +30,28 @@ export default function BookingFunnel() {
     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
     const isCustomDomain = hostname && hostname !== 'localhost' && !hostname.includes('vercel.app');
 
+    // Capture userId from URL immediately if present
+    if (urlUserId) setResolvedUserId(urlUserId);
+
     const settingsFetch = (urlUserId || isCustomDomain)
       ? fetch(`/api/public-booking?type=settings&customDomain=${hostname}${urlUserId ? `&userId=${urlUserId}` : ''}`)
           .then(res => res.json())
-          .then(data => { if (data.success) setFunnelSettings(data.settings); })
+          .then(data => {
+            if (data.success) {
+              setFunnelSettings(data.settings);
+              // If the API resolved userId via custom domain, capture it
+              if (data.userId && !urlUserId) setResolvedUserId(data.userId);
+            }
+          })
           .catch(() => {})
       : fetch('/api/funnel-settings')
           .then(res => res.json())
-          .then(data => { if (data.success) setFunnelSettings(data.settings); })
+          .then(data => {
+            if (data.success) {
+              setFunnelSettings(data.settings);
+              if (data.userId) setResolvedUserId(data.userId);
+            }
+          })
           .catch(() => {});
 
     const pkgFetch = (urlUserId || isCustomDomain)
@@ -525,6 +540,7 @@ export default function BookingFunnel() {
                 contractHtml={contractHtml}
                 onBack={handleBack}
                 funnelSettings={funnelSettings}
+                userId={resolvedUserId}
               />
             )}
           </>
