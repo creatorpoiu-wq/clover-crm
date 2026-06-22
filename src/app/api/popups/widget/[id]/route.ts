@@ -47,7 +47,11 @@ export async function GET(
   if (document.getElementById('crm-popup-${popup.id}')) return;
 
   const style = document.createElement('style');
+  
+  // Import Google Fonts
   style.innerHTML = \`
+    @import url('https://fonts.googleapis.com/css2?family=\${(popup.font_header || 'Forum').replace(/ /g, '+')}:wght@400;700&family=\${(popup.font_body || 'Alata').replace(/ /g, '+')}:wght@400;700&display=swap');
+    
     .crm-popup-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -60,7 +64,7 @@ export async function GET(
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: \${popup.font_body ? '"' + popup.font_body + '"' : '"Alata"'}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     .crm-popup-overlay.crm-show {
       opacity: 1;
@@ -108,21 +112,22 @@ export async function GET(
     }
     .crm-popup-title {
       margin: 0 0 12px 0;
-      font-size: 24px;
+      font-family: \${popup.font_header ? '"' + popup.font_header + '"' : '"Forum"'}, serif;
+      font-size: \${popup.font_header_size || '32px'};
       font-weight: 700;
       color: #0f172a;
       line-height: 1.2;
     }
     .crm-popup-desc {
       margin: 0 0 24px 0;
-      font-size: 15px;
+      font-size: \${popup.font_body_size || '15px'};
       color: #475569;
       line-height: 1.5;
     }
     .crm-popup-input {
       width: 100%;
       padding: 12px 16px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       font-size: 15px;
@@ -185,9 +190,9 @@ export async function GET(
   
   if (isHorizontal) {
     style.innerHTML += \`
-      .crm-popup-container { max-width: 460px; display: flex; flex-direction: \${layout === 'image-left' ? 'row' : 'row-reverse'}; }
-      .crm-popup-image { width: 40%; height: auto; min-height: 240px; }
-      .crm-popup-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+      .crm-popup-container { max-width: 800px; display: flex; flex-direction: \${layout === 'image-left' ? 'row' : 'row-reverse'}; }
+      .crm-popup-image { width: 50%; height: auto; min-height: 400px; }
+      .crm-popup-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 48px 40px; }
     \`;
   } else {
     style.innerHTML += \`

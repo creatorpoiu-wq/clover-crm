@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Settings, Package, CreditCard, CheckCircle, Type, Mail, Camera, ArrowRight } from "lucide-react";
+import { Save, Plus, Trash2, Settings, Package, CreditCard, CheckCircle, Type, Mail, Camera, ArrowRight, FileText } from "lucide-react";
 import ImageDropzone from "@/components/ui/ImageDropzone";
 
 const TABS = [
@@ -8,6 +8,7 @@ const TABS = [
   { id: "style",   label: "Signature Style", icon: Camera },
   { id: "investment", label: "Investment", icon: Package },
   { id: "addons",  label: "Add-Ons",       icon: Package },
+  { id: "forms",   label: "Forms",         icon: FileText },
   { id: "whatsnext", label: "What's Next", icon: ArrowRight },
   { id: "payment", label: "Payment",        icon: CreditCard },
   { id: "steps",   label: "Step Text",     icon: Type },
@@ -60,6 +61,8 @@ export default function BookingSettingsPage() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [copied, setCopied] = useState(false);
   const [customDomain, setCustomDomain] = useState("");
+  const [qTemplates, setQTemplates] = useState<any[]>([]);
+  const [cTemplates, setCTemplates] = useState<any[]>([]);
 
   // Input states for list additions
   const [newAddon, setNewAddon] = useState({ name: "", desc: "", price: "" });
@@ -90,6 +93,14 @@ export default function BookingSettingsPage() {
     fetch("/api/settings")
       .then(r => r.json())
       .then(d => { if (d.success && d.config?.customDomain) setCustomDomain(d.config.customDomain); });
+      
+    fetch("/api/questionnaire?type=template")
+      .then(r => r.json())
+      .then(d => { if (d.success) setQTemplates(d.templates || []); });
+
+    fetch("/api/contract-templates")
+      .then(r => r.json())
+      .then(d => { if (d.success) setCTemplates(d.templates || []); });
   }, []);
 
   const showToast = (msg: string, type: "success" | "error") => {
@@ -435,6 +446,45 @@ export default function BookingSettingsPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* FORMS TAB */}
+      {tab === "forms" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div className="glass-panel" style={{ padding: "1.5rem" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>Forms Configuration</h3>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>Select the default Questionnaire and Contract templates to be used in the wedding booking funnel.</p>
+            
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label style={labelCls}>Default Questionnaire Template (Step 2)</label>
+                <select 
+                  style={inputCls}
+                  value={settings.questionnaireTemplateId || ""} 
+                  onChange={e => setSettings(s => ({ ...s, questionnaireTemplateId: e.target.value ? parseInt(e.target.value) : null }))}
+                >
+                  <option value="">-- No Questionnaire Selected --</option>
+                  {qTemplates.map(t => (
+                    <option key={t.Template_ID} value={t.Template_ID}>{t.Name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={labelCls}>Default Contract Template (Step 3)</label>
+                <select 
+                  style={inputCls}
+                  value={settings.contractTemplateId || ""} 
+                  onChange={e => setSettings(s => ({ ...s, contractTemplateId: e.target.value ? parseInt(e.target.value) : null }))}
+                >
+                  <option value="">-- No Contract Selected --</option>
+                  {cTemplates.map(t => (
+                    <option key={t.Template_ID} value={t.Template_ID}>{t.Name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -75,6 +75,8 @@ export async function GET() {
       whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
       whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
       whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
+      contractTemplateId: row?.Contract_Template_ID || null,
+      questionnaireTemplateId: row?.Questionnaire_Template_ID || null,
       userId: userAuth.user.id,
     };
 
@@ -93,7 +95,8 @@ export async function PUT(req: NextRequest) {
       welcomeHeroHeadline, welcomeHeroSubheadline, coverImage, styleHeading, styleDescription, stylePhotoUrl, 
       styleBullets, styleMediaType, styleVideo1Url, styleVideo2Url,
       investmentHeadline, investmentDescription,
-      whatsNextHeading, whatsNextSub, whatsNextSteps
+      whatsNextHeading, whatsNextSub, whatsNextSteps,
+      contractTemplateId, questionnaireTemplateId
     } = body;
 
     const { data: userAuth } = await supabase.auth.getUser();
@@ -133,6 +136,8 @@ export async function PUT(req: NextRequest) {
         Whats_Next_Heading: whatsNextHeading || DEFAULTS.Whats_Next_Heading,
         Whats_Next_Sub: whatsNextSub || DEFAULTS.Whats_Next_Sub,
         Whats_Next_Steps: JSON.stringify(whatsNextSteps || JSON.parse(DEFAULTS.Whats_Next_Steps)),
+        Contract_Template_ID: contractTemplateId !== undefined ? contractTemplateId : null,
+        Questionnaire_Template_ID: questionnaireTemplateId !== undefined ? questionnaireTemplateId : null,
       }, { onConflict: 'user_id' });
 
     if (error) throw error;

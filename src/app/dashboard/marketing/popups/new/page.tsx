@@ -18,6 +18,11 @@ export default function NewPopup() {
   const [modalRadius, setModalRadius] = useState("16px");
   const [buttonRadius, setButtonRadius] = useState("8px");
   const [layout, setLayout] = useState("image-top");
+  
+  const [fontHeader, setFontHeader] = useState("Forum");
+  const [fontBody, setFontBody] = useState("Alata");
+  const [fontHeaderSize, setFontHeaderSize] = useState("32px");
+  const [fontBodySize, setFontBodySize] = useState("15px");
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -50,6 +55,10 @@ export default function NewPopup() {
         modal_radius: modalRadius,
         button_radius: buttonRadius,
         layout,
+        font_header: fontHeader,
+        font_body: fontBody,
+        font_header_size: fontHeaderSize,
+        font_body_size: fontBodySize,
         active: true
       });
 
@@ -200,6 +209,43 @@ export default function NewPopup() {
                 </select>
               </div>
             </div>
+
+            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#334155', margin: '0 0 1rem 0', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>Typography</h4>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Header Font</label>
+                <input 
+                  type="text" value={fontHeader} onChange={e => setFontHeader(e.target.value)} 
+                  placeholder="e.g. Forum"
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem', marginBottom: '1rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Header Size</label>
+                <input 
+                  type="text" value={fontHeaderSize} onChange={e => setFontHeaderSize(e.target.value)} 
+                  placeholder="e.g. 32px"
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem', marginBottom: '1rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Body Font</label>
+                <input 
+                  type="text" value={fontBody} onChange={e => setFontBody(e.target.value)} 
+                  placeholder="e.g. Alata"
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Body Size</label>
+                <input 
+                  type="text" value={fontBodySize} onChange={e => setFontBodySize(e.target.value)} 
+                  placeholder="e.g. 15px"
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -219,33 +265,33 @@ export default function NewPopup() {
               
               {/* The Popup */}
               <div style={{ 
-                backgroundColor: 'white', borderRadius: modalRadius, overflow: 'hidden', width: '90%', maxWidth: layout === 'image-left' || layout === 'image-right' ? '460px' : '320px',
+                backgroundColor: 'white', borderRadius: modalRadius, overflow: 'hidden', width: '90%', maxWidth: layout === 'image-left' || layout === 'image-right' ? '800px' : '400px',
                 boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                 display: 'flex', flexDirection: layout === 'image-left' ? 'row' : layout === 'image-right' ? 'row-reverse' : layout === 'image-bottom' ? 'column-reverse' : 'column'
               }}>
                 {imageUrl && (
                   <div style={{ 
-                    width: layout === 'image-left' || layout === 'image-right' ? '40%' : '100%', 
+                    width: layout === 'image-left' || layout === 'image-right' ? '50%' : '100%', 
                     height: layout === 'image-left' || layout === 'image-right' ? 'auto' : '140px', 
-                    minHeight: layout === 'image-left' || layout === 'image-right' ? '240px' : 'auto',
+                    minHeight: layout === 'image-left' || layout === 'image-right' ? '400px' : 'auto',
                     backgroundColor: '#f8fafc', backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' 
                   }} />
                 )}
                 
-                <div style={{ padding: '1.5rem', textAlign: 'center', flex: 1 }}>
-                  <h4 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: '0 0 0.5rem 0', lineHeight: 1.2 }}>
+                <div style={{ padding: layout === 'image-left' || layout === 'image-right' ? '48px 40px' : '1.5rem', textAlign: 'center', flex: 1 }}>
+                  <h4 style={{ fontFamily: `"${fontHeader}", serif`, fontSize: fontHeaderSize || '32px', fontWeight: 700, color: '#0f172a', margin: '0 0 0.5rem 0', lineHeight: 1.2 }}>
                     {headline || "Your Headline Here"}
                   </h4>
                   {description && (
-                    <p style={{ fontSize: '0.875rem', color: '#475569', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
+                    <p style={{ fontFamily: `"${fontBody}", sans-serif`, fontSize: fontBodySize || '15px', color: '#475569', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
                       {description}
                     </p>
                   )}
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <input type="text" placeholder="Name" style={{ padding: '0.6rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }} disabled />
-                    <input type="email" placeholder="Email Address" style={{ padding: '0.6rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1', fontSize: '0.875rem' }} disabled />
-                    <button style={{ backgroundColor: buttonColor, color: 'white', padding: '0.6rem', borderRadius: buttonRadius, border: 'none', fontWeight: 600, fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                    <input type="text" placeholder="Name" style={{ fontFamily: `"${fontBody}", sans-serif`, padding: '0.6rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1', fontSize: '0.875rem', marginBottom: '0.5rem' }} disabled />
+                    <input type="email" placeholder="Email Address" style={{ fontFamily: `"${fontBody}", sans-serif`, padding: '0.6rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1', fontSize: '0.875rem', marginBottom: '0.5rem' }} disabled />
+                    <button style={{ fontFamily: `"${fontBody}", sans-serif`, backgroundColor: buttonColor, color: 'white', padding: '0.6rem', borderRadius: buttonRadius, border: 'none', fontWeight: 600, fontSize: '0.875rem', marginTop: '0.5rem' }}>
                       {buttonText || "Subscribe"}
                     </button>
                   </div>
