@@ -51,6 +51,8 @@ const DEFAULT_SETTINGS = {
   paymentMethods: [] as any[],
   confirmationTitle: "Booking Confirmed!",
   confirmationMessage: "Your deposit has been received and your contract is securely signed. We are officially locked in!",
+  contractTemplateId: null as number | null,
+  questionnaireTemplateId: null as number | null,
 };
 
 export default function BookingSettingsPage() {
