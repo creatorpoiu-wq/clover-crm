@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
 import { createClient } from '@/utils/supabase/server';
+import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 
 export async function GET() {
   try {
@@ -259,39 +260,27 @@ export async function POST(req: NextRequest) {
       const headerText = emailHeader ? replaceVars(emailHeader) : bannerText;
       const footerText = emailFooter ? replaceVars(emailFooter) : bodyText;
 
-      const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-        <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">
-          <div style="max-width:680px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-            <div style="background:${accentColor};padding:36px 40px;">
-              <div style="color:#fff;font-weight:800;font-size:20px;margin-bottom:4px;">${companyName}</div>
-              <h1 style="margin:4px 0 0;color:#fff;font-size:20px;font-weight:700;">${contractTitle}</h1>
-              <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">${headerText}</p>
-            </div>
-            <div style="padding:36px 40px;">
-              <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${greeting}</p>
-              <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${footerText}</p>
-              <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
-                ${finalContent}
-              </div>
-              <div style="border-top:2px solid #e5e7eb;padding-top:28px;">
-                <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#111827;margin:0 0 20px;">Signatures</h3>
-                <div style="display:flex;flex-wrap:wrap;">${signatureRowsHtml}</div>
-                <p style="margin-top:20px;font-size:10px;color:#9ca3af;line-height:1.6;">Digital signatures are legally binding under ESIGN and UETA.</p>
-              </div>
-              <!-- Sign CTA -->
-              <div style="margin-top:32px;text-align:center;padding:28px;background:#f0fdfa;border-radius:10px;border:1px solid #ccfbf1;">
-                <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#111827;">Ready to proceed?</p>
-                <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Click the button below to review and sign this contract securely.</p>
-                <a href="${signUrl}" style="display:inline-block;padding:14px 36px;background:${accentColor};color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;box-shadow:0 4px 12px rgba(13,148,136,0.35);">${ctaText}</a>
-                <p style="margin:16px 0 0;font-size:11px;color:#9ca3af;">Or copy this link: <span style="color:${accentColor};word-break:break-all;">${signUrl}</span></p>
-              </div>
-            </div>
-            <div style="padding:20px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;">
-              <p style="margin:0 0 4px;color:#9ca3af;font-size:12px;">${footerLine}</p>
-              <p style="margin:0;color:#d1d5db;font-size:11px;">Sent via ${companyName} CRM &middot; ${new Date().getFullYear()}</p>
-            </div>
-          </div>
-        </body></html>`;
+      const innerHtml = `
+        <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${greeting}</p>
+        <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${footerText}</p>
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
+          ${finalContent}
+        </div>
+        <div style="border-top:2px solid #e5e7eb;padding-top:28px;">
+          <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#111827;margin:0 0 20px;">Signatures</h3>
+          <div style="display:flex;flex-wrap:wrap;">${signatureRowsHtml}</div>
+          <p style="margin-top:20px;font-size:10px;color:#9ca3af;line-height:1.6;">Digital signatures are legally binding under ESIGN and UETA.</p>
+        </div>
+        <!-- Sign CTA -->
+        <div style="margin-top:32px;text-align:center;padding:28px;background:#f0fdfa;border-radius:10px;border:1px solid #ccfbf1;">
+          <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#111827;">Ready to proceed?</p>
+          <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Click the button below to review and sign this contract securely.</p>
+          <a href="${signUrl}" class="button" style="display:inline-block;padding:14px 36px;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;">${ctaText}</a>
+          <p style="margin:16px 0 0;font-size:11px;color:#9ca3af;">Or copy this link: <span style="color:${accentColor};word-break:break-all;">${signUrl}</span></p>
+        </div>
+      `;
+
+      const emailHtml = wrapWithGlobalBranding(innerHtml, companyName, emailSettings.global, accentColor, headerText);
 
       const textContent = `${contractTitle}\n\n${headerText}\n\n${footerText}\n\nTo review and sign this contract securely, please visit the following link:\n${signUrl}\n\nSent via ${companyName} CRM`;
 
@@ -417,38 +406,26 @@ export async function POST(req: NextRequest) {
 
       let finalContentStr = replaceVars(contentStr || '');
 
-      const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-        <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">
-          <div style="max-width:680px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-            <div style="background:${accentColor};padding:36px 40px;">
-              <div style="color:#fff;font-weight:800;font-size:20px;margin-bottom:4px;">${companyName}</div>
-              <h1 style="margin:4px 0 0;color:#fff;font-size:20px;font-weight:700;">${contractTitle}</h1>
-              <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">${headerText}</p>
-            </div>
-            <div style="padding:36px 40px;">
-              <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${greeting}</p>
-              <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${footerText}</p>
-              <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
-                ${finalContentStr}
-              </div>
-              <div style="border-top:2px solid #e5e7eb;padding-top:28px;">
-                <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#111827;margin:0 0 20px;">Signatures</h3>
-                <div style="display:flex;flex-wrap:wrap;">${signatureRowsHtml}</div>
-                <p style="margin-top:20px;font-size:10px;color:#9ca3af;line-height:1.6;">Digital signatures are legally binding under ESIGN and UETA.</p>
-              </div>
-              <div style="margin-top:32px;text-align:center;padding:28px;background:#f0fdfa;border-radius:10px;border:1px solid #ccfbf1;">
-                <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#111827;">Ready to sign?</p>
-                <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Click the button below to review and sign this ${docType.toLowerCase()} securely.</p>
-                <a href="${signUrl}" style="display:inline-block;padding:14px 36px;background:${accentColor};color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;box-shadow:0 4px 12px rgba(13,148,136,0.35);">${ctaText}</a>
-                <p style="margin:16px 0 0;font-size:11px;color:#9ca3af;">Or copy this link: <span style="color:${accentColor};word-break:break-all;">${signUrl}</span></p>
-              </div>
-            </div>
-            <div style="padding:20px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;">
-              <p style="margin:0 0 4px;color:#9ca3af;font-size:12px;">${footerLine}</p>
-              <p style="margin:0;color:#d1d5db;font-size:11px;">Sent via ${companyName} CRM &middot; ${new Date().getFullYear()}</p>
-            </div>
-          </div>
-        </body></html>`;
+      const innerHtml = `
+        <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${greeting}</p>
+        <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${footerText}</p>
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
+          ${finalContentStr}
+        </div>
+        <div style="border-top:2px solid #e5e7eb;padding-top:28px;">
+          <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#111827;margin:0 0 20px;">Signatures</h3>
+          <div style="display:flex;flex-wrap:wrap;">${signatureRowsHtml}</div>
+          <p style="margin-top:20px;font-size:10px;color:#9ca3af;line-height:1.6;">Digital signatures are legally binding under ESIGN and UETA.</p>
+        </div>
+        <div style="margin-top:32px;text-align:center;padding:28px;background:#f0fdfa;border-radius:10px;border:1px solid #ccfbf1;">
+          <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#111827;">Ready to sign?</p>
+          <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Click the button below to review and sign this ${docType.toLowerCase()} securely.</p>
+          <a href="${signUrl}" class="button" style="display:inline-block;padding:14px 36px;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;">${ctaText}</a>
+          <p style="margin:16px 0 0;font-size:11px;color:#9ca3af;">Or copy this link: <span style="color:${accentColor};word-break:break-all;">${signUrl}</span></p>
+        </div>
+      `;
+
+      const emailHtml = wrapWithGlobalBranding(innerHtml, companyName, emailSettings.global, accentColor, headerText);
 
       const textContent = `${contractTitle}\n\n${headerText}\n\n${footerText}\n\nTo review and sign this ${docType.toLowerCase()} securely, please visit the following link:\n${signUrl}\n\nSent via ${companyName} CRM`;
 

@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import ImageDropzone from "@/components/ui/ImageDropzone";
 
-export default function NewPopup() {
+export default function PopupEditor() {
+  const params = useParams();
+  const isNew = params.id === "new";
+  const popupId = params.id as string;
   const [internalName, setInternalName] = useState("");
   const [headline, setHeadline] = useState("");
   const [description, setDescription] = useState("");
@@ -23,12 +26,48 @@ export default function NewPopup() {
   const [fontBody, setFontBody] = useState("Alata");
   const [fontHeaderSize, setFontHeaderSize] = useState("32px");
   const [fontBodySize, setFontBodySize] = useState("15px");
+  const [active, setActive] = useState(true);
 
+  const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   
   const supabase = createClient();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isNew && popupId) {
+      loadPopup(popupId);
+    }
+  }, [isNew, popupId]);
+
+  const loadPopup = async (id: string) => {
+    try {
+      const { data, error } = await supabase.from("Marketing_Popups").select("*").eq("id", id).single();
+      if (error) throw error;
+      if (data) {
+        setInternalName(data.internal_name || "");
+        setHeadline(data.headline || "");
+        setDescription(data.description || "");
+        setButtonText(data.button_text || "Subscribe");
+        setButtonColor(data.button_color || "#3b82f6");
+        setDelaySeconds(data.delay_seconds || 3);
+        setImageUrl(data.image_url || "");
+        setModalRadius(data.modal_radius || "16px");
+        setButtonRadius(data.button_radius || "8px");
+        setLayout(data.layout || "image-top");
+        setFontHeader(data.font_header || "Forum");
+        setFontBody(data.font_body || "Alata");
+        setFontHeaderSize(data.font_header_size || "32px");
+        setFontBodySize(data.font_body_size || "15px");
+        setActive(data.active !== false);
+      }
+    } catch (err: any) {
+      setError("Failed to load popup.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!internalName || !headline) {
@@ -43,7 +82,7 @@ export default function NewPopup() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error: insertError } = await supabase.from("Marketing_Popups").insert({
+      const payload = {
         user_id: user.id,
         internal_name: internalName,
         headline,
@@ -59,10 +98,16 @@ export default function NewPopup() {
         font_body: fontBody,
         font_header_size: fontHeaderSize,
         font_body_size: fontBodySize,
-        active: true
-      });
+        active
+      };
 
-      if (insertError) throw insertError;
+      if (isNew) {
+        const { error: insertError } = await supabase.from("Marketing_Popups").insert(payload);
+        if (insertError) throw insertError;
+      } else {
+        const { error: updateError } = await supabase.from("Marketing_Popups").update(payload).eq("id", popupId);
+        if (updateError) throw updateError;
+      }
 
       router.push("/dashboard/marketing");
     } catch (err: any) {
@@ -78,10 +123,17 @@ export default function NewPopup() {
       </Link>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>Create Lead Popup</h1>
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>
+          {isNew ? 'Create Lead Popup' : 'Edit Lead Popup'}
+        </h1>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#334155' }}>
+            <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} />
+            Active
+          </label>
+          <button 
+            onClick={handleSave}
+            disabled={isSaving || isLoading}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem',
             backgroundColor: '#0f172a', color: 'white', border: 'none',
@@ -92,6 +144,7 @@ export default function NewPopup() {
           {isSaving ? 'Saving...' : <><Save size={18} /> Save Popup</>}
         </button>
       </div>
+      </div>
 
       {error && (
         <div style={{ backgroundColor: '#fef2f2', color: '#ef4444', padding: '1rem', borderRadius: '0.5rem', marginBottom: '2rem', border: '1px solid #fecaca' }}>
@@ -99,7 +152,10 @@ export default function NewPopup() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '2rem' }}>
+      {isLoading ? (
+        <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>Loading...</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '2rem' }}>
         
         {/* Left Col - Editor */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -301,8 +357,8 @@ export default function NewPopup() {
             </div>
           </div>
         </div>
-
-      </div>
+        </div>
+      )}
     </div>
   );
 }

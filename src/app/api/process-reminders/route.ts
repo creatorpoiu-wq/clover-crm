@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import twilio from 'twilio';
 import nodemailer from 'nodemailer';
+import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -131,23 +132,16 @@ export async function POST(req: NextRequest) {
         const esSubject = (reminderSettings.subject || '').replace('[Company]', companyName).replace('[Name]', firstName);
         const esGreeting = (reminderSettings.greeting || '').replace('[Name]', firstName);
         const esBody = (reminderSettings.body || '').replace('[Name]', firstName).replace('[Company]', companyName);
-        
-        const emailHtml = `<!DOCTYPE html><html><body>
-          <div style="font-family:sans-serif;max-width:600px;margin:auto;border:1px solid #ddd;border-radius:8px;overflow:hidden;">
-            <div style="background:${reminderSettings.accentColor};padding:20px;color:white;">
-              <h2>${companyName}</h2>
-              <p>${reminderSettings.headerText}</p>
-            </div>
-            <div style="padding:20px;color:#333;">
-              <p><strong>${esGreeting}</strong></p>
-              <p>${esBody}</p>
-              ${Event_Date ? `<p><strong>Event Date:</strong> ${Event_Date}</p>` : ''}
-              ${Notes ? `<p><strong>Notes:</strong> ${Notes}</p>` : ''}
-              <br/>
-              <p style="font-size:12px;color:#777;">${reminderSettings.footerText}</p>
-            </div>
+        const innerHtml = `
+          <div style="padding:20px;color:#333;">
+            <p><strong>${esGreeting}</strong></p>
+            <p>${esBody}</p>
+            ${Event_Date ? `<p><strong>Event Date:</strong> ${Event_Date}</p>` : ''}
+            ${Notes ? `<p><strong>Notes:</strong> ${Notes}</p>` : ''}
           </div>
-        </body></html>`;
+        `;
+
+        const emailHtml = wrapWithGlobalBranding(innerHtml, companyName, emailSettings.global, reminderSettings.accentColor, reminderSettings.headerText);
 
         try {
           await emailTransporter.sendMail({

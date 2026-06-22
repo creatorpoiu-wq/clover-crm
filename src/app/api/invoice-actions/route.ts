@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import nodemailer from 'nodemailer';
+import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 
 export async function GET(req: NextRequest) {
   try {
@@ -226,49 +228,36 @@ export async function POST(req: NextRequest) {
       const logoHtml = businessLogo ? `<img src="${businessLogo}" alt="Logo" style="max-width:200px;max-height:80px;object-fit:contain;margin-bottom:16px;"/>` : '';
       const addressHtml = businessAddress ? `<div style="font-size:12px;color:#6b7280;margin-top:4px;white-space:pre-wrap;">${businessAddress}</div>` : '';
 
-      const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-        <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Arial,sans-serif;">
-          <div style="max-width:680px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-            <div style="background:${theme};padding:36px 40px;">
-              <div style="color:#fff;font-weight:800;font-size:18px;margin-bottom:4px;">${companyName}</div>
-              <h1 style="margin:4px 0 0;color:#fff;font-size:20px;font-weight:700;">${invoiceTitle}</h1>
-              <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">${esHeaderText}</p>
-            </div>
-            <div style="padding:36px 40px;">
-              <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${esGreeting}</p>
-              <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${header}</p>
-              
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;">
-                <div style="width:50%;">
-                  ${logoHtml}
-                  <div style="font-size:32px;font-weight:900;color:${theme};letter-spacing:-0.02em;text-transform:uppercase;">INVOICE</div>
-                  <div style="font-size:14px;color:#6b7280;margin-top:4px;">#${draftId ? String(draftId).padStart(4,'0') : '0001'}</div>
-                </div>
-                <div style="text-align:right;width:50%;">
-                  <div style="font-weight:800;font-size:14px;color:#111827;">${companyName}</div>
-                  ${addressHtml}
-                  <div style="margin-top:16px;">
-                    ${clientName ? `<div style="font-size:13px;color:#6b7280;font-weight:600;">Bill To: ${clientName}</div>` : ''}
-                    ${clientEmail ? `<div style="font-size:13px;color:#6b7280;">${clientEmail}</div>` : ''}
-                    ${dueDate ? `<div style="font-size:13px;color:${theme};font-weight:700;margin-top:4px;">Due: ${dueDate}</div>` : ''}
-                  </div>
-                </div>
-              </div>
-
-              <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
-                ${finalContent}
-              </div>
-              
-              ${lineItemsHtml}
-              ${paymentMethodsHtml}
-
-            </div>
-            <div style="padding:20px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;">
-              <p style="margin:0 0 4px;color:#9ca3af;font-size:12px;">${footer}</p>
-              <p style="margin:0;color:#d1d5db;font-size:11px;">Sent via ${companyName} CRM &middot; ${new Date().getFullYear()}</p>
+      const innerHtml = `
+        <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${esGreeting}</p>
+        <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">${header}</p>
+        
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;">
+          <div style="width:50%;">
+            ${logoHtml}
+            <div style="font-size:32px;font-weight:900;color:${theme};letter-spacing:-0.02em;text-transform:uppercase;">INVOICE</div>
+            <div style="font-size:14px;color:#6b7280;margin-top:4px;">#${draftId ? String(draftId).padStart(4,'0') : '0001'}</div>
+          </div>
+          <div style="text-align:right;width:50%;">
+            <div style="font-weight:800;font-size:14px;color:#111827;">${companyName}</div>
+            ${addressHtml}
+            <div style="margin-top:16px;">
+              ${clientName ? `<div style="font-size:13px;color:#6b7280;font-weight:600;">Bill To: ${clientName}</div>` : ''}
+              ${clientEmail ? `<div style="font-size:13px;color:#6b7280;">${clientEmail}</div>` : ''}
+              ${dueDate ? `<div style="font-size:13px;color:${theme};font-weight:700;margin-top:4px;">Due: ${dueDate}</div>` : ''}
             </div>
           </div>
-        </body></html>`;
+        </div>
+
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:32px 36px;background:#fafafa;margin-bottom:28px;font-family:Georgia,serif;font-size:14px;line-height:1.8;color:#1f2937;">
+          ${finalContent}
+        </div>
+        
+        ${lineItemsHtml}
+        ${paymentMethodsHtml}
+      `;
+
+      const emailHtml = wrapWithGlobalBranding(innerHtml, companyName, emailSettings.global, accentColor, esHeaderText);
 
       const textContent = `${invoiceTitle}\n\n${header}\n\n${footer}\n\n${dueDate ? `Due Date: ${dueDate}\n` : ''}Total: $${subtotal.toFixed(2)}\n\nSent via ${companyName} CRM`;
 

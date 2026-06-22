@@ -1,14 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Save, Mail, FileSignature, ReceiptText, Eye, EyeOff } from "lucide-react";
+import { Save, Mail, FileSignature, ReceiptText, Eye, EyeOff, Palette } from "lucide-react";
 
-type EmailType = "proposal" | "contract" | "invoice" | "reminder";
+type EmailType = "proposal" | "contract" | "invoice" | "reminder" | "global";
 
 const TABS: { id: EmailType; label: string; icon: any; description: string }[] = [
   { id: "proposal", label: "Booking Proposal",  icon: Mail,           description: "Sent when you share a booking proposal link with a client." },
   { id: "contract", label: "Contract Email",     icon: FileSignature,  description: "Sent when a contract is emailed for digital signature." },
   { id: "invoice",  label: "Invoice Email",      icon: ReceiptText,    description: "Sent when an invoice is emailed to a client." },
   { id: "reminder", label: "Client Reminders",   icon: Mail,           description: "Automated event and follow-up reminders via Email & SMS." },
+  { id: "global",   label: "Global Branding",    icon: Palette,        description: "Master template that wraps all emails sent from the CRM." },
 ];
 
 const DEFAULTS: Record<EmailType, any> = {
@@ -49,32 +50,59 @@ const DEFAULTS: Record<EmailType, any> = {
     accentColor: "#0d9488",
     smsText: "Hi [Name]! Just a friendly reminder regarding your upcoming event with [Company]. Reply if you have questions!"
   },
+  global: {
+    appBackground: "#f3f4f6",
+    contentBackground: "#ffffff",
+    primaryColor: "#0f172a",
+    headerImage: "",
+    fontFamily: "Arial, sans-serif",
+    footerText: "Sent via Clover",
+    contentPadding: "32px",
+    borderRadius: "12px"
+  }
 };
 
-function EmailPreview({ settings, companyName }: { settings: any; companyName: string }) {
-  const ac = settings.accentColor || "#0d9488";
+function EmailPreview({ settings, companyName, tab }: { settings: any; companyName: string; tab: string }) {
+  const isGlobal = tab === "global";
+  // When editing global, we preview a dummy "proposal" so the wrapper is visible.
+  const previewSettings = isGlobal ? settings.proposal : settings[tab];
+  const g = settings.global || DEFAULTS.global;
+  const ac = previewSettings.accentColor || g.primaryColor || "#0d9488";
+
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", maxWidth: 560, margin: "0 auto", border: "1px solid #e5e7eb", borderRadius: 10, overflow: "hidden", fontSize: 14, color: "#374151" }}>
-      {/* Banner */}
-      <div style={{ background: ac, padding: "28px 32px" }}>
-        <div style={{ color: "#fff", fontWeight: 800, fontSize: 18, marginBottom: 6 }}>{companyName || "Your Company"}</div>
-        <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 14 }}>{settings.headerText}</div>
-      </div>
-      {/* Body */}
-      <div style={{ padding: "32px", background: "#fff" }}>
-        <p style={{ fontWeight: 700, fontSize: 15, margin: "0 0 16px" }}>{settings.greeting.replace("[Name]", "Jordan")}</p>
-        <p style={{ margin: "0 0 28px", lineHeight: 1.6, color: "#4b5563" }}>{settings.body}</p>
-        <div style={{ textAlign: "center", margin: "0 0 28px" }}>
-          <span style={{ display: "inline-block", background: ac, color: "#fff", padding: "13px 28px", borderRadius: 8, fontWeight: 700, fontSize: 14 }}>
-            {settings.ctaText}
-          </span>
+    <div style={{ backgroundColor: g.appBackground, padding: "40px 20px", borderRadius: "16px", border: "1px solid #e5e7eb" }}>
+      <div style={{ fontFamily: g.fontFamily, maxWidth: 560, margin: "0 auto", backgroundColor: g.contentBackground, borderRadius: g.borderRadius, overflow: "hidden", fontSize: 14, color: "#374151", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" }}>
+        {/* Banner */}
+        {g.headerImage ? (
+          <div style={{ background: ac }}>
+            <img src={g.headerImage} alt="Header" style={{ width: "100%", display: "block", objectFit: "cover" }} />
+          </div>
+        ) : (
+          <div style={{ background: ac, padding: "28px 32px" }}>
+            <div style={{ color: "#fff", fontWeight: 800, fontSize: 18, marginBottom: 6 }}>{companyName || "Your Company"}</div>
+            <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 14 }}>{previewSettings.headerText}</div>
+          </div>
+        )}
+        
+        {/* Body */}
+        <div style={{ padding: g.contentPadding, background: g.contentBackground }}>
+          {isGlobal && g.headerImage && (
+             <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 6, color: g.primaryColor }}>{companyName || "Your Company"}</div>
+          )}
+          <p style={{ fontWeight: 700, fontSize: 15, margin: "0 0 16px" }}>{previewSettings.greeting?.replace("[Name]", "Jordan")}</p>
+          <p style={{ margin: "0 0 28px", lineHeight: 1.6, color: "#4b5563" }}>{previewSettings.body}</p>
+          <div style={{ textAlign: "center", margin: "0 0 28px" }}>
+            <span style={{ display: "inline-block", background: ac, color: "#fff", padding: "13px 28px", borderRadius: 8, fontWeight: 700, fontSize: 14 }}>
+              {previewSettings.ctaText}
+            </span>
+          </div>
+          <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
+          <p style={{ fontSize: 12, color: "#9ca3af", margin: 0, textAlign: "center" }}>{previewSettings.footerText}</p>
         </div>
-        <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
-        <p style={{ fontSize: 12, color: "#9ca3af", margin: 0, textAlign: "center" }}>{settings.footerText}</p>
-      </div>
-      {/* Footer bar */}
-      <div style={{ background: "#f9fafb", padding: "14px 32px", textAlign: "center", borderTop: "1px solid #e5e7eb" }}>
-        <span style={{ fontSize: 11, color: "#9ca3af" }}>Sent via {companyName || "Clover"}</span>
+        {/* Footer bar */}
+        <div style={{ background: "rgba(0,0,0,0.02)", padding: "14px 32px", textAlign: "center", borderTop: "1px solid #e5e7eb" }}>
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>{g.footerText || `Sent via ${companyName || "Clover"}`}</span>
+        </div>
       </div>
     </div>
   );
@@ -201,12 +229,53 @@ export default function EmailSettingsPage() {
             </div>
 
             <div style={{ padding: "24px" }}>
-              {/* Subject */}
-              <div style={fieldWrap}>
-                <label style={labelCls}>Email Subject Line</label>
-                <input style={inputCls} value={current.subject} onChange={e => update("subject", e.target.value)} placeholder="e.g. Your Proposal is Ready" />
-                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>Use <code>[Name]</code> for client name, <code>[Company]</code> for your company name.</div>
-              </div>
+              {tab === "global" ? (
+                <>
+                  <div style={fieldWrap}>
+                    <label style={labelCls}>App Background Color</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <input type="color" value={current.appBackground} onChange={e => update("appBackground", e.target.value)} style={{ width: 44, height: 44, padding: 2, border: "1px solid var(--border)", borderRadius: 8, cursor: "pointer", background: "transparent" }} />
+                      <input style={{ ...inputCls, flex: 1 }} value={current.appBackground} onChange={e => update("appBackground", e.target.value)} />
+                    </div>
+                  </div>
+                  <div style={fieldWrap}>
+                    <label style={labelCls}>Content Background Color</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <input type="color" value={current.contentBackground} onChange={e => update("contentBackground", e.target.value)} style={{ width: 44, height: 44, padding: 2, border: "1px solid var(--border)", borderRadius: 8, cursor: "pointer", background: "transparent" }} />
+                      <input style={{ ...inputCls, flex: 1 }} value={current.contentBackground} onChange={e => update("contentBackground", e.target.value)} />
+                    </div>
+                  </div>
+                  <div style={fieldWrap}>
+                    <label style={labelCls}>Header Image URL (Optional)</label>
+                    <input style={inputCls} value={current.headerImage} onChange={e => update("headerImage", e.target.value)} placeholder="https://example.com/banner.jpg" />
+                  </div>
+                  <div style={fieldWrap}>
+                    <label style={labelCls}>Primary Font Family</label>
+                    <input style={inputCls} value={current.fontFamily} onChange={e => update("fontFamily", e.target.value)} placeholder="Arial, sans-serif" />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, ...fieldWrap }}>
+                    <div>
+                      <label style={labelCls}>Content Padding</label>
+                      <input style={inputCls} value={current.contentPadding} onChange={e => update("contentPadding", e.target.value)} placeholder="32px" />
+                    </div>
+                    <div>
+                      <label style={labelCls}>Border Radius</label>
+                      <input style={inputCls} value={current.borderRadius} onChange={e => update("borderRadius", e.target.value)} placeholder="12px" />
+                    </div>
+                  </div>
+                  <div style={fieldWrap}>
+                    <label style={labelCls}>Global Footer Text</label>
+                    <input style={inputCls} value={current.footerText} onChange={e => update("footerText", e.target.value)} placeholder="Sent via Clover" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Subject */}
+                  <div style={fieldWrap}>
+                    <label style={labelCls}>Email Subject Line</label>
+                    <input style={inputCls} value={current.subject} onChange={e => update("subject", e.target.value)} placeholder="e.g. Your Proposal is Ready" />
+                    <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>Use <code>[Name]</code> for client name, <code>[Company]</code> for your company name.</div>
+                  </div>
 
               {/* Header text (banner subtitle) */}
               <div style={fieldWrap}>
@@ -282,6 +351,8 @@ export default function EmailSettingsPage() {
                   </div>
                 </div>
               )}
+              </>
+              )}
 
               {/* Reset to defaults */}
               <div style={{ paddingTop: 8, borderTop: "1px solid var(--border)" }}>
@@ -298,11 +369,9 @@ export default function EmailSettingsPage() {
 
         {/* Right — Live Preview */}
         {showPreview && (
-          <div className="animate-fade-in">
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
-              Live Preview
-            </div>
-            <EmailPreview settings={current} companyName={companyName} />
+          <div style={{ position: "sticky", top: 100 }}>
+            <div style={{ padding: "16px 0", fontWeight: 800, fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Live Preview</div>
+            <EmailPreview settings={settings} companyName={companyName} tab={tab} />
             <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 8, textAlign: "center" }}>
               [Name] shown as "Jordan" for preview purposes.
             </p>

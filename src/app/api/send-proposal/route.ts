@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import nodemailer from 'nodemailer';
+import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -149,36 +150,28 @@ export async function POST(req: NextRequest) {
     // HTML-encode & as &amp; for email href attributes (required by strict email clients like Outlook)
     const proposalLinkHtml = proposalLink.replace(/&/g, '&amp;');
 
+    const innerHtml = `
+      <p style="font-size: 16px; font-weight: 700; margin: 0 0 16px; color: #111827;">${greeting}</p>
+      <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin: 0 0 32px;">${body}</p>
+      <div style="text-align: center; margin: 0 0 32px;">
+        <a href="${proposalLinkHtml}" class="button">
+          ${ctaText}
+        </a>
+      </div>
+      <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px;">Or copy this link into your browser:</p>
+      <p style="word-break: break-all; color: #374151; font-size: 12px; margin: 0; background: #f9fafb; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+        ${proposalLink}
+      </p>
+    `;
+
+    const finalHtml = wrapWithGlobalBranding(innerHtml, companyName, emailSettings.global, accentColor, headerText);
+
     // 6. Send the Email
     await transporter.sendMail({
       from: `"${companyName}" <${config.Email_User}>`,
       to: contact.Email,
       subject,
-      html: `
-        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #374151;">
-          <div style="background: ${accentColor}; padding: 32px 40px; border-radius: 12px 12px 0 0;">
-            <div style="color: #fff; font-weight: 800; font-size: 20px; margin-bottom: 6px;">${companyName}</div>
-            <div style="color: rgba(255,255,255,0.85); font-size: 14px;">${headerText}</div>
-          </div>
-          <div style="background: #fff; padding: 36px 40px;">
-            <p style="font-size: 16px; font-weight: 700; margin: 0 0 16px; color: #111827;">${greeting}</p>
-            <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin: 0 0 32px;">${body}</p>
-            <div style="text-align: center; margin: 0 0 32px;">
-              <a href="${proposalLinkHtml}" style="background: ${accentColor}; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 16px; display: inline-block;">
-                ${ctaText}
-              </a>
-            </div>
-            <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px;">Or copy this link into your browser:</p>
-            <p style="word-break: break-all; color: #374151; font-size: 12px; margin: 0; background: #f9fafb; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
-              ${proposalLink}
-            </p>
-          </div>
-          <div style="background: #f9fafb; padding: 20px 40px; border-top: 1px solid #e5e7eb; border-radius: 0 0 12px 12px; text-align: center;">
-            <p style="font-size: 12px; color: #9ca3af; margin: 0 0 4px;">${footerText}</p>
-            <p style="font-size: 11px; color: #d1d5db; margin: 0;">Sent via ${companyName} CRM</p>
-          </div>
-        </div>
-      `,
+      html: finalHtml,
       text: `${greeting}\n\n${body}\n\nClick here to view your booking proposal:\n${proposalLink}\n\n${footerText}`
     });
 

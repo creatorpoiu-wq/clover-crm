@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
+import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -54,13 +55,16 @@ export async function POST(req: NextRequest) {
     // 1. Fetch Email Credentials
     const { data: config } = await supabase
       .from('AppConfig')
-      .select('Email_User, Email_Pass, Company_Name')
+      .select('Email_User, Email_Pass, Company_Name, Email_Settings')
       .eq('user_id', userId)
       .single();
 
     if (!config || !config.Email_User || !config.Email_Pass) {
       return NextResponse.json({ success: false, error: 'Email credentials not configured in Settings.' }, { status: 400 });
     }
+
+    let emailSettings: any = {};
+    try { emailSettings = JSON.parse(config.Email_Settings || '{}'); } catch { emailSettings = {}; }
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -129,6 +133,9 @@ export async function POST(req: NextRequest) {
       
       let personalizedBody = bodyHtml.replace(/\[Name\]/gi, contact.Name || 'there');
       
+      // Wrap with global branding
+      personalizedBody = wrapWithGlobalBranding(personalizedBody, companyName, emailSettings.global, undefined, 'Marketing Campaign');
+
       // Inject tracking pixel
       personalizedBody += `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
 

@@ -39,6 +39,16 @@ export const EMAIL_DEFAULTS = {
     accentColor: '#0d9488',
     smsText: 'Hi [Name]! Just a friendly reminder regarding your upcoming event with [Company]. Reply if you have questions!'
   },
+  global: {
+    appBackground: '#f3f4f6',
+    contentBackground: '#ffffff',
+    primaryColor: '#0f172a',
+    headerImage: '',
+    fontFamily: 'Arial, sans-serif',
+    footerText: 'Sent via Clover',
+    contentPadding: '32px',
+    borderRadius: '12px'
+  }
 };
 
 export async function GET() {
@@ -62,6 +72,7 @@ export async function GET() {
       contract: { ...EMAIL_DEFAULTS.contract, ...(stored.contract || {}) },
       invoice:  { ...EMAIL_DEFAULTS.invoice,  ...(stored.invoice  || {}) },
       reminder: { ...EMAIL_DEFAULTS.reminder, ...(stored.reminder || {}) },
+      global:   { ...EMAIL_DEFAULTS.global,   ...(stored.global   || {}) },
     };
 
     return NextResponse.json({ success: true, settings });
@@ -75,13 +86,14 @@ export async function PUT(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { proposal, contract, invoice, reminder } = body;
+    const { proposal, contract, invoice, reminder, global } = body;
 
     const settings = {
       proposal: { ...EMAIL_DEFAULTS.proposal, ...(proposal || {}) },
       contract: { ...EMAIL_DEFAULTS.contract, ...(contract || {}) },
       invoice:  { ...EMAIL_DEFAULTS.invoice,  ...(invoice  || {}) },
       reminder: { ...EMAIL_DEFAULTS.reminder, ...(reminder || {}) },
+      global:   { ...EMAIL_DEFAULTS.global,   ...(global   || {}) },
     };
 
     const { data: userAuth } = await supabase.auth.getUser();

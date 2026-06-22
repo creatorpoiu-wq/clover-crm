@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import {
   Plus, Mail, Clock, CheckCircle2, Users, Download, Trash2,
-  Search, X, UserPlus, LayoutGrid, Megaphone,
+  Search, X, UserPlus, LayoutGrid, Megaphone, Edit3, Copy
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -300,8 +300,8 @@ export default function MarketingDashboard() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
                   <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "#0f172a", margin: 0 }}>{campaign.name}</h3>
-                  <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, backgroundColor: campaign.status === "Sent" ? "#dcfce7" : "#f1f5f9", color: campaign.status === "Sent" ? "#166534" : "#475569", display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                    {campaign.status === "Sent" ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                  <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, backgroundColor: campaign.status === "Sent" ? "#dcfce7" : (campaign.status === "Draft" ? "#fef3c7" : "#f1f5f9"), color: campaign.status === "Sent" ? "#166534" : (campaign.status === "Draft" ? "#92400e" : "#475569"), display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                    {campaign.status === "Sent" ? <CheckCircle2 size={12} /> : (campaign.status === "Draft" ? <Edit3 size={12} /> : <Clock size={12} />)}
                     {campaign.status}
                   </span>
                 </div>
@@ -312,6 +312,17 @@ export default function MarketingDashboard() {
                     <div><p style={{ fontSize: "0.75rem", color: "#64748b", margin: "0 0 0.25rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Opened</p><p style={{ fontSize: "1.125rem", fontWeight: 600, color: "#3b82f6", margin: 0 }}>{campaign.open_count}</p></div>
                     <div><p style={{ fontSize: "0.75rem", color: "#64748b", margin: "0 0 0.25rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Sent At</p><p style={{ fontSize: "0.875rem", color: "#334155", margin: 0, marginTop: "0.25rem" }}>{new Date(campaign.sent_at).toLocaleDateString()} {new Date(campaign.sent_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p></div>
                   </div>
+                )}
+              </div>
+              <div style={{ marginLeft: "1.5rem" }}>
+                {campaign.status === "Draft" ? (
+                  <Link href={`/dashboard/marketing/new?draftId=${campaign.id}`} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, color: "#3b82f6", textDecoration: "none", padding: "0.5rem 1rem", borderRadius: "0.375rem", backgroundColor: "#eff6ff" }}>
+                    <Edit3 size={14} /> Edit Draft
+                  </Link>
+                ) : (
+                  <Link href={`/dashboard/marketing/new?duplicateId=${campaign.id}`} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.875rem", fontWeight: 600, color: "#64748b", textDecoration: "none", padding: "0.5rem 1rem", borderRadius: "0.375rem", backgroundColor: "#f1f5f9" }}>
+                    <Copy size={14} /> Duplicate
+                  </Link>
                 )}
               </div>
             </motion.div>

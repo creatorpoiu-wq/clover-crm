@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import nodemailer from 'nodemailer';
+import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
     // 3. Get App Config for SMTP credentials
     const { data: config, error: configError } = await supabase
       .from('AppConfig')
-      .select('Email_User, Email_Pass, Company_Name')
+      .select('Email_User, Email_Pass, Company_Name, Email_Settings')
       .eq('user_id', userAuth.user.id)
       .single();
 
@@ -79,23 +80,24 @@ export async function POST(req: NextRequest) {
     });
 
     const companyName = config.Company_Name || '';
+    
+    let emailSettings: any = {};
+    try { emailSettings = JSON.parse(config.Email_Settings || '{}'); } catch { emailSettings = {}; }
+
+    const innerHtml = `
+      <div style="font-size: 16px; line-height: 1.6;">
+        ${parsedBody}
+      </div>
+    `;
+
+    const emailHtml = wrapWithGlobalBranding(innerHtml, companyName, emailSettings.global, undefined, parsedSubject);
 
     // 5. Send the Email
     await transporter.sendMail({
       from: `"${companyName}" <${config.Email_User}>`,
       to: contact.Email,
       subject: parsedSubject,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-          <div style="font-size: 16px; line-height: 1.6;">
-            ${parsedBody}
-          </div>
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-          <p style="font-size: 12px; color: #9ca3af; text-align: center;">
-            Sent securely via ${companyName} CRM
-          </p>
-        </div>
-      `
+      html: emailHtml
     });
 
     return NextResponse.json({ success: true, message: 'Email sent successfully.' });

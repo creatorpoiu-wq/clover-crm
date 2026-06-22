@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { ArrowLeft, Send, Users, Tags } from "lucide-react";
+import { ArrowLeft, Send, Users, Tags, Save } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function NewCampaign() {
+function CampaignBuilder() {
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   
+  const searchParams = useSearchParams();
+  const draftId = searchParams.get('draftId');
+  const duplicateId = searchParams.get('duplicateId');
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(draftId || null);
+
   const [audienceType, setAudienceType] = useState("all"); // 'all', 'pipeline', 'tags'
   const [selectedPipelineStage, setSelectedPipelineStage] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
@@ -31,11 +36,43 @@ export default function NewCampaign() {
 
   useEffect(() => {
     fetchTags();
-  }, []);
+    if (draftId || duplicateId) {
+      fetchCampaign((draftId || duplicateId) as string);
+    }
+  }, [draftId, duplicateId]);
 
   useEffect(() => {
     calculateAudienceSize();
   }, [audienceType, selectedPipelineStage, selectedTag]);
+
+  const fetchCampaign = async (id: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from("Marketing_Campaigns")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single();
+      
+    if (data) {
+      if (duplicateId) {
+        setName(`${data.name} (Copy)`);
+      } else {
+        setName(data.name);
+      }
+      setSubject(data.subject);
+      setBody(data.body_html || "");
+      
+      const criteria = data.audience_criteria;
+      if (criteria) {
+        setAudienceType(criteria.type || 'all');
+        if (criteria.type === 'pipeline') setSelectedPipelineStage(criteria.value || '');
+        if (criteria.type === 'tags') setSelectedTag(criteria.value || '');
+      }
+    }
+  };
 
   const fetchTags = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -120,12 +157,53 @@ export default function NewCampaign() {
 
       const data = await res.json();
       if (data.success) {
+        // If this was a draft, we might want to delete it since we just created a 'Sent' record, or update it.
+        // Actually, send creates a new record. We should probably delete the old draft.
+        if (currentDraftId) {
+          await supabase.from("Marketing_Campaigns").delete().eq("id", currentDraftId);
+        }
+
         setSuccess(true);
         setTimeout(() => {
           router.push("/dashboard/marketing");
         }, 2000);
       } else {
         setError(data.error || "Failed to send campaign.");
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setIsSending(true);
+    setError("");
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const res = await fetch("/api/marketing/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user?.id,
+          draftId: currentDraftId,
+          name,
+          subject,
+          bodyHtml: body,
+          audienceCriteria: {
+            type: audienceType,
+            value: audienceType === 'pipeline' ? selectedPipelineStage : (audienceType === 'tags' ? selectedTag : 'all')
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentDraftId(data.draft.id);
+        alert("Draft saved successfully.");
+      } else {
+        setError(data.error || "Failed to save draft.");
       }
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
@@ -154,18 +232,32 @@ export default function NewCampaign() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>Create Campaign</h1>
-        <button 
-          onClick={handleSend}
-          disabled={isSending}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '0.5rem',
-            backgroundColor: '#3b82f6', color: 'white', border: 'none',
-            padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600,
-            cursor: isSending ? 'not-allowed' : 'pointer', opacity: isSending ? 0.7 : 1
-          }}
-        >
-          {isSending ? 'Sending...' : <><Send size={18} /> Send Campaign</>}
-        </button>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button 
+            onClick={handleSaveDraft}
+            disabled={isSending}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1',
+              padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600,
+              cursor: isSending ? 'not-allowed' : 'pointer', opacity: isSending ? 0.7 : 1
+            }}
+          >
+            <Save size={18} /> Save Draft
+          </button>
+          <button 
+            onClick={handleSend}
+            disabled={isSending}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              backgroundColor: '#3b82f6', color: 'white', border: 'none',
+              padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600,
+              cursor: isSending ? 'not-allowed' : 'pointer', opacity: isSending ? 0.7 : 1
+            }}
+          >
+            {isSending ? 'Sending...' : <><Send size={18} /> Send Campaign</>}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -278,5 +370,13 @@ export default function NewCampaign() {
 
       </div>
     </div>
+  );
+}
+
+export default function NewCampaign() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CampaignBuilder />
+    </Suspense>
   );
 }
