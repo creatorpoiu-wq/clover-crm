@@ -71,6 +71,20 @@ export default function PublicGallery() {
     window.open(`/api/gallery-download?url=${encodeURIComponent(url)}`, '_blank');
   };
 
+  const visibleAlbums = useMemo(() => {
+    return albums.filter(album => {
+      return media.some(m => m.Album_ID === album.Album_ID && m.Media_Type === (viewMode === 'photos' ? 'photo' : 'video'));
+    });
+  }, [albums, media, viewMode]);
+
+  useEffect(() => {
+    if (visibleAlbums.length > 0 && !visibleAlbums.some(a => a.Album_ID === activeAlbumId)) {
+      setActiveAlbumId(visibleAlbums[0].Album_ID);
+    } else if (visibleAlbums.length === 0 && activeAlbumId !== null) {
+      setActiveAlbumId(null);
+    }
+  }, [viewMode, visibleAlbums, activeAlbumId]);
+
   const handleDownloadAll = () => {
     if (gallery.Download_Url) {
       window.open(gallery.Download_Url, '_blank');
@@ -112,19 +126,9 @@ export default function PublicGallery() {
   const hasVideos = media.some(m => m.Media_Type === 'video'); // compute on all media
   const hasPhotos = media.some(m => m.Media_Type === 'photo');
 
-  const visibleAlbums = useMemo(() => {
-    return albums.filter(album => {
-      return media.some(m => m.Album_ID === album.Album_ID && m.Media_Type === (viewMode === 'photos' ? 'photo' : 'video'));
-    });
-  }, [albums, media, viewMode]);
 
-  useEffect(() => {
-    if (visibleAlbums.length > 0 && !visibleAlbums.some(a => a.Album_ID === activeAlbumId)) {
-      setActiveAlbumId(visibleAlbums[0].Album_ID);
-    } else if (visibleAlbums.length === 0 && activeAlbumId !== null) {
-      setActiveAlbumId(null);
-    }
-  }, [viewMode, visibleAlbums, activeAlbumId]);
+
+
 
   const scrollToContent = () => {
     document.getElementById('gallery-content')?.scrollIntoView({ behavior: 'smooth' });
