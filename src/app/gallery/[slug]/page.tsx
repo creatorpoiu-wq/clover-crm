@@ -128,11 +128,26 @@ export default function PublicGallery() {
         {/* Top Navigation */}
         <nav style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 20, color: "white" }}>
           
-          <div style={{ flex: 1 }}>
-            <span style={{ fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>{gallery.Client_Name || gallery.Title}</span>
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "flex-end", width: "100%" }}>
+            <button onClick={handleDownloadAll} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", color: "white", cursor: "pointer", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+              <CloudDownload size={18} />
+            </button>
+            <button onClick={() => { navigator.clipboard.writeText(window.location.href); alert("Gallery link copied to clipboard!"); }} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", color: "white", cursor: "pointer", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+              <Share2 size={18} />
+            </button>
           </div>
+        </nav>
 
-          <div style={{ display: "flex", gap: "2rem", alignItems: "center", letterSpacing: "0.1em", fontSize: "0.875rem", fontWeight: 500, flex: 1, justifyContent: "center" }}>
+        {/* Title in Center */}
+        <div style={{ position: "relative", zIndex: 10, textAlign: "center", color: "white", padding: "0 1rem", width: "100%", marginTop: "-4rem" }}>
+           <h1 style={{ fontSize: "clamp(2.5rem, 8vw, 5rem)", fontFamily: "Georgia, serif", fontStyle: "italic", margin: "0 0 1rem 0", textShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+             {gallery.Client_Name || gallery.Title}
+           </h1>
+        </div>
+
+        {/* Toggles at the bottom */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 20, paddingBottom: "1.5rem" }}>
+          <div style={{ display: "flex", gap: "2rem", alignItems: "center", letterSpacing: "0.1em", fontSize: "0.875rem", fontWeight: 500 }}>
             {(gallery.Gallery_Type !== 'photos' || hasVideos) && (
               <button 
                 onClick={() => setViewMode('films')} 
@@ -150,26 +165,7 @@ export default function PublicGallery() {
               </button>
             )}
           </div>
-
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center", flex: 1, justifyContent: "flex-end" }}>
-            <button style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "2rem", color: "white", cursor: "pointer", padding: "0.5rem 1rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.75rem", fontWeight: 600, backdropFilter: "blur(4px)" }}>
-              <MonitorPlay size={16} /> TV
-            </button>
-            <button onClick={handleDownloadAll} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", color: "white", cursor: "pointer", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
-              <CloudDownload size={18} />
-            </button>
-            <button style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", color: "white", cursor: "pointer", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
-              <Share2 size={18} />
-            </button>
-          </div>
-        </nav>
-
-        {/* Optional Title in Center */}
-        {/* <div style={{ position: "relative", zIndex: 10, textAlign: "center", color: "white", padding: "0 1rem" }}>
-           <h1 style={{ fontSize: "clamp(2.5rem, 8vw, 5rem)", fontFamily: "Georgia, serif", fontStyle: "italic", margin: "0 0 1rem 0", textShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
-             {gallery.Client_Name || gallery.Title}
-           </h1>
-        </div> */}
+        </div>
       </div>
 
       {/* Sticky Sub-Navigation (Album Bar) */}
@@ -178,10 +174,6 @@ export default function PublicGallery() {
         {viewMode === 'photos' ? (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "2rem", overflowX: "auto" }}>
-              <button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ background: "none", border: "1px solid #d4d4d8", borderRadius: "50%", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#52525b", flexShrink: 0 }}>
-                <ArrowLeft size={16} />
-              </button>
-              
               <div style={{ display: "flex", gap: "2rem" }}>
                 {albums.map(album => (
                   <button
@@ -196,10 +188,7 @@ export default function PublicGallery() {
             </div>
             
             <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-               <span style={{ fontSize: "0.875rem", color: "#737373" }}>{photos.length} Photos</span>
-               <button style={{ backgroundColor: "#a68a5c", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "0.25rem", fontSize: "0.875rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                 <Play size={14} fill="white" /> Play Slideshow
-               </button>
+               <span style={{ fontSize: "0.875rem", color: "#737373", paddingRight: "1rem" }}>{photos.length} Photos</span>
             </div>
           </>
         ) : (

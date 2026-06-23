@@ -138,10 +138,13 @@ export default function GalleryManager() {
     if (!newMediaUrl) return;
 
     let thumbnailUrl = newMediaUrl;
+    let finalMediaType = newMediaType;
+
     // Auto-extract YouTube thumbnail
     if (newMediaUrl.includes("youtube.com") || newMediaUrl.includes("youtu.be")) {
       const videoId = newMediaUrl.includes("v=") ? newMediaUrl.split("v=")[1].split("&")[0] : newMediaUrl.split("/").pop();
       thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      finalMediaType = 'video';
     }
     // GDrive image link convert
     let finalUrl = newMediaUrl;
@@ -155,6 +158,7 @@ export default function GalleryManager() {
     }
     // Auto-extract Vimeo thumbnail
     if (newMediaUrl.includes("vimeo.com")) {
+      finalMediaType = 'video';
       try {
         const vRes = await fetch(`https://vimeo.com/api/oembed.json?url=${newMediaUrl}`);
         if (vRes.ok) {
@@ -175,7 +179,7 @@ export default function GalleryManager() {
         body: JSON.stringify({ 
           Gallery_ID: gallery.Gallery_ID, 
           Album_ID: selectedAlbumId,
-          Media_Type: newMediaType,
+          Media_Type: finalMediaType,
           Url: finalUrl,
           Thumbnail_Url: thumbnailUrl
         })
