@@ -310,6 +310,7 @@ export default function PublicGallery() {
               width="100%"
               height="100%"
               onEnded={() => setPlayingVideoUrl(null)}
+              // @ts-ignore
               config={{
                 youtube: {
                   playerVars: { modestbranding: 1, rel: 0 }
