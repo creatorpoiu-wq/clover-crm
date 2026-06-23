@@ -109,8 +109,20 @@ export default function PublicGallery() {
 
   const photos = media.filter(m => m.Media_Type === 'photo' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
   const videos = media.filter(m => m.Media_Type === 'video' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
-  const hasVideos = videos.length > 0;
+  const hasVideos = media.some(m => m.Media_Type === 'video'); // compute on all media
   const hasPhotos = media.some(m => m.Media_Type === 'photo');
+
+  const visibleAlbums = albums.filter(album => {
+    return media.some(m => m.Album_ID === album.Album_ID && m.Media_Type === (viewMode === 'photos' ? 'photo' : 'video'));
+  });
+
+  useEffect(() => {
+    if (visibleAlbums.length > 0 && !visibleAlbums.some(a => a.Album_ID === activeAlbumId)) {
+      setActiveAlbumId(visibleAlbums[0].Album_ID);
+    } else if (visibleAlbums.length === 0 && activeAlbumId !== null) {
+      setActiveAlbumId(null);
+    }
+  }, [viewMode, visibleAlbums, activeAlbumId]);
 
   const scrollToContent = () => {
     document.getElementById('gallery-content')?.scrollIntoView({ behavior: 'smooth' });
@@ -170,7 +182,7 @@ export default function PublicGallery() {
       <div id="gallery-content" style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "#fafafa", borderBottom: "1px solid #e5e5e5", padding: "1rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "2rem", overflowX: "auto" }}>
           <div style={{ display: "flex", gap: "2rem" }}>
-            {albums.map(album => (
+            {visibleAlbums.map(album => (
               <button
                 key={album.Album_ID}
                 onClick={() => setActiveAlbumId(album.Album_ID)}
