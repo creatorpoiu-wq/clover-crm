@@ -237,7 +237,7 @@ export default function PublicGallery() {
             )}
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))", gap: "1rem", padding: "2rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "1rem", padding: "1rem" }}>
             {videos.map(video => (
               <div 
                 key={video.Media_ID} 
