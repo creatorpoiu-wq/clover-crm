@@ -146,26 +146,24 @@ export default function PublicGallery() {
         </div>
 
         {/* Toggles at the bottom */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 20, paddingBottom: "1.5rem" }}>
-          <div style={{ display: "flex", gap: "2rem", alignItems: "center", letterSpacing: "0.1em", fontSize: "0.875rem", fontWeight: 500 }}>
-            {(gallery.Gallery_Type !== 'photos' || hasVideos) && (
+        {gallery.Gallery_Type === 'both' && (
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 20, paddingBottom: "1.5rem" }}>
+            <div style={{ display: "flex", gap: "2rem", alignItems: "center", letterSpacing: "0.1em", fontSize: "0.875rem", fontWeight: 500 }}>
               <button 
                 onClick={() => setViewMode('films')} 
                 style={{ background: "none", border: "none", color: "white", cursor: "pointer", opacity: viewMode === 'films' ? 1 : 0.6, transition: "opacity 0.2s" }}
               >
                 FILMS
               </button>
-            )}
-            {(gallery.Gallery_Type !== 'videos' || hasPhotos) && (
               <button 
                 onClick={() => setViewMode('photos')} 
                 style={{ background: "none", border: "none", color: "white", cursor: "pointer", opacity: viewMode === 'photos' ? 1 : 0.6, transition: "opacity 0.2s" }}
               >
                 PHOTOS
               </button>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Sticky Sub-Navigation (Album Bar) */}
