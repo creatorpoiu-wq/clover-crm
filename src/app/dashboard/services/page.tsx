@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Trash2, Edit3, Camera, Video, Clock, MapPin, Globe, Lock, Copy, Check, ChevronRight, X, Link, Calendar, Package as PackageIcon, Users } from 'lucide-react';
+import ImageUploadInput from '@/components/ui/ImageUploadInput';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SERVICE_TYPES = ['Photography', 'Videography', 'Photo & Video', 'Headshots', 'Commercial', 'Events', 'Other'];
@@ -935,18 +936,13 @@ export default function ServicesPage() {
                       </div>
                     )}
                     <div style={{ flex: 1, minWidth: '200px' }}>
-                      {mainTab === 'weddings' && (sessionForm.serviceType === 'Wedding Video' || sessionForm.serviceType === 'Wedding Content Creation') ? (
-                        <input 
-                          type="url" 
-                          value={sessionForm.coverImage.startsWith('data:') ? '' : sessionForm.coverImage} 
-                          onChange={e => setSessionForm(p => ({ ...p, coverImage: e.target.value }))} 
-                          className="input" 
-                          style={{ width: '100%', fontSize: '0.875rem' }} 
-                          placeholder="e.g. https://vimeo.com/..., https://youtube.com/..." 
-                        />
-                      ) : null}
-                      
-                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', fontSize: '0.875rem', marginTop: mainTab === 'weddings' && (sessionForm.serviceType === 'Wedding Content Creation' || sessionForm.serviceType === 'Wedding Video') ? '0.5rem' : '0' }} />
+                      <ImageUploadInput
+                        value={sessionForm.coverImage.startsWith('data:') && mainTab === 'weddings' && (sessionForm.serviceType === 'Wedding Video' || sessionForm.serviceType === 'Wedding Content Creation') ? '' : sessionForm.coverImage}
+                        onChange={val => setSessionForm(p => ({ ...p, coverImage: val }))}
+                        placeholder={mainTab === 'weddings' && (sessionForm.serviceType === 'Wedding Video' || sessionForm.serviceType === 'Wedding Content Creation') ? "e.g. https://vimeo.com/..., https://youtube.com/..." : "https://example.com/image.jpg"}
+                        className="input"
+                        style={{ width: '100%', fontSize: '0.875rem' }}
+                      />
                       
                       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: '#94a3b8' }}>
                         {mainTab === 'weddings' && sessionForm.serviceType === 'Wedding Video' ? 'Required ratio 16:9.' : 
@@ -1016,10 +1012,7 @@ export default function ServicesPage() {
                   </select>
                   <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginTop: '0.4rem' }}>Select a contract created in the Pipeline Builder.</span>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Cover Image URL</label>
-                  <input value={sessionForm.coverImage} onChange={e => setSessionForm(p => ({ ...p, coverImage: e.target.value }))} className="input" style={{ width: '100%' }} placeholder="https://..." />
-                </div>
+                {/* Redundant Cover Image URL removed */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <input type="checkbox" id="isPublicCheck" checked={sessionForm.isPublic} onChange={e => setSessionForm(p => ({ ...p, isPublic: e.target.checked }))} style={{ width: '1rem', height: '1rem', accentColor: 'var(--primary)' }} />
                   <label htmlFor="isPublicCheck" style={{ fontSize: '0.875rem', fontWeight: 600 }}>Make this session publicly bookable</label>

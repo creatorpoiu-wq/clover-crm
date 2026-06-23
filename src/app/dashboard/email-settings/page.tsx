@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Save, Mail, FileSignature, ReceiptText, Eye, EyeOff, Palette } from "lucide-react";
+import ImageUploadInput from "@/components/ui/ImageUploadInput";
 
 type EmailType = "proposal" | "contract" | "invoice" | "reminder" | "global";
 
@@ -246,8 +247,17 @@ export default function EmailSettingsPage() {
                     </div>
                   </div>
                   <div style={fieldWrap}>
-                    <label style={labelCls}>Header Image URL (Optional)</label>
-                    <input style={inputCls} value={current.headerImage} onChange={e => update("headerImage", e.target.value)} placeholder="https://example.com/banner.jpg" />
+                    <label style={labelCls}>Header Image</label>
+                    <ImageUploadInput 
+                      value={current.headerImage} 
+                      onChange={val => update("headerImage", val)} 
+                      placeholder="https://example.com/banner.jpg" 
+                      style={{ 
+                        padding: "10px 14px", border: "1px solid var(--border)", borderRadius: 8, 
+                        fontSize: 14, outline: "none", background: "var(--background)", 
+                        color: "var(--foreground)", boxSizing: "border-box" 
+                      }} 
+                    />
                   </div>
                   <div style={fieldWrap}>
                     <label style={labelCls}>Primary Font Family</label>
