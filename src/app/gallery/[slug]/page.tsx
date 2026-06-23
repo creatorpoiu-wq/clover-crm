@@ -303,22 +303,27 @@ export default function PublicGallery() {
           )}
           
           <div style={{ width: "90vw", height: "80vh", maxWidth: "1200px" }}>
-            <ReactPlayer 
-              url={playingVideoUrl} 
-              playing={true} 
-              controls={true}
-              width="100%"
-              height="100%"
-              onEnded={() => setPlayingVideoUrl(null)}
-              config={{
-                youtube: {
-                  playerVars: { modestbranding: 1, rel: 0 } as any
-                },
-                vimeo: {
-                  playerOptions: { byline: false, portrait: false, title: false } as any
-                }
-              }}
-            />
+            {(() => {
+              const Player = ReactPlayer as any;
+              return (
+                <Player 
+                  url={playingVideoUrl} 
+                  playing={true} 
+                  controls={true}
+                  width="100%"
+                  height="100%"
+                  onEnded={() => setPlayingVideoUrl(null)}
+                  config={{
+                    youtube: {
+                      playerVars: { modestbranding: 1, rel: 0 }
+                    },
+                    vimeo: {
+                      playerOptions: { byline: false, portrait: false, title: false }
+                    }
+                  }}
+                />
+              );
+            })()}
           </div>
         </div>
       )}
