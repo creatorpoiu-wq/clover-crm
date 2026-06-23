@@ -109,6 +109,8 @@ export default function PublicGallery() {
 
   const photos = media.filter(m => m.Media_Type === 'photo' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
   const videos = media.filter(m => m.Media_Type === 'video'); // Films view shows all videos usually
+  const hasVideos = videos.length > 0;
+  const hasPhotos = media.some(m => m.Media_Type === 'photo');
 
   const scrollToContent = () => {
     document.getElementById('gallery-content')?.scrollIntoView({ behavior: 'smooth' });
@@ -131,7 +133,7 @@ export default function PublicGallery() {
           </div>
 
           <div style={{ display: "flex", gap: "2rem", alignItems: "center", letterSpacing: "0.1em", fontSize: "0.875rem", fontWeight: 500, flex: 1, justifyContent: "center" }}>
-            {gallery.Gallery_Type !== 'photos' && (
+            {(gallery.Gallery_Type !== 'photos' || hasVideos) && (
               <button 
                 onClick={() => setViewMode('films')} 
                 style={{ background: "none", border: "none", color: "white", cursor: "pointer", opacity: viewMode === 'films' ? 1 : 0.6, transition: "opacity 0.2s" }}
@@ -139,7 +141,7 @@ export default function PublicGallery() {
                 FILMS
               </button>
             )}
-            {gallery.Gallery_Type !== 'videos' && (
+            {(gallery.Gallery_Type !== 'videos' || hasPhotos) && (
               <button 
                 onClick={() => setViewMode('photos')} 
                 style={{ background: "none", border: "none", color: "white", cursor: "pointer", opacity: viewMode === 'photos' ? 1 : 0.6, transition: "opacity 0.2s" }}
