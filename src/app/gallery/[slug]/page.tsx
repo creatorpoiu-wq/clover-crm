@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
 
@@ -112,9 +112,11 @@ export default function PublicGallery() {
   const hasVideos = media.some(m => m.Media_Type === 'video'); // compute on all media
   const hasPhotos = media.some(m => m.Media_Type === 'photo');
 
-  const visibleAlbums = albums.filter(album => {
-    return media.some(m => m.Album_ID === album.Album_ID && m.Media_Type === (viewMode === 'photos' ? 'photo' : 'video'));
-  });
+  const visibleAlbums = useMemo(() => {
+    return albums.filter(album => {
+      return media.some(m => m.Album_ID === album.Album_ID && m.Media_Type === (viewMode === 'photos' ? 'photo' : 'video'));
+    });
+  }, [albums, media, viewMode]);
 
   useEffect(() => {
     if (visibleAlbums.length > 0 && !visibleAlbums.some(a => a.Album_ID === activeAlbumId)) {
