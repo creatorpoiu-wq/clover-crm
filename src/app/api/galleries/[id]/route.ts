@@ -52,13 +52,17 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       .from('Gallery_Media')
       .select('*')
       .eq('Gallery_ID', gallery.Gallery_ID)
-      .order('Sort_Order', { ascending: true });
+      .order('Sort_Order', { ascending: true })
+      .order('Created_At', { ascending: true });
 
     if (mediaError) throw mediaError;
 
+    const { data: config } = await supabase.from('AppConfig').select('Custom_Domain').eq('user_id', gallery.User_ID).single();
+
     return NextResponse.json({ 
       success: true, 
-      data: { ...gallery, albums: albums || [], media: media || [] } 
+      data: { ...gallery, albums: albums || [], media: media || [] },
+      customDomain: config?.Custom_Domain
     });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

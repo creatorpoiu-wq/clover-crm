@@ -23,6 +23,7 @@ export default function GalleriesList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<'all' | 'photos' | 'videos' | 'both'>('all');
+  const [customDomain, setCustomDomain] = useState("");
   
   // Modal state
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
@@ -43,6 +44,7 @@ export default function GalleriesList() {
       const data = await res.json();
       if (data.success) {
         setGalleries(data.data);
+        if (data.customDomain) setCustomDomain(data.customDomain);
       } else {
         setError(data.error);
       }
@@ -88,8 +90,15 @@ export default function GalleriesList() {
     setNewSlug(slug);
   };
 
+  const getBaseUrl = () => {
+    if (customDomain) {
+      return customDomain.startsWith('http') ? customDomain : `https://${customDomain}`;
+    }
+    return window.location.origin;
+  };
+
   const copyLink = (slug: string) => {
-    const url = `${window.location.origin}/gallery/${slug}`;
+    const url = `${getBaseUrl()}/gallery/${slug}`;
     navigator.clipboard.writeText(url);
     alert("Gallery link copied to clipboard!");
   };
@@ -197,7 +206,7 @@ export default function GalleriesList() {
                       <Copy size={16} />
                     </button>
                     {gallery.Is_Published && (
-                      <Link href={`/gallery/${gallery.Slug}`} target="_blank" title="View Live" style={{ color: "#64748b", padding: "0.25rem" }}>
+                      <Link href={`${getBaseUrl()}/gallery/${gallery.Slug}`} target="_blank" title="View Live" style={{ color: "#64748b", padding: "0.25rem" }}>
                         <ExternalLink size={16} />
                       </Link>
                     )}

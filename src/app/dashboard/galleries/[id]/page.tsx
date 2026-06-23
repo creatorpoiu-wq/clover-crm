@@ -17,6 +17,7 @@ export default function GalleryManager() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [customDomain, setCustomDomain] = useState("");
 
   // UI state
   const [activeTab, setActiveTab] = useState<'media' | 'settings'>('media');
@@ -41,6 +42,7 @@ export default function GalleryManager() {
         setGallery(data.data);
         setAlbums(data.data.albums);
         setMedia(data.data.media);
+        if (data.customDomain) setCustomDomain(data.customDomain);
         if (data.data.albums.length > 0 && selectedAlbumId === null) {
           setSelectedAlbumId(data.data.albums[0].Album_ID);
         }
@@ -165,6 +167,13 @@ export default function GalleryManager() {
 
   const currentAlbumMedia = media.filter(m => m.Album_ID === selectedAlbumId);
 
+  const getBaseUrl = () => {
+    if (customDomain) {
+      return customDomain.startsWith('http') ? customDomain : `https://${customDomain}`;
+    }
+    return typeof window !== 'undefined' ? window.location.origin : '';
+  };
+
   return (
     <div style={{ display: "flex", height: "calc(100vh - 64px)", backgroundColor: "#f8fafc" }}>
       
@@ -183,7 +192,7 @@ export default function GalleryManager() {
             >
               {gallery.Is_Published ? <><Check size={16}/> Published</> : <><EyeOff size={16}/> Draft</>}
             </button>
-            <Link href={`/gallery/${gallery.Slug}`} target="_blank" style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #e2e8f0", background: "white", color: "#334155", display: "flex", alignItems: "center" }}>
+            <Link href={`${getBaseUrl()}/gallery/${gallery.Slug}`} target="_blank" style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #e2e8f0", background: "white", color: "#334155", display: "flex", alignItems: "center" }}>
               <ExternalLink size={16} />
             </Link>
           </div>

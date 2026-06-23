@@ -18,7 +18,9 @@ export async function GET(request: Request) {
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, data });
+    const { data: config } = await supabase.from('AppConfig').select('Custom_Domain').eq('user_id', user.id).single();
+
+    return NextResponse.json({ success: true, data, customDomain: config?.Custom_Domain });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
