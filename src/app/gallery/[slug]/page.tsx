@@ -108,7 +108,7 @@ export default function PublicGallery() {
   }
 
   const photos = media.filter(m => m.Media_Type === 'photo' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
-  const videos = media.filter(m => m.Media_Type === 'video'); // Films view shows all videos usually
+  const videos = media.filter(m => m.Media_Type === 'video' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
   const hasVideos = videos.length > 0;
   const hasPhotos = media.some(m => m.Media_Type === 'photo');
 
@@ -168,32 +168,25 @@ export default function PublicGallery() {
 
       {/* Sticky Sub-Navigation (Album Bar) */}
       <div id="gallery-content" style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "#fafafa", borderBottom: "1px solid #e5e5e5", padding: "1rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        
-        {viewMode === 'photos' ? (
-          <>
-            <div style={{ display: "flex", alignItems: "center", gap: "2rem", overflowX: "auto" }}>
-              <div style={{ display: "flex", gap: "2rem" }}>
-                {albums.map(album => (
-                  <button
-                    key={album.Album_ID}
-                    onClick={() => setActiveAlbumId(album.Album_ID)}
-                    style={{ background: "none", border: "none", padding: 0, fontSize: "0.875rem", fontWeight: activeAlbumId === album.Album_ID ? 600 : 400, color: activeAlbumId === album.Album_ID ? "#000" : "#737373", textTransform: "uppercase", letterSpacing: "0.05em", cursor: "pointer", position: "relative", whiteSpace: "nowrap" }}
-                  >
-                    {album.Name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-               <span style={{ fontSize: "0.875rem", color: "#737373", paddingRight: "1rem" }}>{photos.length} Photos</span>
-            </div>
-          </>
-        ) : (
-          <div style={{ width: "100%", textAlign: "center" }}>
-             <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#000", textTransform: "uppercase", letterSpacing: "0.1em" }}>Films Collection</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "2rem", overflowX: "auto" }}>
+          <div style={{ display: "flex", gap: "2rem" }}>
+            {albums.map(album => (
+              <button
+                key={album.Album_ID}
+                onClick={() => setActiveAlbumId(album.Album_ID)}
+                style={{ background: "none", border: "none", padding: 0, fontSize: "0.875rem", fontWeight: activeAlbumId === album.Album_ID ? 600 : 400, color: activeAlbumId === album.Album_ID ? "#000" : "#737373", textTransform: "uppercase", letterSpacing: "0.05em", cursor: "pointer", position: "relative", whiteSpace: "nowrap" }}
+              >
+                {album.Name}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+        
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+           <span style={{ fontSize: "0.875rem", color: "#737373", paddingRight: "1rem" }}>
+             {viewMode === 'photos' ? `${photos.length} Photos` : `${videos.length} Films`}
+           </span>
+        </div>
       </div>
 
       {/* Content Area */}
