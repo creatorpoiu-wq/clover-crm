@@ -84,6 +84,22 @@ export default function GalleryManager() {
     }
   };
 
+  const handleDeleteGallery = async () => {
+    if (!confirm("Are you sure you want to permanently delete this gallery and all its media? This cannot be undone.")) return;
+    try {
+      const res = await fetch(`/api/galleries/${galleryId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = '/dashboard/galleries';
+      } else {
+        alert("Failed to delete gallery");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete gallery");
+    }
+  };
+
   const handleAddAlbum = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAlbumName) return;
@@ -420,6 +436,19 @@ export default function GalleryManager() {
                   {isSaving ? "Saving..." : "Save Settings"}
                 </button>
               </div>
+
+              {/* Danger Zone */}
+              <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: "1px solid #fee2e2" }}>
+                <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "#991b1b", marginBottom: "0.5rem" }}>Danger Zone</h3>
+                <p style={{ color: "#b91c1c", fontSize: "0.875rem", marginBottom: "1rem" }}>Once you delete a gallery, there is no going back. Please be certain.</p>
+                <button 
+                  onClick={handleDeleteGallery}
+                  style={{ backgroundColor: "white", color: "#ef4444", border: "1px solid #f87171", padding: "0.75rem 2rem", borderRadius: "0.5rem", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Delete Gallery
+                </button>
+              </div>
+
             </div>
           </div>
         )}
