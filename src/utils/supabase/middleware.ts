@@ -70,6 +70,7 @@ export async function updateSession(request: NextRequest) {
                         request.nextUrl.pathname.startsWith('/embed') ||
                         request.nextUrl.pathname.startsWith('/api/public-forms') ||
                         request.nextUrl.pathname.startsWith('/auth') ||
+                        request.nextUrl.pathname.startsWith('/gallery') ||
                         request.nextUrl.pathname === '/';
 
   // If there's no user and trying to access a protected route
