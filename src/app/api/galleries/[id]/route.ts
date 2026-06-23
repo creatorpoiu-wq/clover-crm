@@ -11,11 +11,10 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
     let supabase;
     if (isPublic) {
-      // Use service role for public access (or handle RLS appropriately)
-      // Actually, since RLS allows public select if Is_Published=true, we can just use the anon client
+      // Use service role for public access to bypass RLS issues, check Is_Published manually
       supabase = createServiceClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
     } else {
       supabase = await createServerClient();
@@ -34,6 +33,10 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const { data: gallery, error } = await query.single();
 
     if (error) throw error;
+
+    if (isPublic && !gallery.Is_Published) {
+      throw new Error('Gallery not published');
+    }
 
     // Fetch albums
     const { data: albums, error: albumsError } = await supabase
