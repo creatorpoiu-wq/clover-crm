@@ -15,6 +15,8 @@ export default function GalleryManager() {
   const [albums, setAlbums] = useState<any[]>([]);
   const [media, setMedia] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // UI state
   const [activeTab, setActiveTab] = useState<'media' | 'settings'>('media');
@@ -51,6 +53,7 @@ export default function GalleryManager() {
   };
 
   const handleUpdateGallery = async (updates: any) => {
+    setIsSaving(true);
     try {
       const res = await fetch(`/api/galleries/${galleryId}`, {
         method: 'PUT',
@@ -60,9 +63,13 @@ export default function GalleryManager() {
       const data = await res.json();
       if (data.success) {
         setGallery(data.data);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -114,8 +121,9 @@ export default function GalleryManager() {
     if (finalUrl.includes('drive.google.com/file/d/')) {
       const match = finalUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
       if (match && match[1]) {
-        finalUrl = `https://drive.google.com/uc?id=${match[1]}`;
-        thumbnailUrl = finalUrl;
+        // Use Google Drive thumbnail endpoint which works more reliably for display
+        finalUrl = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w2500`;
+        thumbnailUrl = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
       }
     }
 
@@ -300,7 +308,7 @@ export default function GalleryManager() {
                 <input 
                   type="text" 
                   value={gallery.Title} 
-                  onChange={e => handleUpdateGallery({ Title: e.target.value })}
+                  onChange={e => setGallery({...gallery, Title: e.target.value})}
                   style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
                 />
               </div>
@@ -309,7 +317,7 @@ export default function GalleryManager() {
                 <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.5rem" }}>Cover Image (URL)</label>
                 <ImageDropzone 
                   value={gallery.Cover_Image || ''}
-                  onChange={(val) => handleUpdateGallery({ Cover_Image: val })}
+                  onChange={(val) => setGallery({...gallery, Cover_Image: val})}
                   label="Gallery Cover Photo"
                   aspectRatio="video"
                 />
@@ -321,7 +329,7 @@ export default function GalleryManager() {
                   <input 
                     type="text" 
                     value={gallery.Client_Name || ""} 
-                    onChange={e => handleUpdateGallery({ Client_Name: e.target.value })}
+                    onChange={e => setGallery({...gallery, Client_Name: e.target.value})}
                     style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
                   />
                 </div>
@@ -330,7 +338,7 @@ export default function GalleryManager() {
                   <input 
                     type="date" 
                     value={gallery.Event_Date || ""} 
-                    onChange={e => handleUpdateGallery({ Event_Date: e.target.value })}
+                    onChange={e => setGallery({...gallery, Event_Date: e.target.value})}
                     style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
                   />
                 </div>
@@ -342,7 +350,7 @@ export default function GalleryManager() {
                   type="text" 
                   placeholder="https://drive.google.com/drive/folders/..."
                   value={gallery.Download_Url || ""} 
-                  onChange={e => handleUpdateGallery({ Download_Url: e.target.value })}
+                  onChange={e => setGallery({...gallery, Download_Url: e.target.value})}
                   style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
                 />
                 <p style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.25rem" }}>
@@ -356,9 +364,28 @@ export default function GalleryManager() {
                   type="text" 
                   placeholder="Leave blank for public access"
                   value={gallery.Password || ""} 
-                  onChange={e => handleUpdateGallery({ Password: e.target.value })}
+                  onChange={e => setGallery({...gallery, Password: e.target.value})}
                   style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
                 />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #e2e8f0" }}>
+                {saveSuccess && <span style={{ color: "#16a34a", fontSize: "0.875rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.25rem" }}><Check size={16}/> Saved!</span>}
+                <button 
+                  onClick={() => handleUpdateGallery({
+                    Title: gallery.Title,
+                    Cover_Image: gallery.Cover_Image,
+                    Client_Name: gallery.Client_Name,
+                    Event_Date: gallery.Event_Date,
+                    Download_Url: gallery.Download_Url,
+                    Password: gallery.Password,
+                    Is_Published: gallery.Is_Published
+                  })}
+                  disabled={isSaving}
+                  style={{ backgroundColor: "#0f172a", color: "white", border: "none", padding: "0.75rem 2rem", borderRadius: "0.5rem", fontWeight: 600, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.7 : 1 }}
+                >
+                  {isSaving ? "Saving..." : "Save Settings"}
+                </button>
               </div>
             </div>
           </div>

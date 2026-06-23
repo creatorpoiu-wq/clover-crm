@@ -40,6 +40,15 @@ export async function POST(request: Request) {
 
     if (error) throw error;
 
+    // Update counts
+    const { count: photoCount } = await supabase.from('Gallery_Media').select('*', { count: 'exact', head: true }).eq('Gallery_ID', body.Gallery_ID).eq('Media_Type', 'photo');
+    const { count: videoCount } = await supabase.from('Gallery_Media').select('*', { count: 'exact', head: true }).eq('Gallery_ID', body.Gallery_ID).eq('Media_Type', 'video');
+    
+    await supabase.from('Galleries').update({ 
+      Photo_Count: photoCount || 0, 
+      Video_Count: videoCount || 0 
+    }).eq('Gallery_ID', body.Gallery_ID);
+
     return NextResponse.json({ success: true, data });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -87,12 +96,29 @@ export async function DELETE(request: Request) {
 
     if (!id) throw new Error('Missing media id');
 
+    const { data: mediaItem } = await supabase
+      .from('Gallery_Media')
+      .select('Gallery_ID')
+      .eq('Media_ID', id)
+      .single();
+
+    if (!mediaItem) throw new Error('Media not found');
+
     const { error } = await supabase
       .from('Gallery_Media')
       .delete()
       .eq('Media_ID', id);
 
     if (error) throw error;
+
+    // Update counts
+    const { count: photoCount } = await supabase.from('Gallery_Media').select('*', { count: 'exact', head: true }).eq('Gallery_ID', mediaItem.Gallery_ID).eq('Media_Type', 'photo');
+    const { count: videoCount } = await supabase.from('Gallery_Media').select('*', { count: 'exact', head: true }).eq('Gallery_ID', mediaItem.Gallery_ID).eq('Media_Type', 'video');
+    
+    await supabase.from('Galleries').update({ 
+      Photo_Count: photoCount || 0, 
+      Video_Count: videoCount || 0 
+    }).eq('Gallery_ID', mediaItem.Gallery_ID);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
