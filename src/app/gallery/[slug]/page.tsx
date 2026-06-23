@@ -101,7 +101,7 @@ export default function PublicGallery() {
   }
 
   const photos = media.filter(m => m.Media_Type === 'photo' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
-  const videos = media.filter(m => m.Media_Type === 'video');
+  const videos = media.filter(m => m.Media_Type === 'video' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
 
   const scrollToContent = () => {
     document.getElementById('gallery-content')?.scrollIntoView({ behavior: 'smooth' });
@@ -161,6 +161,37 @@ export default function PublicGallery() {
       {/* Content Section */}
       <div id="gallery-content" style={{ maxWidth: "1400px", margin: "0 auto", padding: "4rem 2rem" }}>
         
+        {/* Albums and Download Section */}
+        <div style={{ display: "flex", flexDirection: "column", marginBottom: "2rem", borderBottom: "1px solid #e5e5e5", paddingBottom: "1rem" }}>
+          {gallery.Download_Url && (
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+              <button 
+                onClick={handleDownloadAll}
+                title="Download Gallery"
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f5", border: "1px solid #e5e5e5", width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer", color: "#404040" }}
+              >
+                <Download size={18} />
+              </button>
+            </div>
+          )}
+          {albums.length > 0 && (
+            <div style={{ display: "flex", gap: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
+              {albums.map(album => (
+                <button
+                  key={album.Album_ID}
+                  onClick={() => setActiveAlbumId(album.Album_ID)}
+                  style={{ background: "none", border: "none", padding: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: activeAlbumId === album.Album_ID ? 600 : 400, color: activeAlbumId === album.Album_ID ? "#000" : "#737373", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", position: "relative", whiteSpace: "nowrap" }}
+                >
+                  {album.Name}
+                  {activeAlbumId === album.Album_ID && (
+                    <div style={{ position: "absolute", bottom: "-1rem", left: 0, right: 0, height: "2px", backgroundColor: "#000" }} />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        
         {/* Videos Section */}
         {(gallery.Gallery_Type === 'videos' || gallery.Gallery_Type === 'both') && videos.length > 0 && (
           <div style={{ marginBottom: gallery.Gallery_Type === 'both' ? "6rem" : "0" }}>
@@ -188,35 +219,7 @@ export default function PublicGallery() {
         {/* Photos Section */}
         {(gallery.Gallery_Type === 'photos' || gallery.Gallery_Type === 'both') && (
           <div>
-            {gallery.Gallery_Type === 'both' && <h2 style={{ textAlign: "center", fontSize: "2rem", fontWeight: 300, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "2rem" }}>Photos</h2>}
-            
-            <div style={{ display: "flex", flexDirection: "column", marginBottom: "2rem", borderBottom: "1px solid #e5e5e5", paddingBottom: "1rem" }}>
-              {gallery.Download_Url && (
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
-                  <button 
-                    onClick={handleDownloadAll}
-                    title="Download Gallery"
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f5", border: "1px solid #e5e5e5", width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer", color: "#404040" }}
-                  >
-                    <Download size={18} />
-                  </button>
-                </div>
-              )}
-              <div style={{ display: "flex", gap: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-                {albums.map(album => (
-                  <button
-                    key={album.Album_ID}
-                    onClick={() => setActiveAlbumId(album.Album_ID)}
-                    style={{ background: "none", border: "none", padding: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: activeAlbumId === album.Album_ID ? 600 : 400, color: activeAlbumId === album.Album_ID ? "#000" : "#737373", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", position: "relative", whiteSpace: "nowrap" }}
-                  >
-                    {album.Name}
-                    {activeAlbumId === album.Album_ID && (
-                      <div style={{ position: "absolute", bottom: "-1rem", left: 0, right: 0, height: "2px", backgroundColor: "#000" }} />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {gallery.Gallery_Type === 'both' && photos.length > 0 && <h2 style={{ textAlign: "center", fontSize: "2rem", fontWeight: 300, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "2rem" }}>Photos</h2>}
 
             {/* Masonry-ish Grid */}
             <div style={{ columnCount: 3, columnGap: "1rem" }}>

@@ -137,6 +137,20 @@ export default function GalleryManager() {
         thumbnailUrl = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
       }
     }
+    // Auto-extract Vimeo thumbnail
+    if (newMediaUrl.includes("vimeo.com")) {
+      try {
+        const vRes = await fetch(`https://vimeo.com/api/oembed.json?url=${newMediaUrl}`);
+        if (vRes.ok) {
+          const vData = await vRes.json();
+          if (vData && vData.thumbnail_url) {
+            thumbnailUrl = vData.thumbnail_url;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch Vimeo thumbnail", e);
+      }
+    }
 
     try {
       const res = await fetch(`/api/gallery-media`, {
