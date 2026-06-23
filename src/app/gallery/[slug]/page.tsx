@@ -130,8 +130,8 @@ export default function PublicGallery() {
             <div style={{ position: "absolute", inset: 0, backgroundColor: "#111" }}>
                {gallery.Cover_Image && <img src={gallery.Cover_Image} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} alt="Cover" />}
             </div>
-            <div style={{ position: "relative", zIndex: 10, textAlign: "center", color: "white" }}>
-              <h1 style={{ fontSize: "4rem", fontFamily: "Georgia, serif", fontStyle: "italic", margin: "0 0 1rem 0" }}>{gallery.Client_Name || gallery.Title}</h1>
+            <div style={{ position: "relative", zIndex: 10, textAlign: "center", color: "white", padding: "0 1rem", width: "100%", boxSizing: "border-box" }}>
+              <h1 style={{ fontSize: "clamp(2rem, 6vw, 4rem)", fontFamily: "Georgia, serif", fontStyle: "italic", margin: "0 0 1rem 0", wordWrap: "break-word" }}>{gallery.Client_Name || gallery.Title}</h1>
               <p style={{ fontSize: "1rem", letterSpacing: "0.2em", textTransform: "uppercase" }}>View Photos</p>
             </div>
           </div>
@@ -141,8 +141,8 @@ export default function PublicGallery() {
           <div style={{ position: "absolute", inset: 0, backgroundColor: "#000" }}>
              {gallery.Cover_Image && <img src={gallery.Cover_Image} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.6 }} alt="Cover" />}
           </div>
-          <div style={{ position: "relative", zIndex: 10, padding: "2rem" }}>
-            <h1 style={{ fontSize: "5rem", fontFamily: "Georgia, serif", fontStyle: "italic", margin: "0 0 1rem 0", textShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+          <div style={{ position: "relative", zIndex: 10, padding: "2rem", width: "100%", boxSizing: "border-box" }}>
+            <h1 style={{ fontSize: "clamp(2.5rem, 8vw, 5rem)", fontFamily: "Georgia, serif", fontStyle: "italic", margin: "0 0 1rem 0", textShadow: "0 4px 12px rgba(0,0,0,0.3)", padding: "0 1rem", wordWrap: "break-word" }}>
               {gallery.Client_Name || gallery.Title}
             </h1>
             <p style={{ fontSize: "1.25rem", letterSpacing: "0.2em", textTransform: "uppercase", margin: "0 0 3rem 0", opacity: 0.9 }}>
@@ -190,13 +190,24 @@ export default function PublicGallery() {
           <div>
             {gallery.Gallery_Type === 'both' && <h2 style={{ textAlign: "center", fontSize: "2rem", fontWeight: 300, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "2rem" }}>Photos</h2>}
             
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", borderBottom: "1px solid #e5e5e5", paddingBottom: "1rem" }}>
-              <div style={{ display: "flex", gap: "2rem", overflowX: "auto" }}>
+            <div style={{ display: "flex", flexDirection: "column", marginBottom: "2rem", borderBottom: "1px solid #e5e5e5", paddingBottom: "1rem" }}>
+              {gallery.Download_Url && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+                  <button 
+                    onClick={handleDownloadAll}
+                    title="Download Gallery"
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f5", border: "1px solid #e5e5e5", width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer", color: "#404040" }}
+                  >
+                    <Download size={18} />
+                  </button>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
                 {albums.map(album => (
                   <button
                     key={album.Album_ID}
                     onClick={() => setActiveAlbumId(album.Album_ID)}
-                    style={{ background: "none", border: "none", padding: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: activeAlbumId === album.Album_ID ? 600 : 400, color: activeAlbumId === album.Album_ID ? "#000" : "#737373", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", position: "relative" }}
+                    style={{ background: "none", border: "none", padding: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: activeAlbumId === album.Album_ID ? 600 : 400, color: activeAlbumId === album.Album_ID ? "#000" : "#737373", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", position: "relative", whiteSpace: "nowrap" }}
                   >
                     {album.Name}
                     {activeAlbumId === album.Album_ID && (
@@ -205,15 +216,6 @@ export default function PublicGallery() {
                   </button>
                 ))}
               </div>
-              
-              {gallery.Allow_Download && (
-                <button 
-                  onClick={handleDownloadAll}
-                  style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "none", border: "1px solid #e5e5e5", padding: "0.5rem 1rem", borderRadius: "2rem", fontSize: "0.875rem", cursor: "pointer", color: "#404040", fontWeight: 500 }}
-                >
-                  <Download size={16} /> Download {activeAlbumId ? 'Album' : 'All'}
-                </button>
-              )}
             </div>
 
             {/* Masonry-ish Grid */}
@@ -225,7 +227,7 @@ export default function PublicGallery() {
                   style={{ marginBottom: "1rem", position: "relative", breakInside: "avoid", cursor: "pointer", borderRadius: "0.25rem", overflow: "hidden" }}
                 >
                   <img src={photo.Url} alt="" style={{ width: "100%", display: "block", backgroundColor: "#f3f4f6" }} />
-                  {gallery.Allow_Download && (
+                  {gallery.Allow_Download !== false && (
                     <button 
                       onClick={(e) => handleDownloadSingle(photo.Url, e)}
                       style={{ position: "absolute", bottom: "1rem", right: "1rem", backgroundColor: "rgba(255,255,255,0.9)", border: "none", borderRadius: "50%", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", opacity: 0.8 }}
@@ -247,7 +249,7 @@ export default function PublicGallery() {
 
       {/* Photo Lightbox */}
       {lightboxIndex !== null && photos[lightboxIndex] && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.95)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.95)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", touchAction: "none" }}>
           <button onClick={() => setLightboxIndex(null)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", color: "white", cursor: "pointer" }}><X size={32} /></button>
           
           <button 
@@ -262,7 +264,7 @@ export default function PublicGallery() {
             style={{ position: "absolute", right: "1.5rem", background: "rgba(255,255,255,0.1)", border: "none", borderRadius: "50%", width: "48px", height: "48px", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
           ><ChevronRight size={24} /></button>
 
-          {gallery.Allow_Download && (
+          {gallery.Allow_Download !== false && (
             <button 
               onClick={(e) => handleDownloadSingle(photos[lightboxIndex].Url, e)}
               style={{ position: "absolute", top: "1.5rem", right: "5rem", background: "none", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "2rem", padding: "0.5rem 1.5rem", color: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem" }}
@@ -275,7 +277,7 @@ export default function PublicGallery() {
 
       {/* Video Lightbox */}
       {playingVideoUrl && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.95)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.95)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", touchAction: "none" }}>
           <button onClick={() => setPlayingVideoUrl(null)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", color: "white", cursor: "pointer" }}><X size={32} /></button>
           
           <div style={{ width: "90vw", height: "80vh", maxWidth: "1200px" }}>

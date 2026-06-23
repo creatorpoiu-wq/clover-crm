@@ -57,10 +57,19 @@ export default function GalleryManager() {
   const handleUpdateGallery = async (updates: any) => {
     setIsSaving(true);
     try {
+      let finalUpdates = { ...updates };
+      // Parse Google Drive URL if present
+      if (finalUpdates.Cover_Image && finalUpdates.Cover_Image.includes('drive.google.com/file/d/')) {
+        const match = finalUpdates.Cover_Image.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+          finalUpdates.Cover_Image = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w2500`;
+        }
+      }
+
       const res = await fetch(`/api/galleries/${galleryId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
+        body: JSON.stringify(finalUpdates)
       });
       const data = await res.json();
       if (data.success) {
@@ -324,11 +333,12 @@ export default function GalleryManager() {
 
               <div>
                 <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.5rem" }}>Cover Image (URL)</label>
-                <ImageDropzone 
+                <input 
+                  type="text"
+                  placeholder="Paste image URL (Google Drive, Cloudinary, etc.)"
                   value={gallery.Cover_Image || ''}
-                  onChange={(val) => setGallery({...gallery, Cover_Image: val})}
-                  label="Gallery Cover Photo"
-                  aspectRatio="video"
+                  onChange={(e) => setGallery({...gallery, Cover_Image: e.target.value})}
+                  style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
                 />
               </div>
 
