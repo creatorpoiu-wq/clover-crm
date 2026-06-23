@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
+import ReactPlayer from "react-player";
 
 export default function PublicGallery() {
   const params = useParams();
@@ -292,29 +293,32 @@ export default function PublicGallery() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.95)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", touchAction: "none" }}>
           <button onClick={() => setPlayingVideoUrl(null)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", color: "white", cursor: "pointer" }}><X size={32} /></button>
           
+          {gallery.Download_Url && (
+            <button 
+              onClick={() => window.open(gallery.Download_Url, '_blank')}
+              style={{ position: "absolute", top: "1.5rem", right: "5rem", background: "none", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "2rem", padding: "0.5rem 1.5rem", color: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", zIndex: 110 }}
+            >
+              <Download size={16} /> Download
+            </button>
+          )}
+          
           <div style={{ width: "90vw", height: "80vh", maxWidth: "1200px" }}>
-            {playingVideoUrl.includes('youtube.com') || playingVideoUrl.includes('youtu.be') ? (
-              <iframe 
-                width="100%" 
-                height="100%" 
-                src={`https://www.youtube.com/embed/${playingVideoUrl.includes("v=") ? playingVideoUrl.split("v=")[1].split("&")[0] : playingVideoUrl.split("/").pop()}?autoplay=1`} 
-                title="YouTube video player" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-              ></iframe>
-            ) : playingVideoUrl.includes('vimeo.com') ? (
-              <iframe 
-                src={`https://player.vimeo.com/video/${playingVideoUrl.split("/").pop()}?autoplay=1`} 
-                width="100%" 
-                height="100%" 
-                frameBorder="0" 
-                allow="autoplay; fullscreen; picture-in-picture" 
-                allowFullScreen
-              ></iframe>
-            ) : (
-              <video src={playingVideoUrl} controls autoPlay style={{ width: "100%", height: "100%" }}></video>
-            )}
+            <ReactPlayer 
+              url={playingVideoUrl} 
+              playing={true} 
+              controls={true}
+              width="100%"
+              height="100%"
+              onEnded={() => setPlayingVideoUrl(null)}
+              config={{
+                youtube: {
+                  playerVars: { modestbranding: 1, rel: 0 }
+                },
+                vimeo: {
+                  playerOptions: { byline: false, portrait: false, title: false }
+                }
+              }}
+            />
           </div>
         </div>
       )}
