@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
-import ReactPlayer from "react-player";
+import dynamic from "next/dynamic";
+const ReactPlayer = dynamic(() => import("react-player/lazy"), { ssr: false });
 
 export default function PublicGallery() {
   const params = useParams();
@@ -237,7 +238,7 @@ export default function PublicGallery() {
             )}
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "1rem", padding: "1rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))", gap: "1rem", padding: "1rem" }}>
             {videos.map(video => (
               <div 
                 key={video.Media_ID} 
@@ -303,27 +304,22 @@ export default function PublicGallery() {
           )}
           
           <div style={{ width: "90vw", height: "80vh", maxWidth: "1200px" }}>
-            {(() => {
-              const Player = ReactPlayer as any;
-              return (
-                <Player 
-                  url={playingVideoUrl} 
-                  playing={true} 
-                  controls={true}
-                  width="100%"
-                  height="100%"
-                  onEnded={() => setPlayingVideoUrl(null)}
-                  config={{
-                    youtube: {
-                      playerVars: { modestbranding: 1, rel: 0 }
-                    },
-                    vimeo: {
-                      playerOptions: { byline: false, portrait: false, title: false }
-                    }
-                  }}
-                />
-              );
-            })()}
+            <ReactPlayer 
+              url={playingVideoUrl} 
+              playing={true} 
+              controls={true}
+              width="100%"
+              height="100%"
+              onEnded={() => setPlayingVideoUrl(null)}
+              config={{
+                youtube: {
+                  playerVars: { modestbranding: 1, rel: 0 }
+                },
+                vimeo: {
+                  playerOptions: { byline: false, portrait: false, title: false }
+                }
+              } as any}
+            />
           </div>
         </div>
       )}
