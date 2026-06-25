@@ -54,6 +54,7 @@ const DEFAULT_SETTINGS = {
   contractTemplateId: null as number | null,
   confirmationTitle: "Booking Confirmed!",
   confirmationMessage: "Your deposit has been received and your session is securely booked. We look forward to working with you!",
+  showWelcomePage: true,
 };
 
 export default function PortraitSettingsPage() {
@@ -627,6 +628,20 @@ export default function PortraitSettingsPage() {
         {tab === "confirm" && (
           <div>
             <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 12px" }}>Booking Confirmation Screen</h3>
+            
+            <div style={{ marginBottom: 24, padding: "16px 20px", background: "var(--background)", border: "1px solid var(--border)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: "var(--foreground)" }}>Redirect to Welcome Guide after Submission</div>
+                <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2 }}>If unchecked, clients will see the confirmation screen immediately below instead of navigating to the Welcome Guide page.</div>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={settings.showWelcomePage !== false} 
+                onChange={e => setSettings(s => ({ ...s, showWelcomePage: e.target.checked }))} 
+                style={{ width: 20, height: 20, cursor: "pointer" }} 
+              />
+            </div>
+
             <div style={{ marginBottom: 20 }}>
               <label style={labelCls}>Confirmation Heading</label>
               <input style={inputCls} value={settings.confirmationTitle} onChange={e => setSettings(s => ({ ...s, confirmationTitle: e.target.value }))} placeholder="e.g. Booking Confirmed!" />

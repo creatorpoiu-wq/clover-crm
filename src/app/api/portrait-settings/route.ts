@@ -70,6 +70,11 @@ export async function GET() {
 
     if (error && error.code !== 'PGRST116') throw error;
 
+    const rawQuestions = parseJSON(row?.Custom_Questions,   DEFAULTS.customQuestions);
+    const settingObj = Array.isArray(rawQuestions) ? rawQuestions.find((q: any) => q && typeof q === 'object' && '_setting_showWelcomePage' in q) : null;
+    const showWelcomePage = settingObj ? settingObj._setting_showWelcomePage : true;
+    const cleanQuestions = Array.isArray(rawQuestions) ? rawQuestions.filter((q: any) => !(q && typeof q === 'object' && '_setting_showWelcomePage' in q)) : DEFAULTS.customQuestions;
+
     const settings = {
       userId:            userAuth.user.id,
       heroHeadline:            row?.Hero_Headline            || DEFAULTS.heroHeadline,
@@ -79,7 +84,8 @@ export async function GET() {
       welcomeHeroPhotoUrl:     row?.Welcome_Hero_Photo_URL   || DEFAULTS.welcomeHeroPhotoUrl,
       sessionTypes:      parseJSON(row?.Session_Types,      DEFAULTS.sessionTypes),
       retainerAmount:    row?.Retainer_Amount    || DEFAULTS.retainerAmount,
-      customQuestions:   parseJSON(row?.Custom_Questions,   DEFAULTS.customQuestions),
+      customQuestions:   cleanQuestions,
+      showWelcomePage:   showWelcomePage,
       steps: [
         { title: row?.Step1_Title || DEFAULTS.steps[0].title, subtitle: row?.Step1_Subtitle || DEFAULTS.steps[0].subtitle },
         { title: row?.Step2_Title || DEFAULTS.steps[1].title, subtitle: row?.Step2_Subtitle || DEFAULTS.steps[1].subtitle },
@@ -119,13 +125,18 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const {
       heroHeadline, heroSubheadline, welcomeHeroHeadline, welcomeHeroSubheadline, welcomeHeroPhotoUrl, sessionTypes, retainerAmount,
-      customQuestions, steps, contractTemplateId, confirmationTitle, confirmationMessage,
+      customQuestions, showWelcomePage, steps, contractTemplateId, confirmationTitle, confirmationMessage,
       styleHeading, styleDescription, styleBullets, stylePhotoUrl,
       packages, whatsNextHeading, whatsNextSub, whatsNextSteps,
       paymentMethods, paymentInstructions, venmoHandle, paypalLink, zelleContact,
     } = body;
 
     const [s1, s2, s3] = steps || [{}, {}, {}];
+
+    const baseQuestions = Array.isArray(customQuestions) ? customQuestions.filter((q: any) => !(q && typeof q === 'object' && '_setting_showWelcomePage' in q)) : [];
+    if (showWelcomePage === false) {
+      baseQuestions.push({ _setting_showWelcomePage: false });
+    }
 
     const { error } = await supabase.from('Portrait_Settings').upsert({
       user_id: userAuth.user.id,
@@ -136,7 +147,7 @@ export async function PUT(req: NextRequest) {
       Welcome_Hero_Photo_URL:   welcomeHeroPhotoUrl    ?? DEFAULTS.welcomeHeroPhotoUrl,
       Session_Types:      JSON.stringify(sessionTypes      ?? DEFAULTS.sessionTypes),
       Retainer_Amount:    retainerAmount    ?? DEFAULTS.retainerAmount,
-      Custom_Questions:   JSON.stringify(customQuestions   ?? DEFAULTS.customQuestions),
+      Custom_Questions:   JSON.stringify(baseQuestions),
       Step1_Title:        s1?.title         || DEFAULTS.steps[0].title,
       Step1_Subtitle:     s1?.subtitle      || DEFAULTS.steps[0].subtitle,
       Step2_Title:        s2?.title         || DEFAULTS.steps[1].title,

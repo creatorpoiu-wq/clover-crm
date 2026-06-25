@@ -32,6 +32,7 @@ function PortraitBookingContent() {
     customAnswers: {} as Record<string, any>
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
     const customDomain = window.location.hostname;
@@ -131,8 +132,12 @@ function PortraitBookingContent() {
 
       const data = await res.json();
       if (data.success) {
-        // Redirect to welcome guide with inquiryId
-        router.push(`/portrait/welcome?inquiryId=${data.inquiryId}${resolvedUserId ? `&userId=${resolvedUserId}` : ''}`);
+        if (vendorInfo?.showWelcomePage === false) {
+          setIsSubmitted(true);
+          setIsSubmitting(false);
+        } else {
+          router.push(`/portrait/welcome?inquiryId=${data.inquiryId}${resolvedUserId ? `&userId=${resolvedUserId}` : ''}`);
+        }
       } else {
         alert(data.error || 'Failed to submit booking inquiry.');
         setIsSubmitting(false);
@@ -163,6 +168,20 @@ function PortraitBookingContent() {
           </div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Oops!</h2>
           <p className="text-slate-600">{error || 'This booking link is incomplete.'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isSubmitted) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', backgroundColor: '#f8fafc' }}>
+        <div style={{ background: '#fff', padding: '3rem 2rem', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', textAlign: 'center', maxWidth: '540px', width: '100%' }}>
+          <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+            <CheckCircle2 size={48} />
+          </div>
+          <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', marginBottom: '1rem' }}>{vendorInfo?.confirmationTitle || 'Booking Confirmed!'}</h2>
+          <p style={{ fontSize: '1.125rem', color: '#64748b', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{vendorInfo?.confirmationMessage || "Your deposit has been received and your session is securely booked. We look forward to working with you!"}</p>
         </div>
       </div>
     );

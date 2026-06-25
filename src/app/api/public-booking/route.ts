@@ -202,7 +202,13 @@ export async function GET(req: NextRequest) {
           sessionTypes:    safeJSON(row?.Session_Types,    ['Family Portrait','Maternity','Newborn','Couples/Engagement','Senior Portraits','Headshots/Branding']),
           retainerAmount:  row?.Retainer_Amount  || 100,
           // Custom inquiry questions
-          customQuestions: safeJSON(row?.Custom_Questions, []),
+          ...(() => {
+            const rawQuestions = safeJSON(row?.Custom_Questions, []);
+            const settingObj = Array.isArray(rawQuestions) ? rawQuestions.find((q: any) => q && typeof q === 'object' && '_setting_showWelcomePage' in q) : null;
+            const showWelcomePage = settingObj ? settingObj._setting_showWelcomePage : true;
+            const cleanQuestions = Array.isArray(rawQuestions) ? rawQuestions.filter((q: any) => !(q && typeof q === 'object' && '_setting_showWelcomePage' in q)) : [];
+            return { customQuestions: cleanQuestions, showWelcomePage };
+          })(),
           // Book funnel step headings
           steps: [
             { title: row?.Step1_Title || 'Choose Your Experience',      subtitle: row?.Step1_Subtitle || 'Select the date and time for your portrait session.' },
