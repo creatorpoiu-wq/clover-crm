@@ -166,9 +166,19 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const clientName = questionnaire['Full Name'] || questionnaire['Name'] || questionnaire.name || '[Client Name]';
 
+  const syncAndSaveDOM = () => {
+    if (!containerRef.current) return;
+    syncContractFormDOM(containerRef.current);
+    const proseEl = containerRef.current.querySelector('.ProseMirror');
+    if (proseEl && template) {
+      setTemplate((prev: any) => prev ? { ...prev, Content: proseEl.innerHTML } : prev);
+    }
+  };
+
   const getProcessedHtml = () => {
     if (!template) return '';
-    return processContractVariables(template.Content, {
+    const content = typeof template === 'string' ? template : template.Content;
+    return processContractVariables(content || '', {
       clientName,
       clientEmail: questionnaire['Email Address'] || questionnaire['Email'] || questionnaire.email,
       clientPhone: questionnaire['Phone Number'] || questionnaire['Phone'] || questionnaire.phone,
@@ -225,7 +235,10 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
                   <input 
                     type="text" 
                     value={variableValues[v] || ''} 
-                    onChange={(e) => setVariableValues(prev => ({ ...prev, [v]: e.target.value }))}
+                    onChange={(e) => {
+                      syncAndSaveDOM();
+                      setVariableValues(prev => ({ ...prev, [v]: e.target.value }));
+                    }}
                     placeholder={`Enter ${v}`}
                     style={{
                       width: '100%', padding: '10px 14px',
@@ -244,7 +257,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
       {/* Contract Document */}
       <div 
         ref={containerRef}
-        onChange={() => syncContractFormDOM(containerRef.current)}
+        onChange={syncAndSaveDOM}
         onInput={() => syncContractFormDOM(containerRef.current)}
         style={{ 
           background: '#fff', borderRadius: 4, padding: '60px 48px', 
@@ -287,7 +300,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
               </div>
               <button 
                 onClick={() => {
-                  syncContractFormDOM(containerRef.current);
+                  syncAndSaveDOM();
                   setSignature('');
                   setShowSigPad(true);
                 }}
@@ -305,6 +318,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
               <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
                 <button 
                   onClick={() => {
+                    syncAndSaveDOM();
                     if (!sigPadRef.current || sigPadRef.current.isEmpty()) return;
                     setSignature(sigPadRef.current.toDataURL());
                     setShowSigPad(false);
@@ -314,7 +328,10 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
                   Save Signature
                 </button>
                 <button 
-                  onClick={() => sigPadRef.current?.clear()}
+                  onClick={() => {
+                    syncAndSaveDOM();
+                    sigPadRef.current?.clear();
+                  }}
                   style={{ flex: 1, padding: '12px', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#374151', fontWeight: 600 }}
                 >
                   Clear
@@ -324,7 +341,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
           ) : (
             <button 
               onClick={() => {
-                syncContractFormDOM(containerRef.current);
+                syncAndSaveDOM();
                 setShowSigPad(true);
               }}
               style={{ width: '100%', padding: '16px', border: '2px dashed #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 15, color: '#4b5563', fontWeight: 700 }}
@@ -336,11 +353,12 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: 24, marginTop: 20 }}>
-        <button onClick={onBack} style={{ background: 'transparent', color: '#6b7280', padding: '16px 24px', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Back</button>
+        <button onClick={() => { syncAndSaveDOM(); onBack(); }} style={{ background: 'transparent', color: '#6b7280', padding: '16px 24px', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Back</button>
         <button 
           onClick={() => {
-            syncContractFormDOM(containerRef.current);
-            const finalHtml = containerRef.current ? containerRef.current.innerHTML : getProcessedHtml();
+            syncAndSaveDOM();
+            const proseEl = containerRef.current?.querySelector('.ProseMirror');
+            const finalHtml = proseEl ? proseEl.innerHTML : (containerRef.current ? containerRef.current.innerHTML : getProcessedHtml());
             setContractHtml(finalHtml);
             onNext();
           }}

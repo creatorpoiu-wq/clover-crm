@@ -230,12 +230,21 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     }
   };
 
+  const syncAndSaveDOM = () => {
+    if (!contractContainerRef.current) return;
+    syncContractFormDOM(contractContainerRef.current);
+    const html = contractContainerRef.current.innerHTML;
+    if (session && session.Contract_Template) {
+      setSession((prev: any) => prev ? { ...prev, Contract_Template: html } : prev);
+    }
+  };
+
   const proceedFromContract = () => {
     if (!signature) {
       alert("Please sign the contract.");
       return;
     }
-    syncContractFormDOM(contractContainerRef.current);
+    syncAndSaveDOM();
     const finalHtml = contractContainerRef.current ? contractContainerRef.current.innerHTML : getProcessedContractHtml();
     setSyncedContractHtml(finalHtml);
 

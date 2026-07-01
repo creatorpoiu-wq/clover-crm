@@ -72,11 +72,22 @@ export default function PortraitContract({
     });
   }, [showSigPad]);
 
+  const syncAndSaveDOM = () => {
+    if (!containerRef.current) return;
+    syncContractFormDOM(containerRef.current);
+    const targetEl = containerRef.current.querySelector('.ProseMirror') || containerRef.current;
+    if (targetEl && template) {
+      setTemplate((prev: any) => prev ? { ...prev, Content: targetEl.innerHTML } : prev);
+    }
+  };
+
   const clearSignature = () => {
+    syncAndSaveDOM();
     if (sigPadRef.current) sigPadRef.current.clear();
   };
 
   const handleProceed = () => {
+    syncAndSaveDOM();
     if (showSigPad) {
       if (!sigPadRef.current || sigPadRef.current.isEmpty()) {
         setError('Please provide your digital signature before continuing.');
@@ -88,7 +99,8 @@ export default function PortraitContract({
       return;
     }
     syncContractFormDOM(containerRef.current);
-    const finalHtml = containerRef.current ? containerRef.current.innerHTML : getProcessedHtml();
+    const targetEl = containerRef.current?.querySelector('.ProseMirror') || containerRef.current;
+    const finalHtml = targetEl ? targetEl.innerHTML : getProcessedHtml();
     setContractHtml(finalHtml);
     onNext();
   };
@@ -107,13 +119,9 @@ export default function PortraitContract({
   };
 
   const getProcessedHtml = () => {
-    if (template) return replaceVars(template.Content);
-    return `
-      <h3 style="font-weight: 700; color: #1e293b; font-size: 1rem; margin-bottom: 1rem">1. Scope of Work</h3>
-      <p style="margin-bottom: 1rem">Photographer agrees to provide portrait photography services on ${formattedDate} at ${selectedTime}.</p>
-      <h3 style="font-weight: 700; color: #1e293b; font-size: 1rem; margin-bottom: 1rem">2. Retainer and Payment</h3>
-      <p style="margin-bottom: 1rem">A non-refundable retainer is required to secure the session date.</p>
-    `;
+    if (!template) return '';
+    const content = typeof template === 'string' ? template : template.Content;
+    return replaceVars(content || '');
   };
 
   const stepInfo = vendorInfo?.steps?.[1];
@@ -134,7 +142,7 @@ export default function PortraitContract({
 
       <div 
         ref={containerRef}
-        onChange={() => syncContractFormDOM(containerRef.current)}
+        onChange={syncAndSaveDOM}
         onInput={() => syncContractFormDOM(containerRef.current)}
         className="custom-scrollbar" 
         style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '1.5rem', borderRadius: '1rem', height: '24rem', overflowY: 'auto', fontSize: '0.875rem', color: '#475569', lineHeight: 1.6, marginBottom: '2rem' }}
@@ -142,7 +150,7 @@ export default function PortraitContract({
         {loading ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Loading contract details...</div>
         ) : template ? (
-          <div dangerouslySetInnerHTML={{ __html: replaceVars(template.Content) }} />
+          <div className="ProseMirror" dangerouslySetInnerHTML={{ __html: getProcessedHtml() }} />
         ) : (
           <>
             <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem', marginBottom: '1rem' }}>1. Scope of Work</h3>
@@ -192,7 +200,7 @@ export default function PortraitContract({
                <img src={signature} alt="Signature" style={{ height: '10rem', margin: '0 auto', display: 'block' }} />
                <button 
                  onClick={() => {
-                   syncContractFormDOM(containerRef.current);
+                   syncAndSaveDOM();
                    setSignature('');
                    setShowSigPad(true);
                  }} 

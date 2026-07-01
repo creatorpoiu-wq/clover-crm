@@ -206,12 +206,21 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     }
   };
 
+  const syncAndSaveDOM = () => {
+    if (!contractContainerRef.current) return;
+    syncContractFormDOM(contractContainerRef.current);
+    const html = contractContainerRef.current.innerHTML;
+    if (session && session.Contract_Template) {
+      setSession((prev: any) => prev ? { ...prev, Contract_Template: html } : prev);
+    }
+  };
+
   const proceedFromContract = () => {
     if (!signature) {
       alert("Please sign the contract.");
       return;
     }
-    syncContractFormDOM(contractContainerRef.current);
+    syncAndSaveDOM();
     const finalHtml = contractContainerRef.current ? contractContainerRef.current.innerHTML : getProcessedContractHtml();
     setSyncedContractHtml(finalHtml);
 
@@ -672,7 +681,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
             <div style={{ padding: '1.5rem' }}>
               <div 
                 ref={contractContainerRef}
-                onChange={() => syncContractFormDOM(contractContainerRef.current)}
+                onChange={syncAndSaveDOM}
                 onInput={() => syncContractFormDOM(contractContainerRef.current)}
                 style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155', lineHeight: 1.6, maxHeight: '300px', overflowY: 'auto', marginBottom: '1.5rem' }}
                 dangerouslySetInnerHTML={{ __html: getProcessedContractHtml() }}
@@ -683,7 +692,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                 {!showSigPad ? (
                   <button 
                     onClick={() => {
-                      syncContractFormDOM(contractContainerRef.current);
+                      syncAndSaveDOM();
                       setShowSigPad(true);
                     }} 
                     style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'white', border: '2px dashed #cbd5e1', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, cursor: 'pointer' }}
@@ -698,6 +707,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                       <button 
                         onClick={() => {
+                          syncAndSaveDOM();
                           if (sigPadRef.current) sigPadRef.current.clear();
                           setSignature('');
                         }} 
@@ -707,6 +717,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                       </button>
                       <button 
                         onClick={() => {
+                          syncAndSaveDOM();
                           if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
                             setSignature(sigPadRef.current.toDataURL());
                             setShowSigPad(false);
@@ -724,7 +735,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                   <div style={{ marginTop: '1rem', textAlign: 'center' }}>
                     <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Signature Saved:</p>
                     <img src={signature} alt="Signature" style={{ maxHeight: '60px', borderBottom: '1px solid #0f172a' }} />
-                    <button onClick={() => { syncContractFormDOM(contractContainerRef.current); setSignature(''); setShowSigPad(true); }} style={{ display: 'block', margin: '0.5rem auto 0', background: 'none', border: 'none', color: '#0ea5e9', fontSize: '0.8rem', cursor: 'pointer' }}>Edit Signature</button>
+                    <button onClick={() => { syncAndSaveDOM(); setSignature(''); setShowSigPad(true); }} style={{ display: 'block', margin: '0.5rem auto 0', background: 'none', border: 'none', color: '#0ea5e9', fontSize: '0.8rem', cursor: 'pointer' }}>Edit Signature</button>
                   </div>
                 )}
               </div>
