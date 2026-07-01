@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import SignaturePad from 'signature_pad';
 import { formatDate } from '@/lib/formatDate';
+import { syncContractFormDOM } from '@/lib/processContract';
 
 export default function SignPage() {
   const { token } = useParams<{ token: string }>();
@@ -15,7 +16,8 @@ export default function SignPage() {
   const [signedDate, setSignedDate] = useState('');
   const [companyName, setCompanyName] = useState('Clover');
   
-  // Signature pad states
+  // Signature pad & contract container states
+  const contractContainerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const padRef = useRef<SignaturePad | null>(null);
   const [showSigPad, setShowSigPad] = useState(false);
@@ -57,12 +59,15 @@ export default function SignPage() {
       alert('Please sign and save your signature before submitting.');
       return;
     }
+    syncContractFormDOM(contractContainerRef.current);
+    const contractHtml = contractContainerRef.current ? contractContainerRef.current.innerHTML : null;
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, signatureDataUrl: signature }),
+        body: JSON.stringify({ token, signatureDataUrl: signature, contractHtml }),
       });
       const data = await res.json();
       if (data.success) {
@@ -144,7 +149,11 @@ export default function SignPage() {
         </div>
 
         {/* Contract document */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', padding: '48px 56px', marginBottom: 32, fontFamily: 'Georgia, serif', fontSize: 14, lineHeight: 1.8, color: '#1f2937' }}
+        <div 
+          ref={contractContainerRef}
+          onChange={() => syncContractFormDOM(contractContainerRef.current)}
+          onInput={() => syncContractFormDOM(contractContainerRef.current)}
+          style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', padding: '48px 56px', marginBottom: 32, fontFamily: 'Georgia, serif', fontSize: 14, lineHeight: 1.8, color: '#1f2937' }}
           dangerouslySetInnerHTML={{ __html: contract?.Contract_Text || '' }}
         />
 
@@ -187,6 +196,7 @@ export default function SignPage() {
                   </div>
                   <button 
                     onClick={() => {
+                      syncContractFormDOM(contractContainerRef.current);
                       setSignature('');
                       setShowSigPad(true);
                     }}
@@ -222,7 +232,10 @@ export default function SignPage() {
                 </div>
               ) : (
                 <button 
-                  onClick={() => setShowSigPad(true)}
+                  onClick={() => {
+                    syncContractFormDOM(contractContainerRef.current);
+                    setShowSigPad(true);
+                  }}
                   style={{ width: '100%', padding: '16px', border: '2px dashed #0d9488', borderRadius: 8, background: '#f0fdfa', cursor: 'pointer', fontSize: 15, color: '#0f766e', fontWeight: 700, transition: 'all 0.2s' }}
                 >
                   Click here to sign

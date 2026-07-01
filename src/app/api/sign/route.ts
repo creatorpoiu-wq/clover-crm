@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceClient();
-    const { token, signatureDataUrl } = await req.json();
+    const { token, signatureDataUrl, contractHtml } = await req.json();
     if (!token || !signatureDataUrl) {
       return NextResponse.json({ success: false, error: 'Missing token or signature.' }, { status: 400 });
     }
@@ -89,13 +89,18 @@ export async function POST(req: NextRequest) {
     }
 
     const today = new Date().toISOString().split('T')[0];
+    const updateData: any = {
+      Status: 'Signed',
+      Signed_Date: today,
+      Client_Signature: signatureDataUrl
+    };
+    if (contractHtml) {
+      updateData.Contract_Text = contractHtml;
+    }
+
     const { error: updateError } = await supabase
       .from('Contracts')
-      .update({
-        Status: 'Signed',
-        Signed_Date: today,
-        Client_Signature: signatureDataUrl
-      })
+      .update(updateData)
       .eq('Contract_ID', contract.Contract_ID);
 
     if (updateError) throw updateError;

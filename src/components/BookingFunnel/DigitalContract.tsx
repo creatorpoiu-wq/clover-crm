@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PenTool, Wand2 } from 'lucide-react';
 import SignaturePad from 'signature_pad';
+import { processContractVariables, syncContractFormDOM } from '@/lib/processContract';
 
 interface Props {
   questionnaire: any;
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export default function DigitalContract({ questionnaire, pkg, addons, signature, setSignature, setContractHtml, onNext, onBack, funnelSettings }: Props) {
-  
+  const containerRef = useRef<HTMLDivElement>(null);
   const [template, setTemplate] = useState<any>(null);
   const [variables, setVariables] = useState<string[]>([]);
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
@@ -157,21 +158,6 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
     setVariables(Array.from(extracted));
   };
 
-  const getProcessedHtml = () => {
-    if (!template) return '';
-    let html = template.Content;
-    
-    variables.forEach(v => {
-      const regex = new RegExp(`<span[^>]*data-variable="true"[^>]*label="${v}"[^>]*>.*?</span>`, 'g');
-      const val = variableValues[v]
-        ? `<strong style="color:#0d9488;border-bottom:1px solid #0d9488;">${variableValues[v]}</strong>`
-        : `<span style="background:#fef08a;padding:2px 6px;border-radius:4px;color:#854d0e;">[${v}]</span>`;
-      html = html.replace(regex, val);
-    });
-
-    return html;
-  };
-
   const pkgPrice = pkg?.Price || 0;
   const addonsPrice = addons.reduce((sum, a) => sum + a.price, 0);
   const total = pkgPrice + addonsPrice;
@@ -179,6 +165,20 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
 
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const clientName = questionnaire['Full Name'] || questionnaire['Name'] || questionnaire.name || '[Client Name]';
+
+  const getProcessedHtml = () => {
+    if (!template) return '';
+    return processContractVariables(template.Content, {
+      clientName,
+      clientEmail: questionnaire['Email Address'] || questionnaire['Email'] || questionnaire.email,
+      clientPhone: questionnaire['Phone Number'] || questionnaire['Phone'] || questionnaire.phone,
+      packageName: pkg?.Name,
+      totalAmount: total,
+      retainerAmount: deposit,
+      todayDate: today,
+      customAnswers: { ...variableValues, ...questionnaire }
+    });
+  };
 
   // Track which variables were auto-filled from questionnaire
   const autoFilledKeys = new Set(
@@ -242,11 +242,16 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
       )}
 
       {/* Contract Document */}
-      <div style={{ 
-        background: '#fff', borderRadius: 4, padding: '60px 48px', 
-        border: '1px solid #e5e7eb', boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
-        margin: '0 auto 40px', maxWidth: 800, fontFamily: "'Georgia', serif", color: '#374151', lineHeight: 1.8
-      }}>
+      <div 
+        ref={containerRef}
+        onChange={() => syncContractFormDOM(containerRef.current)}
+        onInput={() => syncContractFormDOM(containerRef.current)}
+        style={{ 
+          background: '#fff', borderRadius: 4, padding: '60px 48px', 
+          border: '1px solid #e5e7eb', boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
+          margin: '0 auto 40px', maxWidth: 800, fontFamily: "'Georgia', serif", color: '#374151', lineHeight: 1.8
+        }}
+      >
         
         {template ? (
           <div className="ProseMirror" dangerouslySetInnerHTML={{ __html: getProcessedHtml() }} />
@@ -282,6 +287,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
               </div>
               <button 
                 onClick={() => {
+                  syncContractFormDOM(containerRef.current);
                   setSignature('');
                   setShowSigPad(true);
                 }}
@@ -317,7 +323,10 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
             </div>
           ) : (
             <button 
-              onClick={() => setShowSigPad(true)}
+              onClick={() => {
+                syncContractFormDOM(containerRef.current);
+                setShowSigPad(true);
+              }}
               style={{ width: '100%', padding: '16px', border: '2px dashed #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 15, color: '#4b5563', fontWeight: 700 }}
             >
               Click here to sign
@@ -330,7 +339,9 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
         <button onClick={onBack} style={{ background: 'transparent', color: '#6b7280', padding: '16px 24px', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Back</button>
         <button 
           onClick={() => {
-            setContractHtml(getProcessedHtml());
+            syncContractFormDOM(containerRef.current);
+            const finalHtml = containerRef.current ? containerRef.current.innerHTML : getProcessedHtml();
+            setContractHtml(finalHtml);
             onNext();
           }}
           disabled={signature.trim().length < 3}

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { FileText, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
 import SignaturePad from 'signature_pad';
+import { processContractVariables, syncContractFormDOM } from '@/lib/processContract';
 
 interface PortraitContractProps {
   userId: string;
@@ -20,6 +21,7 @@ interface PortraitContractProps {
 export default function PortraitContract({
   selectedDate, selectedTime, signature, setSignature, setContractHtml, onNext, onBack, themeColor, vendorInfo, contactName
 }: PortraitContractProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigPadRef = useRef<SignaturePad | null>(null);
   const [error, setError] = useState('');
@@ -33,63 +35,61 @@ export default function PortraitContract({
     const urlParams = new URLSearchParams(window.location.search);
     const urlContractId = urlParams.get('contractId');
 
-    if (urlContractId) {
-      fetch(`/api/public-booking?type=contract&contractId=${urlContractId}`)
+    const fetchTemplate = () => {
+      fetch('/api/contracts')
         .then(res => res.json())
-        .then(data => {
-          if (data.success && data.contract) {
-            setTemplate({ Content: data.contract.Contract_Text, Name: data.contract.Contract_Title });
+        .then(tData => {
+          if (urlContractId && tData.templates) {
+            const matched = tData.templates.find((t: any) => String(t.Template_ID) === String(urlContractId));
+            if (matched) { setTemplate(matched); setLoading(false); return; }
           }
-        })
-        .finally(() => setLoading(false));
-    } else if (vendorInfo?.contractTemplateId) {
-      // Use the contract template defined in Portrait Settings
-      fetch(`/api/public-booking?type=contract_template&templateId=${vendorInfo.contractTemplateId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.template) {
-            setTemplate(data.template);
+          if (vendorInfo?.portraitSettings?.Contract_Template_ID && tData.templates) {
+            const matched = tData.templates.find((t: any) => t.Template_ID === vendorInfo.portraitSettings.Contract_Template_ID);
+            if (matched) setTemplate(matched);
           }
+          setLoading(false);
         })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+        .catch(() => setLoading(false));
+    };
+    fetchTemplate();
   }, [vendorInfo]);
 
   useEffect(() => {
-    if (showSigPad && sigCanvasRef.current && !sigPadRef.current) {
-      const canvas = sigCanvasRef.current;
-      // Handle canvas resolution for high-DPI displays
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      const ctx = canvas.getContext('2d');
-      if (ctx) ctx.scale(ratio, ratio);
+    if (!showSigPad || !sigCanvasRef.current) return;
+    const canvas = sigCanvasRef.current;
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    const ctx = canvas.getContext("2d");
+    if (ctx) ctx.scale(ratio, ratio);
 
-      sigPadRef.current = new SignaturePad(canvas, {
-        penColor: '#111827',
-        backgroundColor: 'rgba(0,0,0,0)'
-      });
+    if (sigPadRef.current) {
+      sigPadRef.current.off();
     }
+
+    sigPadRef.current = new SignaturePad(canvas, {
+      minWidth: 1, maxWidth: 2.5, penColor: "rgb(15, 23, 42)"
+    });
   }, [showSigPad]);
 
   const clearSignature = () => {
     if (sigPadRef.current) sigPadRef.current.clear();
   };
 
-  const saveSignature = () => {
+  const handleProceed = () => {
     if (showSigPad) {
       if (!sigPadRef.current || sigPadRef.current.isEmpty()) {
-        setError('Please provide your signature to proceed.');
+        setError('Please provide your digital signature before continuing.');
         return;
       }
       setSignature(sigPadRef.current.toDataURL());
     } else if (!signature) {
-      setError('Please provide your signature to proceed.');
+      setError('Please provide your digital signature before continuing.');
       return;
     }
-    setContractHtml(getProcessedHtml());
+    syncContractFormDOM(containerRef.current);
+    const finalHtml = containerRef.current ? containerRef.current.innerHTML : getProcessedHtml();
+    setContractHtml(finalHtml);
     onNext();
   };
 
@@ -98,11 +98,12 @@ export default function PortraitContract({
   // Replace variables in template
   const replaceVars = (text: string) => {
     if (!text) return '';
-    return text
-      .replace(/\[Client Name\]|\{Client Name\}/gi, contactName || "Client")
-      .replace(/\[Date\]|\{Date\}|\[Event Date\]|\{Event Date\}/gi, formattedDate)
-      .replace(/\[Time\]|\{Time\}/gi, selectedTime || 'TBD')
-      .replace(/\[Today's Date\]|\{Today's Date\}/gi, new Date().toLocaleDateString());
+    return processContractVariables(text, {
+      clientName: contactName || "Client",
+      eventDate: formattedDate,
+      eventTime: selectedTime || 'TBD',
+      todayDate: new Date().toLocaleDateString(),
+    });
   };
 
   const getProcessedHtml = () => {
@@ -131,7 +132,13 @@ export default function PortraitContract({
         </div>
       </div>
 
-      <div className="custom-scrollbar" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '1.5rem', borderRadius: '1rem', height: '24rem', overflowY: 'auto', fontSize: '0.875rem', color: '#475569', lineHeight: 1.6, marginBottom: '2rem' }}>
+      <div 
+        ref={containerRef}
+        onChange={() => syncContractFormDOM(containerRef.current)}
+        onInput={() => syncContractFormDOM(containerRef.current)}
+        className="custom-scrollbar" 
+        style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '1.5rem', borderRadius: '1rem', height: '24rem', overflowY: 'auto', fontSize: '0.875rem', color: '#475569', lineHeight: 1.6, marginBottom: '2rem' }}
+      >
         {loading ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Loading contract details...</div>
         ) : template ? (
@@ -185,6 +192,7 @@ export default function PortraitContract({
                <img src={signature} alt="Signature" style={{ height: '10rem', margin: '0 auto', display: 'block' }} />
                <button 
                  onClick={() => {
+                   syncContractFormDOM(containerRef.current);
                    setSignature('');
                    setShowSigPad(true);
                  }} 
@@ -217,7 +225,7 @@ export default function PortraitContract({
           <ArrowLeft size={18} /> Back
         </button>
         <button
-          onClick={saveSignature}
+          onClick={handleProceed}
           className="btn btn-primary"
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', cursor: 'pointer', backgroundColor: themeColor, border: 'none' }}
         >

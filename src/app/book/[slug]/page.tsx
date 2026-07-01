@@ -4,6 +4,7 @@ import { Clock, MapPin, ChevronLeft, ChevronRight, Check, CheckCircle, CheckCirc
 import { getEmbedUrl } from '@/utils/embed';
 import SignaturePad from 'signature_pad';
 import PaymentInstruction from '@/components/PaymentInstruction';
+import { processContractVariables, syncContractFormDOM } from '@/lib/processContract';
 
 interface TimeSlot {
   Slot_ID: number;
@@ -101,6 +102,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
   const [hpValue, setHpValue] = useState('');
 
+  const contractContainerRef = useRef<HTMLDivElement>(null);
+  const [syncedContractHtml, setSyncedContractHtml] = useState<string | null>(null);
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigPadRef = useRef<any>(null);
 
@@ -208,6 +211,10 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
       alert("Please sign the contract.");
       return;
     }
+    syncContractFormDOM(contractContainerRef.current);
+    const finalHtml = contractContainerRef.current ? contractContainerRef.current.innerHTML : getProcessedContractHtml();
+    setSyncedContractHtml(finalHtml);
+
     const addonsTotal = selectedAddons.reduce((sum, id) => {
       const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
       return sum + (addon ? Number(addon.price) : 0);
@@ -217,11 +224,11 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     if (total > 0) {
       setStep('payment');
     } else {
-      handleSubmit();
+      handleSubmit(undefined, finalHtml);
     }
   };
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent, overrideContractHtml?: string | null) => {
     if (e) e.preventDefault();
     if (!session || !selectedDate || !selectedTime) return;
     
@@ -250,7 +257,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
         bookedTime: selectedTime,
         notes: finalNotes,
         packageId: selectedPackage ? selectedPackage.Package_ID : null,
-        contractHtml: session.Contract_Template ? getProcessedContractHtml() : null,
+        contractHtml: session.Contract_Template ? (overrideContractHtml || syncedContractHtml || getProcessedContractHtml()) : null,
         signature: signature || null,
         amountPaid: priceToPay
       })
@@ -267,8 +274,6 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
 
   const getProcessedContractHtml = () => {
     if (!session || !session.Contract_Template) return '';
-    let html = session.Contract_Template;
-    
     const addonsTotal = selectedAddons.reduce((sum, id) => {
       const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
       return sum + (addon ? Number(addon.price) : 0);
@@ -282,38 +287,19 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
     const clientName = form.name || '[Client Name]';
     const displayDate = selectedDate ? formatDisplayDate(selectedDate) : '[Date]';
     const displayTime = selectedTime || '[Time]';
-    const formattedPrice = `$${priceToPay.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
-    const replacements: Record<string, string> = {
-      'CLIENT_NAME': clientName,
-      'CLIENT NAME': clientName,
-      'NAME': clientName,
-      'DATE': displayDate,
-      'TIME': displayTime,
-      'PACKAGE_NAME': pkgName,
-      'PACKAGE NAME': pkgName,
-      'PACKAGE': pkgName,
-      'PRICE': formattedPrice,
-      'TOTAL': formattedPrice,
-      'AMOUNT': formattedPrice,
-      'RETAINER': `$${(priceToPay * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-      'DEPOSIT': `$${(priceToPay * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
-    };
-
-    // 1. Replace [VAR] and {VAR} tags
-    Object.entries(replacements).forEach(([key, val]) => {
-      const regex1 = new RegExp(`\\[${key}\\]`, 'gi');
-      const regex2 = new RegExp(`\\{${key}\\}`, 'gi');
-      html = html.replace(regex1, val).replace(regex2, val);
+    return processContractVariables(session.Contract_Template, {
+      clientName,
+      clientEmail: form.email,
+      clientPhone: form.phone,
+      eventDate: displayDate,
+      eventTime: displayTime,
+      packageName: pkgName,
+      totalAmount: priceToPay,
+      retainerAmount: priceToPay * 0.5,
+      todayDate: new Date().toLocaleDateString(),
+      customAnswers: { ...form }
     });
-
-    // 2. Replace Builder Variables (<span data-variable="true" label="VAR">)
-    Object.entries(replacements).forEach(([key, val]) => {
-      const regex = new RegExp(`<span[^>]*data-variable="true"[^>]*label="${key}"[^>]*>.*?<\\/span>`, 'gi');
-      html = html.replace(regex, `<strong style="color:#0f172a; font-weight:800;">${val}</strong>`);
-    });
-
-    return html;
   };
 
   const parseDurationHours = (durationStr: string) => {
@@ -685,6 +671,9 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
             
             <div style={{ padding: '1.5rem' }}>
               <div 
+                ref={contractContainerRef}
+                onChange={() => syncContractFormDOM(contractContainerRef.current)}
+                onInput={() => syncContractFormDOM(contractContainerRef.current)}
                 style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155', lineHeight: 1.6, maxHeight: '300px', overflowY: 'auto', marginBottom: '1.5rem' }}
                 dangerouslySetInnerHTML={{ __html: getProcessedContractHtml() }}
               />
@@ -693,7 +682,10 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                 <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', marginBottom: '0.5rem' }}>Your Signature</label>
                 {!showSigPad ? (
                   <button 
-                    onClick={() => setShowSigPad(true)} 
+                    onClick={() => {
+                      syncContractFormDOM(contractContainerRef.current);
+                      setShowSigPad(true);
+                    }} 
                     style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'white', border: '2px dashed #cbd5e1', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, cursor: 'pointer' }}
                   >
                     <PenTool size={18} /> Click here to sign
@@ -732,7 +724,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                   <div style={{ marginTop: '1rem', textAlign: 'center' }}>
                     <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Signature Saved:</p>
                     <img src={signature} alt="Signature" style={{ maxHeight: '60px', borderBottom: '1px solid #0f172a' }} />
-                    <button onClick={() => { setSignature(''); setShowSigPad(true); }} style={{ display: 'block', margin: '0.5rem auto 0', background: 'none', border: 'none', color: '#0ea5e9', fontSize: '0.8rem', cursor: 'pointer' }}>Edit Signature</button>
+                    <button onClick={() => { syncContractFormDOM(contractContainerRef.current); setSignature(''); setShowSigPad(true); }} style={{ display: 'block', margin: '0.5rem auto 0', background: 'none', border: 'none', color: '#0ea5e9', fontSize: '0.8rem', cursor: 'pointer' }}>Edit Signature</button>
                   </div>
                 )}
               </div>
