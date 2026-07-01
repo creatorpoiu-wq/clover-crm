@@ -105,6 +105,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
 
   const contractContainerRef = useRef<HTMLDivElement>(null);
   const [syncedContractHtml, setSyncedContractHtml] = useState<string | null>(null);
+  const [portalLink, setPortalLink] = useState<string | null>(null);
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigPadRef = useRef<any>(null);
 
@@ -298,6 +299,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     });
     
     if (res.ok) {
+      const d = await res.json().catch(() => ({}));
+      if (d && d.portalLink) setPortalLink(d.portalLink);
       setStep('confirm');
     } else {
       const d = await res.json();
@@ -1284,6 +1287,27 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
                 </span>
               </div>
             </div>
+            {portalLink && (
+              <div style={{ margin: '0 0 1.5rem' }}>
+                <a
+                  href={portalLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 24px',
+                    backgroundColor: '#0f172a',
+                    color: '#ffffff',
+                    textDecoration: 'none',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  Access Your Client Portal
+                </a>
+              </div>
+            )}
             <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
               A confirmation receipt {session.Contract_Template ? 'and copy of your contract ' : ''}has been sent to <strong>{form.email}</strong>.
             </p>
