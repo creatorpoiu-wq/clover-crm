@@ -663,7 +663,17 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: c.Status === 'Signed' ? '#e8f5f0' : '#fff8f0', color: c.Status === 'Signed' ? '#4da685' : '#d97706' }}>
                       {c.Status}
                     </span>
-                    <button onClick={() => router.push('/dashboard/finance')} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>View</button>
+                    <button onClick={() => {
+                      if (c.Contract_Text) {
+                        const win = window.open('', '_blank');
+                        if (win) {
+                          win.document.write(`<html><head><title>${c.Contract_Title || 'Contract'}</title></head><body style="padding:40px;font-family:sans-serif;max-width:800px;margin:0 auto;line-height:1.6;">${c.Contract_Text}</body></html>`);
+                          win.document.close();
+                        }
+                      } else {
+                        router.push('/dashboard/finance');
+                      }
+                    }} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>View</button>
                   </div>
                 </div>
               ))}

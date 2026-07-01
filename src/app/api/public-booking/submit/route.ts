@@ -167,17 +167,29 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      await supabase
+      const { data: newInv } = await supabase
         .from('Invoices')
         .insert({
           user_id: userId,
           Inquiry_ID: finalInquiryId,
-          Invoice_Title: `${serviceType} Invoice`,
+          Issue_Date: today,
           Total_Amount: totalAmount,
-          Status: 'Unpaid', // You can change to 'Partial Paid' if you add payment gateway integration
-          Due_Date: today,
-          Line_Items: JSON.stringify(lineItems)
-        });
+          Status: 'Unpaid',
+          Due_Date: today
+        })
+        .select('Invoice_ID')
+        .single();
+
+      if (newInv?.Invoice_ID && lineItems.length > 0) {
+        const itemsToInsert = lineItems.map(item => ({
+          user_id: userId,
+          Invoice_ID: newInv.Invoice_ID,
+          Description: item.description,
+          Quantity: item.quantity,
+          Price: item.amount
+        }));
+        await supabase.from('Invoice_Items').insert(itemsToInsert);
+      }
     }
 
     // AUTOMATION HOOK (optional)

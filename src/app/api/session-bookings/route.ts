@@ -174,19 +174,29 @@ export async function POST(req: NextRequest) {
     if (inquiryId) {
       const today = new Date().toISOString().split('T')[0];
       const sessionName = booking.Sessions?.Session_Type || booking.Sessions?.Service_Type || 'Session';
-      const lineItems = [{ description: sessionName, amount: Number(amountPaid) || 0, quantity: 1 }];
-      const { error: invoiceError } = await supabase
+      const { data: newInv, error: invoiceError } = await supabase
         .from('Invoices')
         .insert({
           user_id: userId,
           Inquiry_ID: inquiryId,
-          Invoice_Title: `${sessionName} Invoice`,
+          Issue_Date: today,
           Total_Amount: Number(amountPaid) || 0,
           Status: Number(amountPaid) > 0 ? 'Paid' : 'Unpaid',
-          Due_Date: today,
-          Line_Items: JSON.stringify(lineItems)
+          Due_Date: today
+        })
+        .select('Invoice_ID')
+        .single();
+      if (invoiceError) {
+        console.error("Invoices insert error:", invoiceError);
+      } else if (newInv?.Invoice_ID) {
+        await supabase.from('Invoice_Items').insert({
+          user_id: userId,
+          Invoice_ID: newInv.Invoice_ID,
+          Description: sessionName,
+          Quantity: 1,
+          Price: Number(amountPaid) || 0
         });
-      if (invoiceError) console.error("Invoices insert error:", invoiceError);
+      }
     }
 
     // Fetch owner email settings
@@ -367,16 +377,24 @@ export async function PATCH(req: NextRequest) {
             }
 
             const sessionName = booking.Sessions?.Service_Type || 'Session';
-            const lineItems = [{ description: sessionName, amount: Number(booking.Amount_Paid) || 0, quantity: 1 }];
-            await supabase.from('Invoices').insert({
+            const { data: newInv } = await supabase.from('Invoices').insert({
               user_id: user.id,
               Inquiry_ID: inqId,
-              Invoice_Title: `${sessionName} Invoice`,
+              Issue_Date: today,
               Total_Amount: Number(booking.Amount_Paid) || 0,
               Status: Number(booking.Amount_Paid) > 0 ? 'Paid' : 'Unpaid',
-              Due_Date: today,
-              Line_Items: JSON.stringify(lineItems)
-            });
+              Due_Date: today
+            }).select('Invoice_ID').single();
+
+            if (newInv?.Invoice_ID) {
+              await supabase.from('Invoice_Items').insert({
+                user_id: user.id,
+                Invoice_ID: newInv.Invoice_ID,
+                Description: sessionName,
+                Quantity: 1,
+                Price: Number(booking.Amount_Paid) || 0
+              });
+            }
           }
         }
       }
