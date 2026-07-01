@@ -52,6 +52,7 @@ interface Contract {
   Status: string;
   Sent_Date: string;
   Signed_Date: string;
+  Contract_Text?: string;
 }
 
 export default function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
