@@ -139,6 +139,8 @@ export async function GET(req: NextRequest) {
           whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
           whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
           paypalClientId: appConfig?.Paypal_Client_Id || null,
+          retainerAmount: row?.Retainer_Amount != null ? Number(row.Retainer_Amount) : 50,
+          retainerType: row?.Retainer_Type || 'percent',
         },
         userId: targetUserId
       });

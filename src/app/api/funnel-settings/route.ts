@@ -41,11 +41,10 @@ export async function GET() {
     const { data: userAuth } = await supabase.auth.getUser();
     if (!userAuth.user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
-    const { data: row, error } = await supabase
-      .from('Booking_Settings')
-      .select('*')
-      .eq('user_id', userAuth.user.id)
-      .single();
+    const [{ data: row, error }, { data: appConfig }] = await Promise.all([
+      supabase.from('Booking_Settings').select('*').eq('user_id', userAuth.user.id).single(),
+      supabase.from('AppConfig').select('Paypal_Client_Id').eq('user_id', userAuth.user.id).single(),
+    ]);
 
     if (error && error.code !== 'PGRST116') throw error;
 
@@ -77,6 +76,9 @@ export async function GET() {
       whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
       contractTemplateId: row?.Contract_Template_ID || null,
       questionnaireTemplateId: row?.Questionnaire_Template_ID || null,
+      retainerAmount: row?.Retainer_Amount != null ? Number(row.Retainer_Amount) : 50,
+      retainerType: row?.Retainer_Type || 'percent',
+      paypalClientId: appConfig?.Paypal_Client_Id || null,
       userId: userAuth.user.id,
     };
 
@@ -96,7 +98,8 @@ export async function PUT(req: NextRequest) {
       styleBullets, styleMediaType, styleVideo1Url, styleVideo2Url,
       investmentHeadline, investmentDescription,
       whatsNextHeading, whatsNextSub, whatsNextSteps,
-      contractTemplateId, questionnaireTemplateId
+      contractTemplateId, questionnaireTemplateId,
+      retainerAmount, retainerType,
     } = body;
 
     const { data: userAuth } = await supabase.auth.getUser();
@@ -138,6 +141,8 @@ export async function PUT(req: NextRequest) {
         Whats_Next_Steps: JSON.stringify(whatsNextSteps || JSON.parse(DEFAULTS.Whats_Next_Steps)),
         Contract_Template_ID: contractTemplateId !== undefined ? contractTemplateId : null,
         Questionnaire_Template_ID: questionnaireTemplateId !== undefined ? questionnaireTemplateId : null,
+        Retainer_Amount: retainerAmount != null ? Number(retainerAmount) : 50,
+        Retainer_Type: retainerType || 'percent',
       }, { onConflict: 'user_id' });
 
     if (error) throw error;
