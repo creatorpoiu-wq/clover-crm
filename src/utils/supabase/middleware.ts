@@ -68,7 +68,11 @@ export async function updateSession(request: NextRequest) {
                         request.nextUrl.pathname.startsWith('/book') ||
                         request.nextUrl.pathname.startsWith('/portrait') ||
                         request.nextUrl.pathname.startsWith('/embed') ||
+                        request.nextUrl.pathname.startsWith('/portal') ||
+                        request.nextUrl.pathname.startsWith('/schedule') ||
                         request.nextUrl.pathname.startsWith('/api/public-forms') ||
+                        request.nextUrl.pathname.startsWith('/api/portal') ||
+                        request.nextUrl.pathname.startsWith('/api/public-booking') ||
                         request.nextUrl.pathname.startsWith('/auth') ||
                         request.nextUrl.pathname.startsWith('/gallery') ||
                         request.nextUrl.pathname === '/';
