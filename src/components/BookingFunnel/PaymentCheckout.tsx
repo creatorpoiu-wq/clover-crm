@@ -83,7 +83,7 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
     setIsProcessing(true);
     setErrorMsg('');
     try {
-      const res = await fetch('/api/session-bookings', {
+      const res = await fetch('/api/public-booking/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

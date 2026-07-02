@@ -269,7 +269,12 @@ export async function POST(req: NextRequest) {
       console.error('Automation error:', e);
     }
 
-    return NextResponse.json({ success: true });
+    const host = req.headers.get('host') || '';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = host ? `${protocol}://${host}` : '';
+    const portalLink = finalInquiryId ? `${baseUrl}/portal/${finalInquiryId}` : null;
+
+    return NextResponse.json({ success: true, portalLink });
   } catch (error: any) {
     console.error('Public booking submit error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
