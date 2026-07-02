@@ -31,7 +31,6 @@ export async function GET(req: NextRequest) {
         Pipeline_Stage,
         Estimated_Value,
         Questionnaire_Data,
-        Deliverable_Milestones,
         Contacts ( Name, Email, Phone )
       `)
       .eq('Inquiry_ID', inquiryId)
@@ -106,7 +105,7 @@ export async function GET(req: NextRequest) {
           stage: inquiry.Pipeline_Stage,
           estimatedValue: inquiry.Estimated_Value,
           questionnaireData: inquiry.Questionnaire_Data,
-          deliverableMilestones: inquiry.Deliverable_Milestones
+          deliverableMilestones: []
         },
         contracts: contracts || [],
         invoices: invoices || [],
