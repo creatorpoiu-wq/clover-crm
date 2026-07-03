@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { slugifyName } from '@/lib/slugify';
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,7 +52,8 @@ export async function POST(req: NextRequest) {
           const nodemailer = require('nodemailer');
           const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: config.Email_User, pass: config.Email_Pass } });
           const baseUrl = config.Custom_Domain ? `https://${config.Custom_Domain}` : req.nextUrl.origin;
-          const portalLink = `${baseUrl}/portal/${inquiryId}`;
+          const slug = slugifyName(contact.Name);
+          const portalLink = `${baseUrl}/portal/${slug}-${inquiryId}`;
           await transporter.sendMail({
             from: `"${config.Company_Name}" <${config.Email_User}>`,
             to: contact.Email,

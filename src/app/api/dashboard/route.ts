@@ -55,7 +55,7 @@ export async function GET() {
     });
 
     const monthlyData: any[] = [];
-    let curr = new Date(minDate);
+    const curr = new Date(minDate);
     while (curr <= maxDate) {
       monthlyData.push({
         month: curr.toLocaleString('default', { month: 'short' }),

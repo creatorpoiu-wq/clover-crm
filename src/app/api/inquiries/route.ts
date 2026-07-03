@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         Estimated_Value,
         Questionnaire_Data,
         Contacts!inner ( Name, Email, Phone, Lead_Source, Package_ID ),
-        Communications ( Last_Contact_Date, Last_Contact_By, Proposal_Link )
+        Communications ( Last_Contact_Date, Last_Contact_By, Message, Proposal_Link )
       `)
       .neq('Pipeline_Stage', 'Lost/Archived')
       .order('Inquiry_ID', { ascending: false });
@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
         Estimated_Value: inq.Estimated_Value,
         Last_Contact_Date: latestComm?.Last_Contact_Date || null,
         Last_Contact_By: latestComm?.Last_Contact_By || null,
+        Message: latestComm?.Message || null,
         Proposal_Link: latestComm?.Proposal_Link || null,
         Questionnaire_Data: inq.Questionnaire_Data || null,
       };

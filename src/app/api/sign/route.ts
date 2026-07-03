@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
               const companyName = config.Company_Name || 'Clover';
 
               const todayString = new Date().toLocaleDateString();
-              let parsedBody = tpl.Body
+              const parsedBody = tpl.Body
                 .replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name)
                 .replace(/\[Name\]|\{Name\}/gi, clientName)
                 .replace(/\[Company\]|\{Company\}/gi, companyName)
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
                 .replace(/\[Date\]|\{Date\}/gi, todayString)
                 .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString)
                 .replace(/\n/g, '<br/>');
-              let parsedSubject = tpl.Subject
+              const parsedSubject = tpl.Subject
                 .replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name)
                 .replace(/\[Name\]|\{Name\}/gi, clientName)
                 .replace(/\[Company\]|\{Company\}/gi, companyName)

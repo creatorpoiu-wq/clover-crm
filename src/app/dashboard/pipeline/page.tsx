@@ -6,6 +6,7 @@ import { Calendar, User, Phone, Mail, DollarSign, Edit, Trash2, X, Save, Link as
 import { formatDate } from "@/lib/formatDate";
 import DeliverablesManager from "@/components/DeliverablesManager";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { slugifyName } from "@/lib/slugify";
 
 interface InquiryData {
   Inquiry_ID: number;
@@ -396,7 +397,8 @@ export default function PipelinePage() {
                     style={{ flex: 1, padding: "0.75rem", borderRadius: "0.75rem", fontWeight: 600, color: "var(--primary)", borderColor: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
                     onClick={() => {
                       const baseUrl = customDomain ? `https://${customDomain}` : window.location.origin;
-                      const portalUrl = `${baseUrl}/portal/${selectedInquiry.Inquiry_ID}`;
+                      const slug = slugifyName(selectedInquiry.Contact_Name);
+                      const portalUrl = `${baseUrl}/portal/${slug}-${selectedInquiry.Inquiry_ID}`;
                       navigator.clipboard.writeText(portalUrl);
                       alert('Portal link copied to clipboard!');
                     }}

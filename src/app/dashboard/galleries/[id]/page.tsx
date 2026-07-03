@@ -57,7 +57,7 @@ export default function GalleryManager() {
   const handleUpdateGallery = async (updates: any) => {
     setIsSaving(true);
     try {
-      let finalUpdates = { ...updates };
+      const finalUpdates = { ...updates };
       // Parse Google Drive URL if present
       if (finalUpdates.Cover_Image && finalUpdates.Cover_Image.includes('drive.google.com/file/d/')) {
         const match = finalUpdates.Cover_Image.match(/\/d\/([a-zA-Z0-9_-]+)/);

@@ -160,11 +160,17 @@ export async function GET(req: NextRequest) {
 
     // ── Inquiry Details ──────────────────────────────────────────────────────
     if (type === 'inquiry_details' && searchParams.get('inquiryId')) {
-      const inquiryId = searchParams.get('inquiryId');
+      const inquiryId = searchParams.get('inquiryId')!;
+      let cleanInquiryId = inquiryId;
+      if (cleanInquiryId.includes('-')) {
+        const parts = cleanInquiryId.split('-');
+        cleanInquiryId = parts[parts.length - 1];
+      }
+      const parsedInquiryId = parseInt(cleanInquiryId);
       const { data: inquiry, error } = await supabase
         .from('Inquiries')
         .select('Inquiry_ID, Contacts ( Name )')
-        .eq('Inquiry_ID', inquiryId)
+        .eq('Inquiry_ID', isNaN(parsedInquiryId) ? 0 : parsedInquiryId)
         .single();
         
       if (error) throw error;

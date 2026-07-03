@@ -70,8 +70,8 @@ async function executeEmailAction(supabase: any, userId: string, template: any, 
   const contactName = inquiry.Contacts.Name || 'Client';
 
   // Basic variable substitution
-  let subject = template.Subject.replace(/\[Name\]/g, contactName).replace(/\[Company\]/g, companyName);
-  let body = template.Body.replace(/\[Name\]/g, contactName).replace(/\[Company\]/g, companyName);
+  const subject = template.Subject.replace(/\[Name\]/g, contactName).replace(/\[Company\]/g, companyName);
+  const body = template.Body.replace(/\[Name\]/g, contactName).replace(/\[Company\]/g, companyName);
 
   const htmlBody = `
     <div style="font-family: sans-serif; padding: 20px;">

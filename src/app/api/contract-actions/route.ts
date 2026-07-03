@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
           .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
       };
 
-      let finalContent = replaceVars(content || '');
+      const finalContent = replaceVars(content || '');
 
       // Generate sign token FIRST so the SAME token is in both the email link and the DB row
       const signToken = randomUUID();
@@ -326,7 +326,7 @@ export async function POST(req: NextRequest) {
       let emailPass: string | null = process.env.EMAIL_PASS || null;
       let companyName = 'Clover';
       let customDomain = null;
-      let emailSettings: any = {};
+      const emailSettings: any = {};
 
       const { data: config } = await supabase
         .from('AppConfig')
@@ -404,7 +404,7 @@ export async function POST(req: NextRequest) {
       const headerText = bannerText;
       const footerText = bodyText;
 
-      let finalContentStr = replaceVars(contentStr || '');
+      const finalContentStr = replaceVars(contentStr || '');
 
       const innerHtml = `
         <p style="font-size:16px;font-weight:700;margin:0 0 12px;color:#111827;">${greeting}</p>

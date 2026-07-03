@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Find or create Contact
     let contactId: number | null = null;
-    let actualEmail = email || `no-email-${Date.now()}@example.com`;
+    const actualEmail = email || `no-email-${Date.now()}@example.com`;
 
     const { data: existingContact } = await supabase
       .from('Contacts')

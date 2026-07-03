@@ -302,7 +302,7 @@ export default function HubPage() {
 
       <div className="glass-panel flex flex-col md:flex-row flex-1 overflow-hidden rounded-xl border border-[var(--border)]">
         {/* Left Pane - Inquiries List */}
-        <div className={`w-full md:w-[350px] border-b md:border-b-0 md:border-r border-[var(--border)] flex-col bg-[var(--background)] ${(selectedInquiry || selectedDraft) ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-[350px] md:min-w-[350px] md:max-w-[350px] shrink-0 border-b md:border-b-0 md:border-r border-[var(--border)] flex-col bg-[var(--background)] ${(selectedInquiry || selectedDraft) ? 'hidden md:flex' : 'flex'}`}>
           <div style={{ display: "flex", borderBottom: "1px solid var(--border)" }}>
             <button 
               onClick={() => { setViewTab('threads'); setSelectedInquiry(null); setSelectedDraft(null); }}

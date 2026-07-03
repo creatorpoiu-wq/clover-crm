@@ -4,6 +4,12 @@ import { createClient } from '@/utils/supabase/server';
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient();
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = userAuth.user.id;
+
     const params = await props.params;
     const id = params.id;
 
@@ -16,6 +22,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       .from('Contacts')
       .select('*')
       .eq('Contact_ID', id)
+      .eq('user_id', userId)
       .single();
 
     if (contactError) throw contactError;
@@ -27,7 +34,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const { data: inquiries, error: inqError } = await supabase
       .from('Inquiries')
       .select('*')
-      .eq('Contact_ID', id);
+      .eq('Contact_ID', id)
+      .eq('user_id', userId);
 
     if (inqError) throw inqError;
 
@@ -39,9 +47,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     // 3. Fetch related records if inquiries exist
     if (inquiryIds.length > 0) {
-      const commsPromise = supabase.from('Communications').select('*').in('Inquiry_ID', inquiryIds).order('Last_Contact_Date', { ascending: false });
-      const invPromise = supabase.from('Invoices').select('*, Invoice_Items(*)').in('Inquiry_ID', inquiryIds);
-      const conPromise = supabase.from('Contracts').select('*').in('Inquiry_ID', inquiryIds);
+      const commsPromise = supabase.from('Communications').select('*').in('Inquiry_ID', inquiryIds).eq('user_id', userId).order('Last_Contact_Date', { ascending: false });
+      const invPromise = supabase.from('Invoices').select('*, Invoice_Items(*)').in('Inquiry_ID', inquiryIds).eq('user_id', userId);
+      const conPromise = supabase.from('Contracts').select('*').in('Inquiry_ID', inquiryIds).eq('user_id', userId);
 
       const [commsRes, invRes, conRes] = await Promise.all([commsPromise, invPromise, conPromise]);
 
@@ -72,6 +80,12 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient();
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = userAuth.user.id;
+
     const params = await props.params;
     const id = params.id;
 
@@ -92,7 +106,8 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
         Notes: updates.Notes,
         Status: updates.Status
       })
-      .eq('Contact_ID', id);
+      .eq('Contact_ID', id)
+      .eq('user_id', userId);
 
     if (error) throw error;
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { wrapWithGlobalBranding } from '@/lib/email-renderer';
+import { slugifyName } from '@/lib/slugify';
 
 // The booking submission is PUBLIC — clients access it without a login session.
 // We use the service role key to bypass RLS for reading/writing the CRM data.
@@ -226,8 +227,8 @@ export async function POST(req: NextRequest) {
                 let emailSettings: any = {};
                 try { emailSettings = JSON.parse(config.Email_Settings || '{}'); } catch { emailSettings = {}; }
 
-                let parsedBody = tpl.Body.replace(/\[Name\]|\{Name\}/gi, fName).replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name).replace(/\n/g, '<br/>');
-                let parsedSubject = tpl.Subject.replace(/\[Name\]|\{Name\}/gi, fName).replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name);
+                const parsedBody = tpl.Body.replace(/\[Name\]|\{Name\}/gi, fName).replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name).replace(/\n/g, '<br/>');
+                const parsedSubject = tpl.Subject.replace(/\[Name\]|\{Name\}/gi, fName).replace(/\[Client Name\]|\{Client Name\}/gi, contactRow.Name);
                 
                 const clientInnerHtml = `
                   <div style="font-size: 16px; line-height: 1.6;">${parsedBody}</div>
@@ -272,7 +273,8 @@ export async function POST(req: NextRequest) {
     const host = req.headers.get('host') || '';
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = host ? `${protocol}://${host}` : '';
-    const portalLink = finalInquiryId ? `${baseUrl}/portal/${finalInquiryId}` : null;
+    const slug = slugifyName(clientName);
+    const portalLink = finalInquiryId ? `${baseUrl}/portal/${slug}-${finalInquiryId}` : null;
 
     return NextResponse.json({ success: true, portalLink });
   } catch (error: any) {

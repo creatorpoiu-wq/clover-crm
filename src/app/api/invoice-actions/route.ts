@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
       const footer = emailFooter ? replaceVars(emailFooter) : esBody;
       const theme  = accentColor;
 
-      let finalContent = replaceVars(content || '');
+      const finalContent = replaceVars(content || '');
 
       // Build line items table HTML
       const items: { description: string; quantity: number; price: number }[] = lineItems || [];

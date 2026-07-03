@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
+import { randomUUID } from 'crypto';
+import { slugifyName } from '@/lib/slugify';
 
 function getServiceSupabase() {
   return createServiceClient(
@@ -165,6 +167,7 @@ export async function POST(req: NextRequest) {
           Status: 'Signed',
           Signed_Date: today,
           Client_Signature: signature || '',
+          Sign_Token: randomUUID(),
           Type: 'Contract'
         });
       if (contractError) console.error("Contracts insert error:", contractError);
@@ -211,7 +214,8 @@ export async function POST(req: NextRequest) {
     const baseUrl = config?.Custom_Domain
       ? `https://${config.Custom_Domain}`
       : (host ? `${protocol}://${host}` : req.nextUrl.origin);
-    const portalLink = inquiryId ? `${baseUrl}/portal/${inquiryId}` : null;
+    const slug = slugifyName(clientName);
+    const portalLink = inquiryId ? `${baseUrl}/portal/${slug}-${inquiryId}` : null;
 
     // Send confirmation email to client
     if (config?.Email_User && config?.Email_Pass && clientEmail) {
@@ -323,7 +327,7 @@ export async function PATCH(req: NextRequest) {
 
         if (existingContact) {
           contactId = existingContact.Contact_ID;
-          let updatePayload: any = { Status: 'Client' };
+          const updatePayload: any = { Status: 'Client' };
           // Do not override existing Package_ID on the contact level when booking multiple sessions
           await supabase.from('Contacts').update(updatePayload).eq('Contact_ID', contactId);
         } else {
@@ -372,6 +376,7 @@ export async function PATCH(req: NextRequest) {
                 Status: 'Signed',
                 Signed_Date: today,
                 Client_Signature: booking.Signature || '',
+                Sign_Token: randomUUID(),
                 Type: 'Contract'
               });
             }

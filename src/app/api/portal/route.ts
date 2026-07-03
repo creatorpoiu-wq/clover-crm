@@ -20,6 +20,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing inquiryId' }, { status: 400 });
     }
 
+    let cleanInquiryId = inquiryId;
+    if (cleanInquiryId.includes('-')) {
+      const parts = cleanInquiryId.split('-');
+      cleanInquiryId = parts[parts.length - 1];
+    }
+    const parsedInquiryId = parseInt(cleanInquiryId);
+    if (isNaN(parsedInquiryId)) {
+      return NextResponse.json({ success: false, error: 'Invalid inquiryId' }, { status: 400 });
+    }
+
     // 1. Fetch Inquiry details
     const { data: inquiry, error: inquiryError } = await supabase
       .from('Inquiries')
@@ -33,7 +43,7 @@ export async function GET(req: NextRequest) {
         Questionnaire_Data,
         Contacts ( Name, Email, Phone )
       `)
-      .eq('Inquiry_ID', inquiryId)
+      .eq('Inquiry_ID', parsedInquiryId)
       .single();
 
     if (inquiryError || !inquiry) {
@@ -45,29 +55,29 @@ export async function GET(req: NextRequest) {
     // 2. Fetch Contracts linked to Inquiry
     const { data: contracts } = await supabase
       .from('Contracts')
-      .select('Contract_ID, Contract_Title, Status, Sign_Token, Sent_Date, Signed_Date, Type')
-      .eq('Inquiry_ID', inquiryId)
+      .select('Contract_ID, Contract_Title, Status, Sign_Token, Sent_Date, Signed_Date, Type, Contract_Text')
+      .eq('Inquiry_ID', parsedInquiryId)
       .order('Contract_ID', { ascending: false });
 
     // 3. Fetch Invoices linked to Inquiry
     const { data: invoices } = await supabase
       .from('Invoices')
       .select('Invoice_ID, Issue_Date, Due_Date, Status, Total_Amount')
-      .eq('Inquiry_ID', inquiryId)
+      .eq('Inquiry_ID', parsedInquiryId)
       .order('Issue_Date', { ascending: false });
 
     // 4. Fetch Deliverables linked to Inquiry
     const { data: deliverables } = await supabase
       .from('Deliverables')
       .select('Deliverable_ID, Title, Link_URL, Description, Added_Date, Client_Status, Client_Notes')
-      .eq('Inquiry_ID', inquiryId)
+      .eq('Inquiry_ID', parsedInquiryId)
       .order('Added_Date', { ascending: false });
 
     // 5. Fetch Communications (Messages) linked to Inquiry
     const { data: communications } = await supabase
       .from('Communications')
       .select('Comm_ID, Last_Contact_Date, Last_Contact_By, Message, Proposal_Link')
-      .eq('Inquiry_ID', inquiryId)
+      .eq('Inquiry_ID', parsedInquiryId)
       .order('Last_Contact_Date', { ascending: true });
 
     // 6. Fetch Vendor Branding (AppConfig)
@@ -131,15 +141,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing inquiryId or action' }, { status: 400 });
     }
 
+    let cleanInquiryId = String(inquiryId);
+    if (cleanInquiryId.includes('-')) {
+      const parts = cleanInquiryId.split('-');
+      cleanInquiryId = parts[parts.length - 1];
+    }
+    const parsedInquiryId = parseInt(cleanInquiryId);
+    if (isNaN(parsedInquiryId)) {
+      return NextResponse.json({ success: false, error: 'Invalid inquiryId' }, { status: 400 });
+    }
+
     // First fetch the inquiry to get user_id (needed for some tables)
-    const { data: inquiry, error: inqErr } = await supabase.from('Inquiries').select('user_id').eq('Inquiry_ID', inquiryId).single();
+    const { data: inquiry, error: inqErr } = await supabase.from('Inquiries').select('user_id').eq('Inquiry_ID', parsedInquiryId).single();
     if (inqErr || !inquiry) return NextResponse.json({ success: false, error: 'Invalid portal link' }, { status: 404 });
 
     if (action === 'send_message') {
       const { message, clientName } = payload;
       const { error } = await supabase.from('Communications').insert({
         user_id: inquiry.user_id,
-        Inquiry_ID: inquiryId,
+        Inquiry_ID: parsedInquiryId,
         Last_Contact_Date: new Date().toISOString(),
         Last_Contact_By: clientName || 'Client',
         Message: message,
@@ -153,7 +173,7 @@ export async function POST(req: NextRequest) {
       const { questionnaireData } = payload;
       const { error } = await supabase.from('Inquiries').update({
         Questionnaire_Data: questionnaireData
-      }).eq('Inquiry_ID', inquiryId);
+      }).eq('Inquiry_ID', parsedInquiryId);
       if (error) throw error;
       return NextResponse.json({ success: true });
     }
@@ -167,7 +187,7 @@ export async function POST(req: NextRequest) {
         .from('Invoices')
         .select('Invoice_ID')
         .eq('Invoice_ID', invoiceId)
-        .eq('Inquiry_ID', inquiryId)
+        .eq('Inquiry_ID', parsedInquiryId)
         .single();
         
       if (checkError || !invoiceCheck) {

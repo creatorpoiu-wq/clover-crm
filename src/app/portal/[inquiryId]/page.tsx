@@ -145,7 +145,11 @@ export default function ClientPortal() {
       items.push({ text: `Review ${pendingProposals[0].Contract_Title}`, tab: 'documents' });
     }
     if (pendingContracts.length > 0) {
-      items.push({ text: `Sign ${pendingContracts[0].Contract_Title}`, tab: 'documents', action: () => window.open(`/sign/${pendingContracts[0].Sign_Token}`, '_blank') });
+      items.push({ 
+        text: `Sign ${pendingContracts[0].Contract_Title}`, 
+        tab: 'documents', 
+        action: pendingContracts[0].Sign_Token ? () => window.open(`/sign/${pendingContracts[0].Sign_Token}`, '_blank') : undefined 
+      });
     }
     if (pendingInvoices.length > 0) {
       items.push({ text: `Pay Invoice #${pendingInvoices[0].Invoice_ID}`, tab: 'documents', action: () => setPayingInvoice(pendingInvoices[0]) });
@@ -435,7 +439,17 @@ export default function ClientPortal() {
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
-                            <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '6px 12px', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>View</a>
+                            <button onClick={() => {
+                              if (c.Contract_Text) {
+                                const win = window.open('', '_blank');
+                                if (win) {
+                                  win.document.write(`<html><head><title>${c.Contract_Title || 'Proposal'}</title></head><body style="padding:40px;font-family:sans-serif;max-width:800px;margin:0 auto;line-height:1.6;">${c.Contract_Text}</body></html>`);
+                                  win.document.close();
+                                }
+                              } else if (c.Sign_Token) {
+                                window.open(`/sign/${c.Sign_Token}`, '_blank');
+                              }
+                            }} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: 'none', background: 'none', cursor: 'pointer' }}>View</button>
                           </div>
                         )}
                       </div>
@@ -458,11 +472,25 @@ export default function ClientPortal() {
                           <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Status: <span style={{ color: c.Status === 'Signed' ? '#10b981' : '#f59e0b', fontWeight: 600 }}>{c.Status}</span></div>
                         </div>
                         {c.Status !== 'Signed' ? (
-                          <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Review & Sign</a>
+                          c.Sign_Token ? (
+                            <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '8px 16px', background: brandColor, color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Review & Sign</a>
+                          ) : (
+                            <span style={{ fontSize: 13, color: '#f59e0b', fontWeight: 600 }}>Review & Sign (Missing Link)</span>
+                          )
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={16}/> Signed</div>
-                            <a href={`/sign/${c.Sign_Token}`} target="_blank" rel="noreferrer" style={{ padding: '6px 12px', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>View</a>
+                            <button onClick={() => {
+                              if (c.Contract_Text) {
+                                const win = window.open('', '_blank');
+                                if (win) {
+                                  win.document.write(`<html><head><title>${c.Contract_Title || 'Contract'}</title></head><body style="padding:40px;font-family:sans-serif;max-width:800px;margin:0 auto;line-height:1.6;">${c.Contract_Text}</body></html>`);
+                                  win.document.close();
+                                }
+                              } else if (c.Sign_Token) {
+                                window.open(`/sign/${c.Sign_Token}`, '_blank');
+                              }
+                            }} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: 'none', background: 'none', cursor: 'pointer' }}>View</button>
                           </div>
                         )}
                       </div>

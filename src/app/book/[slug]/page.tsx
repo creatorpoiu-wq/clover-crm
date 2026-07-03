@@ -334,7 +334,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
       [hStr, mStr] = startTime.split(':');
     }
     
-    let h = parseInt(hStr, 10);
+    const h = parseInt(hStr, 10);
     const m = parseInt(mStr, 10);
     const totalMinutes = h * 60 + m + durationHours * 60;
     const newH = Math.floor(totalMinutes / 60);

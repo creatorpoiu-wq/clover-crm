@@ -7,10 +7,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   try {
     const supabase = await createClient();
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    const userId = userAuth.user.id;
+
     const { data, error } = await supabase
       .from('Contact_Documents')
       .select('*')
       .eq('Contact_ID', id)
+      .eq('user_id', userId)
       .order('Upload_Date', { ascending: false });
 
     if (error) {
@@ -76,10 +81,15 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const supabase = await createClient();
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    const userId = userAuth.user.id;
+
     const { error } = await supabase
       .from('Contact_Documents')
       .delete()
-      .eq('Document_ID', docId);
+      .eq('Document_ID', docId)
+      .eq('user_id', userId);
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 400 });

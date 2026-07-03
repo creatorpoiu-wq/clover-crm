@@ -4,9 +4,16 @@ import { createClient } from '@/utils/supabase/server';
 export async function GET() {
   try {
     const supabase = await createClient();
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = userAuth.user.id;
+
     const { data: contacts, error } = await supabase
       .from('Contacts')
       .select('*, Packages (Name)')
+      .eq('user_id', userId)
       .order('Contact_ID', { ascending: false });
 
     if (error) throw error;
@@ -27,6 +34,12 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const supabase = await createClient();
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = userAuth.user.id;
+
     const { id, name, email, phone, leadSource, packageId, company, address, status } = await req.json();
     
     if (!id || !name) {
@@ -45,7 +58,8 @@ export async function PUT(req: NextRequest) {
         Address: address || null,
         Status: status || "Lead"
       })
-      .eq('Contact_ID', id);
+      .eq('Contact_ID', id)
+      .eq('user_id', userId);
 
     if (error) throw error;
     
@@ -59,16 +73,22 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const supabase = await createClient();
+    const { data: userAuth } = await supabase.auth.getUser();
+    if (!userAuth.user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = userAuth.user.id;
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     
     if (!id) return NextResponse.json({ success: false, error: "Missing ID" }, { status: 400 });
 
-    // Supabase handles cascade deletion because of ON DELETE CASCADE in the schema
     const { error } = await supabase
       .from('Contacts')
       .delete()
-      .eq('Contact_ID', id);
+      .eq('Contact_ID', id)
+      .eq('user_id', userId);
 
     if (error) throw error;
     

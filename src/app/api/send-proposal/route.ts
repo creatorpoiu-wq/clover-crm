@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
             .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
         };
 
-        let finalContent = replaceVars(template.Content || '');
+        const finalContent = replaceVars(template.Content || '');
 
         // Create Contract
         const { data: newContract, error: insertError } = await supabase
