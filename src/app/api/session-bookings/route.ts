@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { sessionId, userId, clientName, clientEmail, clientPhone, bookedDate, bookedTime, notes, packageId, contractHtml, signature, amountPaid, endTime } = body;
+    const { sessionId, userId, clientName, clientEmail, clientPhone, bookedDate, bookedTime, notes, packageId, contractHtml, signature, amountPaid, endTime, totalAmount, depositAmount, paymentChoice, paymentMethod } = body;
 
     if (!sessionId || !userId || !clientName || !clientEmail || !bookedDate || !bookedTime) {
       return NextResponse.json({ success: false, error: 'Missing required fields.' }, { status: 400 });
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       Package_ID: packageId || null,
       Contract_HTML: contractHtml || null,
       Signature: signature || null,
-      Amount_Paid: amountPaid || 0,
+      Amount_Paid: depositAmount || amountPaid || 0,
       Status: 'Approved'
     };
     if (endTime) insertData['End_Time'] = endTime;
@@ -177,14 +177,19 @@ export async function POST(req: NextRequest) {
     if (inquiryId) {
       const today = new Date().toISOString().split('T')[0];
       const sessionName = booking.Sessions?.Session_Type || booking.Sessions?.Service_Type || 'Session';
+      const actualTotalAmount = Number(totalAmount) || Number(amountPaid) || 0;
+      
+      const isPaid = paymentMethod === 'paypal';
+      const status = isPaid ? (paymentChoice === 'full' ? 'Paid' : 'Deposit Paid') : 'Unpaid';
+
       const { data: newInv, error: invoiceError } = await supabase
         .from('Invoices')
         .insert({
           user_id: userId,
           Inquiry_ID: inquiryId,
           Issue_Date: today,
-          Total_Amount: Number(amountPaid) || 0,
-          Status: Number(amountPaid) > 0 ? 'Paid' : 'Unpaid',
+          Total_Amount: actualTotalAmount,
+          Status: status,
           Due_Date: today
         })
         .select('Invoice_ID')
@@ -197,7 +202,7 @@ export async function POST(req: NextRequest) {
           Invoice_ID: newInv.Invoice_ID,
           Description: sessionName,
           Quantity: 1,
-          Price: Number(amountPaid) || 0
+          Price: actualTotalAmount
         });
       }
     }

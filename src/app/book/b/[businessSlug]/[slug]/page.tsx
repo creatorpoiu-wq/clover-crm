@@ -101,6 +101,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   const [showSigPad, setShowSigPad] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
+  const [paymentChoice, setPaymentChoice] = useState<'retainer' | 'full' | null>(null);
   const [hpValue, setHpValue] = useState('');
 
   const contractContainerRef = useRef<HTMLDivElement>(null);
@@ -293,7 +294,11 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
         packageId: selectedPackage ? selectedPackage.Package_ID : null,
         contractHtml: session.Contract_Template ? (overrideContractHtml || syncedContractHtml || getProcessedContractHtml()) : null,
         signature: signature || null,
-        amountPaid: priceToPay,
+        amountPaid: amountToPayToday,
+        totalAmount: packageTotal,
+        depositAmount: amountToPayToday,
+        paymentChoice: activePaymentChoice,
+        paymentMethod: activeMethodId,
         endTime: isWedding && selectedPackage ? getEndTime(selectedTime, parseDurationHours(selectedPackage.Duration), false) : null
       })
     });
@@ -311,11 +316,6 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
 
   const getProcessedContractHtml = () => {
     if (!session || !session.Contract_Template) return '';
-    const addonsTotal = selectedAddons.reduce((sum, id) => {
-      const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
-      return sum + (addon ? Number(addon.price) : 0);
-    }, 0);
-    const priceToPay = (selectedPackage ? selectedPackage.Price : (session.Price || 0)) + addonsTotal;
     
     const addonNames = selectedAddons.map(id => funnelSettings?.addons?.find((a: any) => a.id === id)?.name).filter(Boolean);
     let pkgName = selectedPackage ? selectedPackage.Name : session.Session_Type;
@@ -332,8 +332,8 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
       eventDate: displayDate,
       eventTime: displayTime,
       packageName: pkgName,
-      totalAmount: priceToPay,
-      retainerAmount: priceToPay * 0.5,
+      totalAmount: packageTotal,
+      retainerAmount: calculatedRetainer,
       todayDate: new Date().toLocaleDateString(),
       customAnswers: { ...form }
     });
@@ -402,6 +402,23 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
     const d = new Date(dateStr + 'T00:00:00');
     return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   };
+
+  const packageTotal = ((selectedPackage ? selectedPackage.Price : (session?.Price || 0)) + selectedAddons.reduce((sum, id) => {
+    const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
+    return sum + (addon ? Number(addon.price) : 0);
+  }, 0));
+
+  const retainerVal = funnelSettings?.retainerAmount != null ? Number(funnelSettings.retainerAmount) : 50;
+  const retainerType = funnelSettings?.retainerType || 'percent';
+  const calculatedRetainer = retainerType === 'percent'
+    ? (packageTotal * retainerVal) / 100
+    : retainerVal;
+
+  const showPaymentChoice = packageTotal > calculatedRetainer && calculatedRetainer > 0;
+  const activePaymentChoice = showPaymentChoice ? paymentChoice : 'full';
+
+  const amountToPayToday = activePaymentChoice === 'full' ? packageTotal : calculatedRetainer;
+  const remainingBalance = activePaymentChoice === 'full' ? 0 : (packageTotal - calculatedRetainer);
 
   const rawMethods: any[] = funnelSettings?.paymentMethods?.length > 0
     ? funnelSettings.paymentMethods.filter((m: any) => m.enabled !== false)
@@ -1147,118 +1164,191 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Payment</h3>
             </div>
             
-            <div style={{ padding: '2rem 1.5rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-              <h2 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: '#0f172a' }}>
-                ${(selectedPackage ? selectedPackage.Price : (session.Price || 0)).toFixed(2)}
-              </h2>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Total due today for <strong>{selectedPackage ? selectedPackage.Name : session.Session_Type}</strong></p>
-            </div>
-            
-            <div style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                {rawMethods.map((m: any) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedMethodId(m.id)}
+            {showPaymentChoice && (
+              <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
+                  Choose Payment Option
+                </h4>
+                <div style={{ display: 'flex', gap: '1rem', flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {/* Pay Retainer Card */}
+                  <div 
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setPaymentChoice('retainer')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setPaymentChoice('retainer'); }}
                     style={{
-                      flex: 1, minWidth: '80px', padding: '12px 10px',
-                      border: activeMethodId === m.id ? '2px solid #0f172a' : '1px solid #e2e8f0',
-                      background: activeMethodId === m.id ? '#f8fafc' : '#fff',
-                      borderRadius: '0.5rem', cursor: 'pointer',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-                      color: activeMethodId === m.id ? '#0f172a' : '#64748b',
-                      transition: 'all 0.2s'
+                      flex: 1, minWidth: '220px', padding: '1.25rem', borderRadius: '0.75rem', border: '2px solid', cursor: 'pointer', transition: 'all 0.2s',
+                      backgroundColor: paymentChoice === 'retainer' ? '#f8fafc' : '#ffffff',
+                      borderColor: paymentChoice === 'retainer' ? '#0f172a' : '#e2e8f0',
                     }}
                   >
-                    <PaymentIcon iconId={m.icon || m.id} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{m.name}</span>
-                  </button>
-                ))}
-              </div>
-
-              <form onSubmit={handleSubmit}>
-                <input 
-                  type="text" 
-                  name="website_url_payment" 
-                  style={{ display: 'none', visibility: 'hidden', opacity: 0, position: 'absolute', left: '-9999px' }} 
-                  tabIndex={-1} 
-                  autoComplete="off" 
-                  value={hpValue} 
-                  onChange={(e) => setHpValue(e.target.value)} 
-                />
-                
-                {isCardMethod ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Cardholder Name</label>
-                      <input required placeholder="Jordan Smith" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Card Number</label>
-                      <div style={{ position: 'relative' }}>
-                        <input required placeholder="0000 0000 0000 0000" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={19} />
-                        <CreditCard size={16} color="#9ca3af" style={{ position: 'absolute', right: 14, top: 14 }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>Pay Retainer</span>
+                      <div style={{ width: '1rem', height: '1rem', borderRadius: '50%', border: '2px solid', borderColor: paymentChoice === 'retainer' ? '#0f172a' : '#cbd5e1', backgroundColor: paymentChoice === 'retainer' ? '#0f172a' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {paymentChoice === 'retainer' && <div style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', backgroundColor: 'white' }} />}
                       </div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      <div>
-                        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Expiration</label>
-                        <input required placeholder="MM/YY" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={5} />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>CVC</label>
-                        <input required placeholder="123" type="password" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={4} />
-                      </div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>
+                      ${calculatedRetainer.toFixed(2)}
                     </div>
-                  </div>
-                ) : (
-                  <div style={{ padding: '1.25rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
-                    <p style={{ fontSize: '0.85rem', color: '#475569', margin: '0 0 1rem', lineHeight: 1.5 }}>
-                      Please send your payment using the details below. Include your name in the reference.
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                      Remaining balance of ${remainingBalance.toFixed(2)} is due later.
                     </p>
-                    {activeMethod?.details?.split('\n').map((line: string, i: number) => (
-                      <div key={i} style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600, marginBottom: '0.25rem' }}>
-                        <PaymentInstruction text={line} color="#0f172a" />
+                  </div>
+
+                  {/* Pay in Full Card */}
+                  <div 
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setPaymentChoice('full')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setPaymentChoice('full'); }}
+                    style={{
+                      flex: 1, minWidth: '220px', padding: '1.25rem', borderRadius: '0.75rem', border: '2px solid', cursor: 'pointer', transition: 'all 0.2s',
+                      backgroundColor: paymentChoice === 'full' ? '#f8fafc' : '#ffffff',
+                      borderColor: paymentChoice === 'full' ? '#0f172a' : '#e2e8f0',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>Pay in Full</span>
+                      <div style={{ width: '1rem', height: '1rem', borderRadius: '50%', border: '2px solid', borderColor: paymentChoice === 'full' ? '#0f172a' : '#cbd5e1', backgroundColor: paymentChoice === 'full' ? '#0f172a' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {paymentChoice === 'full' && <div style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', backgroundColor: 'white' }} />}
                       </div>
+                    </div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>
+                      ${packageTotal.toFixed(2)}
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                      Complete payment now. No future payments needed.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activePaymentChoice === null ? (
+              <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center', color: '#64748b' }}>
+                <CreditCard size={40} style={{ margin: '0 auto 1rem', opacity: 0.6 }} />
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>Select a payment option to continue</h4>
+                <p style={{ fontSize: '0.8rem', maxWidth: '20rem', margin: '0 auto', lineHeight: 1.5 }}>Choose whether you want to pay the retainer or the full amount to see the available payment methods.</p>
+              </div>
+            ) : (
+              <>
+                <div style={{ padding: '2rem 1.5rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
+                  <h2 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: '#0f172a' }}>
+                    ${amountToPayToday.toFixed(2)}
+                  </h2>
+                  <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
+                    {activePaymentChoice === 'full' ? 'Total due today' : 'Retainer due today'} for <strong>{selectedPackage ? selectedPackage.Name : session.Session_Type}</strong>
+                  </p>
+                  {activePaymentChoice === 'retainer' && (
+                    <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.8rem' }}>
+                      Remaining Balance (Due Later): <strong>${remainingBalance.toFixed(2)}</strong>
+                    </p>
+                  )}
+                </div>
+                
+                <div style={{ padding: '1.5rem' }}>
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                    {rawMethods.map((m: any) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedMethodId(m.id)}
+                        type="button"
+                        style={{
+                          flex: 1, minWidth: '80px', padding: '12px 10px',
+                          border: activeMethodId === m.id ? '2px solid #0f172a' : '1px solid #e2e8f0',
+                          background: activeMethodId === m.id ? '#f8fafc' : '#fff',
+                          borderRadius: '0.5rem', cursor: 'pointer',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                          color: activeMethodId === m.id ? '#0f172a' : '#64748b',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <PaymentIcon iconId={m.icon || m.id} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{m.name}</span>
+                      </button>
                     ))}
                   </div>
-                )}
-                
-                {activeMethodId === 'paypal' ? (
-                  <div style={{ marginTop: '1.5rem', minWidth: 300 }}>
-                    <PayPalCheckoutButton 
-                      clientId={funnelSettings?.paypalClientId} 
-                      amount={(selectedPackage ? selectedPackage.Price : (session.Price || 0)) + selectedAddons.reduce((sum, id) => {
-                        const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
-                        return sum + (addon ? Number(addon.price) : 0);
-                      }, 0)} 
-                      description={`Payment for ${selectedPackage ? selectedPackage.Name : session.Session_Type}`}
-                      onSuccess={(details) => {
-                        handleSubmit();
-                      }}
-                      onError={(err) => alert("PayPal payment failed. Please try again or use another method.")}
+
+                  <form onSubmit={handleSubmit}>
+                    <input 
+                      type="text" 
+                      name="website_url_payment" 
+                      style={{ display: 'none', visibility: 'hidden', opacity: 0, position: 'absolute', left: '-9999px' }} 
+                      tabIndex={-1} 
+                      autoComplete="off" 
+                      value={hpValue} 
+                      onChange={(e) => setHpValue(e.target.value)} 
                     />
-                  </div>
-                ) : (
-                  <div style={{ marginTop: '1.5rem' }}>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      style={{ width: '100%', padding: '0.85rem', border: 'none', borderRadius: '0.5rem', backgroundColor: '#0f172a', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                    >
-                      {submitting ? 'Processing...' : isCardMethod ? `Pay $${((selectedPackage ? selectedPackage.Price : (session.Price || 0)) + selectedAddons.reduce((sum, id) => {
-                        const addon = funnelSettings?.addons?.find((a: any) => a.id === id);
-                        return sum + (addon ? Number(addon.price) : 0);
-                      }, 0)).toFixed(2)}` : 'I Have Sent Payment'}
-                      {!submitting && <Lock size={16} />}
-                    </button>
-                    <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-                      <Lock size={12} /> Secure encrypted checkout
-                    </p>
-                  </div>
-                )}
-              </form>
-            </div>
+                    
+                    {isCardMethod ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div>
+                          <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Cardholder Name</label>
+                          <input required placeholder="Jordan Smith" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Card Number</label>
+                          <div style={{ position: 'relative' }}>
+                            <input required placeholder="0000 0000 0000 0000" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={19} />
+                            <CreditCard size={16} color="#9ca3af" style={{ position: 'absolute', right: 14, top: 14 }} />
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                          <div>
+                            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>Expiration</label>
+                            <input required placeholder="MM/YY" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={5} />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>CVC</label>
+                            <input required placeholder="123" type="password" style={{ width: '100%', padding: '0.65rem 0.85rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} maxLength={4} />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '1.25rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+                        <p style={{ fontSize: '0.85rem', color: '#475569', margin: '0 0 1rem', lineHeight: 1.5 }}>
+                          Please send your payment using the details below. Include your name in the reference.
+                        </p>
+                        {activeMethod?.details?.split('\n').map((line: string, i: number) => (
+                          <div key={i} style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600, marginBottom: '0.25rem' }}>
+                            <PaymentInstruction text={line} color="#0f172a" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {activeMethodId === 'paypal' ? (
+                      <div style={{ marginTop: '1.5rem', minWidth: 300 }}>
+                        <PayPalCheckoutButton 
+                          clientId={funnelSettings?.paypalClientId} 
+                          amount={amountToPayToday} 
+                          description={`Payment for ${selectedPackage ? selectedPackage.Name : session.Session_Type}`}
+                          onSuccess={(details) => {
+                            handleSubmit();
+                          }}
+                          onError={(err) => alert("PayPal payment failed. Please try again or use another method.")}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: '1.5rem' }}>
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          style={{ width: '100%', padding: '0.85rem', border: 'none', borderRadius: '0.5rem', backgroundColor: '#0f172a', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                        >
+                          {submitting ? 'Processing...' : isCardMethod ? `Pay $${amountToPayToday.toFixed(2)}` : 'I Have Sent Payment'}
+                          {!submitting && <Lock size={16} />}
+                        </button>
+                        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+                          <Lock size={12} /> Secure encrypted checkout
+                        </p>
+                      </div>
+                    )}
+                  </form>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1281,11 +1371,19 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
               <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '0.75rem 0' }} />
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 600 }}>Total Paid</span>
+                <span style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 600 }}>{activePaymentChoice === 'full' ? 'Total Paid' : 'Amount Paid Today'}</span>
                 <span style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 800 }}>
-                  ${(selectedPackage ? selectedPackage.Price : (session.Price || 0)).toFixed(2)}
+                  ${amountToPayToday.toFixed(2)}
                 </span>
               </div>
+              {activePaymentChoice === 'retainer' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                  <span style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 600 }}>Remaining Balance</span>
+                  <span style={{ fontSize: '0.95rem', color: '#64748b', fontWeight: 700 }}>
+                    ${remainingBalance.toFixed(2)}
+                  </span>
+                </div>
+              )}
             </div>
             {portalLink && (
               <div style={{ margin: '0 0 1.5rem' }}>
