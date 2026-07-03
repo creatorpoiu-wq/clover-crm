@@ -72,17 +72,61 @@ const InputNode = Node.create({
 });
 
 // ─── Custom Checkbox Node ────────────────────────────────────────────────────
-const CheckboxComponent = () => (
-  <NodeViewWrapper as="span" style={{ display: 'inline-flex', verticalAlign: 'baseline', margin: '0 4px' }}>
-    <input type="checkbox" style={{ cursor: 'pointer', width: '14px', height: '14px' }} />
-  </NodeViewWrapper>
-);
+const CheckboxComponent = ({ node, updateAttributes }: any) => {
+  const isRequired = !!node.attrs.required;
+  return (
+    <NodeViewWrapper as="span" style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'baseline', margin: '0 4px', userSelect: 'none' }}>
+      <input 
+        type="checkbox" 
+        style={{ cursor: 'pointer', width: '14px', height: '14px', verticalAlign: 'middle' }} 
+        checked={isRequired}
+        readOnly
+      />
+      <span 
+        onClick={() => updateAttributes({ required: !isRequired })}
+        style={{ 
+          fontSize: '10px', 
+          marginLeft: '4px', 
+          padding: '2px 6px',
+          borderRadius: '4px',
+          fontWeight: 700,
+          cursor: 'pointer',
+          backgroundColor: isRequired ? '#fee2e2' : '#f3f4f6',
+          color: isRequired ? '#ef4444' : '#6b7280',
+          border: isRequired ? '1px solid #fca5a5' : '1px solid #e5e7eb'
+        }}
+      >
+        {isRequired ? 'Required' : 'Optional'}
+      </span>
+    </NodeViewWrapper>
+  );
+};
 
 const CheckboxNode = Node.create({
   name: 'customCheckbox', group: 'inline', inline: true, selectable: true, atom: true,
+  addAttributes() {
+    return {
+      required: {
+        default: false,
+        parseHTML: element => element.hasAttribute('required') || element.getAttribute('data-required') === 'true',
+        renderHTML: attributes => {
+          if (attributes.required) {
+            return { required: 'required', 'data-required': 'true' };
+          }
+          return {};
+        }
+      }
+    };
+  },
   parseHTML() { return [{ tag: 'input[data-custom-checkbox]' }]; },
-  renderHTML({ HTMLAttributes }) {
-    return ['input', mergeAttributes(HTMLAttributes, { 'data-custom-checkbox': true, type: 'checkbox', style: 'width: 14px; height: 14px; vertical-align: middle;' })];
+  renderHTML({ HTMLAttributes, node }) {
+    const requiredAttrs = node?.attrs?.required ? { required: 'required', 'data-required': 'true' } : {};
+    return ['input', mergeAttributes(HTMLAttributes, { 
+      'data-custom-checkbox': true, 
+      type: 'checkbox', 
+      style: 'width: 14px; height: 14px; vertical-align: middle;',
+      ...requiredAttrs
+    })];
   },
   addNodeView() { return ReactNodeViewRenderer(CheckboxComponent); },
 });

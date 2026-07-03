@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { FileText, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
 import SignaturePad from 'signature_pad';
-import { processContractVariables, syncContractFormDOM } from '@/lib/processContract';
+import { processContractVariables, syncContractFormDOM, validateRequiredInputs } from '@/lib/processContract';
 
 interface PortraitContractProps {
   userId: string;
@@ -88,6 +88,9 @@ export default function PortraitContract({
 
   const handleProceed = () => {
     syncAndSaveDOM();
+    if (!validateRequiredInputs(containerRef.current)) {
+      return;
+    }
     if (showSigPad) {
       if (!sigPadRef.current || sigPadRef.current.isEmpty()) {
         setError('Please provide your digital signature before continuing.');

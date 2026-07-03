@@ -162,3 +162,29 @@ export function syncContractFormDOM(containerEl: HTMLElement | null) {
     }
   });
 }
+
+export function validateRequiredInputs(containerEl: HTMLElement | null): boolean {
+  if (!containerEl) return true;
+  const requiredElements = containerEl.querySelectorAll('[required], [data-required="true"]');
+  for (const el of Array.from(requiredElements)) {
+    const inputEl = el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+    if (inputEl.type === 'checkbox' || inputEl.type === 'radio') {
+      if (!(inputEl as HTMLInputElement).checked) {
+        let labelText = inputEl.getAttribute('data-label') || '';
+        if (!labelText) {
+          const parentText = inputEl.parentElement?.textContent?.trim() || '';
+          labelText = parentText || 'required checkbox';
+        }
+        alert(`Please accept: "${labelText.slice(0, 80)}${labelText.length > 80 ? '...' : ''}"`);
+        return false;
+      }
+    } else {
+      if (!inputEl.value.trim()) {
+        const labelText = inputEl.getAttribute('placeholder') || inputEl.getAttribute('data-label') || 'required field';
+        alert(`Please fill in: "${labelText}"`);
+        return false;
+      }
+    }
+  }
+  return true;
+}

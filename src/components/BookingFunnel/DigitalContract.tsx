@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PenTool, Wand2 } from 'lucide-react';
 import SignaturePad from 'signature_pad';
-import { processContractVariables, syncContractFormDOM } from '@/lib/processContract';
+import { processContractVariables, syncContractFormDOM, validateRequiredInputs } from '@/lib/processContract';
 
 interface Props {
   questionnaire: any;
@@ -342,6 +342,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
             <button 
               onClick={() => {
                 syncAndSaveDOM();
+                if (!validateRequiredInputs(containerRef.current)) return;
                 setShowSigPad(true);
               }}
               style={{ width: '100%', padding: '16px', border: '2px dashed #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 15, color: '#4b5563', fontWeight: 700 }}
@@ -357,6 +358,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
         <button 
           onClick={() => {
             syncAndSaveDOM();
+            if (!validateRequiredInputs(containerRef.current)) return;
             const proseEl = containerRef.current?.querySelector('.ProseMirror');
             const finalHtml = proseEl ? proseEl.innerHTML : (containerRef.current ? containerRef.current.innerHTML : getProcessedHtml());
             setContractHtml(finalHtml);

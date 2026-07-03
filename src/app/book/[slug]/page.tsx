@@ -5,7 +5,7 @@ import { getEmbedUrl } from '@/utils/embed';
 import SignaturePad from 'signature_pad';
 import PaymentInstruction from '@/components/PaymentInstruction';
 import PayPalCheckoutButton from '@/components/PayPalCheckoutButton';
-import { processContractVariables, syncContractFormDOM } from '@/lib/processContract';
+import { processContractVariables, syncContractFormDOM, validateRequiredInputs } from '@/lib/processContract';
 
 interface TimeSlot {
   Slot_ID: number;
@@ -46,7 +46,7 @@ const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function generateTimeOptions(slots: TimeSlot[], dayOfWeek: number): string[] {
   const daySlots = slots.filter(s => s.Day_Of_Week === dayOfWeek);
   if (daySlots.length === 0) return [];
-  const times: string[] = [];
+  const timesSet = new Set<string>();
   daySlots.forEach(slot => {
     const [startH, startM] = slot.Start_Time.split(':').map(Number);
     const [endH, endM] = slot.End_Time.split(':').map(Number);
@@ -56,10 +56,23 @@ function generateTimeOptions(slots: TimeSlot[], dayOfWeek: number): string[] {
       const h = Math.floor(current / 60);
       const m = current % 60;
       const label = `${h % 12 === 0 ? 12 : h % 12}:${m.toString().padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
-      times.push(label);
+      timesSet.add(label);
       current += 60; // 1-hour intervals
     }
   });
+
+  const times = Array.from(timesSet);
+  times.sort((a, b) => {
+    const parseTimeToMinutes = (timeStr: string) => {
+      const [time, period] = timeStr.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (period === 'PM' && h !== 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      return h * 60 + m;
+    };
+    return parseTimeToMinutes(a) - parseTimeToMinutes(b);
+  });
+
   return times;
 }
 
@@ -224,6 +237,9 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
       return;
     }
     syncAndSaveDOM();
+    if (!validateRequiredInputs(contractContainerRef.current)) {
+      return;
+    }
     const finalHtml = contractContainerRef.current ? contractContainerRef.current.innerHTML : getProcessedContractHtml();
     setSyncedContractHtml(finalHtml);
 
@@ -715,6 +731,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                   <button 
                     onClick={() => {
                       syncAndSaveDOM();
+                      if (!validateRequiredInputs(contractContainerRef.current)) return;
                       setShowSigPad(true);
                     }} 
                     style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'white', border: '2px dashed #cbd5e1', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, cursor: 'pointer' }}

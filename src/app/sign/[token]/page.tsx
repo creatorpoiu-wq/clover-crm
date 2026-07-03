@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import SignaturePad from 'signature_pad';
 import { formatDate } from '@/lib/formatDate';
-import { syncContractFormDOM } from '@/lib/processContract';
+import { syncContractFormDOM, validateRequiredInputs } from '@/lib/processContract';
 
 export default function SignPage() {
   const { token } = useParams<{ token: string }>();
@@ -60,6 +60,9 @@ export default function SignPage() {
       return;
     }
     syncContractFormDOM(contractContainerRef.current);
+    if (!validateRequiredInputs(contractContainerRef.current)) {
+      return;
+    }
     const contractHtml = contractContainerRef.current ? contractContainerRef.current.innerHTML : null;
 
     setSubmitting(true);
@@ -234,6 +237,7 @@ export default function SignPage() {
                 <button 
                   onClick={() => {
                     syncContractFormDOM(contractContainerRef.current);
+                    if (!validateRequiredInputs(contractContainerRef.current)) return;
                     setShowSigPad(true);
                   }}
                   style={{ width: '100%', padding: '16px', border: '2px dashed #0d9488', borderRadius: 8, background: '#f0fdfa', cursor: 'pointer', fontSize: 15, color: '#0f766e', fontWeight: 700, transition: 'all 0.2s' }}
