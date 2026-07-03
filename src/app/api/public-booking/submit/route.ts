@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceClient();
     const payload = await req.json();
-    const { userId, contractId, questionnaire, pkg, addons, signature, contractHtml, totalAmount, depositAmount, _hp } = payload;
+    const { userId, contractId, questionnaire, pkg, addons, signature, contractHtml, totalAmount, depositAmount, paymentChoice, paymentMethod, _hp } = payload;
 
     // Honeypot check - silently ignore spam
     if (_hp) {
@@ -168,6 +168,9 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      const isPaid = paymentMethod === 'paypal';
+      const status = isPaid ? (paymentChoice === 'full' ? 'Paid' : 'Deposit Paid') : 'Unpaid';
+
       const { data: newInv } = await supabase
         .from('Invoices')
         .insert({
@@ -175,7 +178,7 @@ export async function POST(req: NextRequest) {
           Inquiry_ID: finalInquiryId,
           Issue_Date: today,
           Total_Amount: totalAmount,
-          Status: 'Unpaid',
+          Status: status,
           Due_Date: today
         })
         .select('Invoice_ID')
