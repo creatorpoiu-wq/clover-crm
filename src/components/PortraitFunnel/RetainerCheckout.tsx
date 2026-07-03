@@ -22,6 +22,18 @@ export default function RetainerCheckout({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const formatDisplayDate = (dateStr: string | null) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formattedDueDate = selectedDate ? formatDisplayDate(selectedDate) : 'date selected for the session';
+
   // Dynamic Retainer Amount and Package Selection
   const selectedPackage = (vendorInfo?.packages || []).find((p: any) => p.name === selectedPackageName) || null;
   const packageTotal = selectedPackage?.price ? Number(selectedPackage.price) : 0;
@@ -217,7 +229,7 @@ export default function RetainerCheckout({
                 ${retainerAmount.toFixed(2)}
               </div>
               <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.45, margin: 0 }}>
-                Secure your slot now. The remaining balance of ${balanceDue.toFixed(2)} will be due later.
+                Secure your slot now. The remaining balance of ${balanceDue.toFixed(2)} will be due {formattedDueDate}.
               </p>
             </div>
 

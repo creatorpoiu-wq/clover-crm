@@ -393,6 +393,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
 
   const amountToPayToday = activePaymentChoice === 'full' ? packageTotal : calculatedRetainer;
   const remainingBalance = activePaymentChoice === 'full' ? 0 : (packageTotal - calculatedRetainer);
+  const formattedDueDate = selectedDate ? formatDisplayDate(selectedDate) : 'date selected for the session';
 
   const rawMethods: any[] = funnelSettings?.paymentMethods?.length > 0
     ? funnelSettings.paymentMethods.filter((m: any) => m.enabled !== false)
@@ -814,7 +815,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                       ${calculatedRetainer.toFixed(2)}
                     </div>
                     <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
-                      Remaining balance of ${remainingBalance.toFixed(2)} is due later.
+                      Remaining balance of ${remainingBalance.toFixed(2)} is due {formattedDueDate}.
                     </p>
                   </div>
 
@@ -864,7 +865,7 @@ export default function BookSessionPage({ params }: { params: Promise<{ slug: st
                   </p>
                   {activePaymentChoice === 'retainer' && (
                     <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.8rem' }}>
-                      Remaining Balance (Due Later): <strong>${remainingBalance.toFixed(2)}</strong>
+                      Remaining Balance (Due {formattedDueDate}): <strong>${remainingBalance.toFixed(2)}</strong>
                     </p>
                   )}
                 </div>
