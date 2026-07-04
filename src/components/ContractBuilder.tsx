@@ -107,20 +107,23 @@ const CheckboxNode = Node.create({
   addAttributes() {
     return {
       required: {
-        default: false,
-        parseHTML: element => element.hasAttribute('required') || element.getAttribute('data-required') === 'true',
+        default: true,
+        parseHTML: element => {
+          if (element.getAttribute('data-required') === 'false') return false;
+          return true;
+        },
         renderHTML: attributes => {
-          if (attributes.required) {
-            return { required: 'required', 'data-required': 'true' };
-          }
-          return {};
+          return {
+            required: attributes.required ? 'required' : undefined,
+            'data-required': attributes.required ? 'true' : 'false'
+          };
         }
       }
     };
   },
   parseHTML() { return [{ tag: 'input[data-custom-checkbox]' }]; },
   renderHTML({ HTMLAttributes, node }) {
-    const requiredAttrs = node?.attrs?.required ? { required: 'required', 'data-required': 'true' } : {};
+    const requiredAttrs = node?.attrs?.required ? { required: 'required', 'data-required': 'true' } : { 'data-required': 'false' };
     return ['input', mergeAttributes(HTMLAttributes, { 
       'data-custom-checkbox': true, 
       type: 'checkbox', 

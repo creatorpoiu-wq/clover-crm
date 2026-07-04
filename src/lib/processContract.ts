@@ -165,7 +165,7 @@ export function syncContractFormDOM(containerEl: HTMLElement | null) {
 
 export function validateRequiredInputs(containerEl: HTMLElement | null): boolean {
   if (!containerEl) return true;
-  const requiredElements = containerEl.querySelectorAll('[required], [data-required="true"]');
+  const requiredElements = containerEl.querySelectorAll('[required], [data-required="true"], input[type="checkbox"]:not([data-required="false"])');
   for (const el of Array.from(requiredElements)) {
     const inputEl = el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     if (inputEl.type === 'checkbox' || inputEl.type === 'radio') {
