@@ -191,15 +191,6 @@ function InquiryFormContent() {
               </select>
             </div>
 
-            <div>
-              <label className="label">Investment Level</label>
-              <select name="budget" value={formData.budget} onChange={handleChange} className="input">
-                <option value="" disabled>Select your budget range...</option>
-                {budgets.map(b => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
 
             <button 
               type="submit" 

@@ -383,23 +383,6 @@ function PortraitBookingContent() {
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    <DollarSign size={16} /> Budget Range
-                  </label>
-                  <select 
-                    name="budget" 
-                    value={formData.budget} 
-                    onChange={handleChange} 
-                    className="input-field"
-                    style={{ fontSize: '1rem', padding: '1rem', borderRadius: '0.75rem', height: 'auto' }}
-                  >
-                    <option value="" disabled>Select a range...</option>
-                    {(vendorInfo?.budgetRanges || ['Under $500', '$500 - $1,000', '$1,000 - $2,000', '$2,000+']).map((range: string) => (
-                      <option key={range} value={range}>{range}</option>
-                    ))}
-                  </select>
-                </div>
                 
                 {/* Dynamic Custom Questions */}
                 {customQuestions.map((q: any, i: number) => (
