@@ -29,6 +29,9 @@ export default function GalleryManager() {
   const [isAddMediaOpen, setIsAddMediaOpen] = useState(false);
   const [newMediaUrl, setNewMediaUrl] = useState("");
   const [newMediaType, setNewMediaType] = useState<'photo' | 'video'>('photo');
+  const [uploadTab, setUploadTab] = useState<'upload' | 'url'>('upload');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<{ name: string; progress: number; status: 'pending' | 'uploading' | 'success' | 'error' }[]>([]);
 
   useEffect(() => {
     fetchGallery();
@@ -193,6 +196,92 @@ export default function GalleryManager() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleUploadFiles = async (files: FileList) => {
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    
+    const newItems = Array.from(files).map(f => ({
+      name: f.name,
+      progress: 0,
+      status: 'pending' as const
+    }));
+    setUploadQueue(newItems);
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      setUploadQueue(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'uploading' } : item));
+
+      try {
+        const res = await fetch('/api/gallery-media/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            galleryId: gallery.Gallery_ID,
+            albumId: selectedAlbumId,
+            filename: file.name,
+            contentType: file.type
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to get upload URL');
+
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', data.uploadUrl);
+          xhr.setRequestHeader('Content-Type', file.type);
+          
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percentage = Math.round((event.loaded / event.total) * 100);
+              setUploadQueue(prev => prev.map((item, idx) => idx === i ? { ...item, progress: percentage } : item));
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              resolve();
+            } else {
+              reject(new Error(`Upload failed: ${xhr.status}`));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.send(file);
+        });
+
+        const dbRes = await fetch('/api/gallery-media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Gallery_ID: gallery.Gallery_ID,
+            Album_ID: selectedAlbumId,
+            Media_Type: file.type.startsWith('video/') ? 'video' : 'photo',
+            Url: data.publicUrl,
+            Thumbnail_Url: data.publicUrl,
+            File_Name: file.name
+          })
+        });
+        const dbData = await dbRes.json();
+        if (!dbData.success) throw new Error(dbData.error || 'Failed to register media');
+
+        setMedia(prev => [...prev, dbData.data]);
+        setUploadQueue(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'success', progress: 100 } : item));
+
+      } catch (err: any) {
+        console.error(err);
+        setUploadQueue(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'error' } : item));
+      }
+    }
+
+    setIsUploading(false);
+    setTimeout(() => {
+      setIsAddMediaOpen(false);
+      setUploadQueue([]);
+    }, 1500);
   };
 
   const handleDeleteMedia = async (mediaId: number) => {
@@ -483,41 +572,110 @@ export default function GalleryManager() {
       {/* Add Media Modal */}
       {isAddMediaOpen && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-          <form onSubmit={handleAddMedia} style={{ backgroundColor: "white", padding: "2rem", borderRadius: "1rem", width: "100%", maxWidth: "500px" }}>
+          <div style={{ backgroundColor: "white", padding: "2rem", borderRadius: "1rem", width: "100%", maxWidth: "500px", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}>
             <h2 style={{ fontSize: "1.25rem", fontWeight: "bold", margin: "0 0 1rem 0" }}>Add Media</h2>
             
-            {gallery.Gallery_Type === 'both' && (
-              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-                <button type="button" onClick={() => setNewMediaType('photo')} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: newMediaType === 'photo' ? "2px solid #0f172a" : "1px solid #cbd5e1", background: "white", color: newMediaType === 'photo' ? "#0f172a" : "#64748b" }}>Photo</button>
-                <button type="button" onClick={() => setNewMediaType('video')} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: newMediaType === 'video' ? "2px solid #0f172a" : "1px solid #cbd5e1", background: "white", color: newMediaType === 'video' ? "#0f172a" : "#64748b" }}>Video</button>
+            {/* Tab selector */}
+            <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "1.5rem" }}>
+              <button 
+                type="button" 
+                onClick={() => setUploadTab('upload')}
+                style={{ flex: 1, padding: "0.75rem", border: "none", background: "none", borderBottom: uploadTab === 'upload' ? "2px solid #0f172a" : "none", color: uploadTab === 'upload' ? "#0f172a" : "#64748b", fontWeight: 600, cursor: "pointer" }}
+              >
+                Upload Files
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setUploadTab('url')}
+                style={{ flex: 1, padding: "0.75rem", border: "none", background: "none", borderBottom: uploadTab === 'url' ? "2px solid #0f172a" : "none", color: uploadTab === 'url' ? "#0f172a" : "#64748b", fontWeight: 600, cursor: "pointer" }}
+              >
+                Add via URL
+              </button>
+            </div>
+
+            {uploadTab === 'upload' ? (
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div 
+                  onClick={() => !isUploading && document.getElementById('file-upload-input')?.click()}
+                  style={{
+                    border: "2px dashed #cbd5e1",
+                    borderRadius: "0.75rem",
+                    padding: "2.5rem 1.5rem",
+                    textAlign: "center",
+                    cursor: isUploading ? "not-allowed" : "pointer",
+                    backgroundColor: "#f8fafc",
+                    transition: "all 0.2s"
+                  }}
+                >
+                  <input 
+                    type="file" 
+                    id="file-upload-input" 
+                    multiple 
+                    accept="image/*,video/*" 
+                    onChange={e => e.target.files && handleUploadFiles(e.target.files)} 
+                    style={{ display: "none" }}
+                    disabled={isUploading}
+                  />
+                  <div style={{ color: "#64748b", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
+                    <Plus size={32} style={{ opacity: 0.5 }} />
+                    <span style={{ fontSize: "0.875rem", fontWeight: 600 }}>Click to select images or videos</span>
+                    <span style={{ fontSize: "0.75rem" }}>Supports JPEG, PNG, WEBP, MP4, etc.</span>
+                  </div>
+                </div>
+
+                {uploadQueue.length > 0 && (
+                  <div style={{ marginTop: "1.5rem", maxHeight: "150px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid #e2e8f0", padding: "0.5rem", borderRadius: "0.5rem" }}>
+                    {uploadQueue.map((item, idx) => (
+                      <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", padding: "0.25rem 0" }}>
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>{item.name}</span>
+                        <span style={{ fontWeight: 600, color: item.status === 'success' ? '#16a34a' : item.status === 'error' ? '#dc2626' : '#3b82f6' }}>
+                          {item.status === 'uploading' ? `${item.progress}%` : item.status === 'success' ? 'Uploaded' : item.status === 'error' ? 'Failed' : 'Pending'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem", marginTop: "1.5rem" }}>
+                  <button type="button" onClick={() => setIsAddMediaOpen(false)} disabled={isUploading} style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1", background: "white", cursor: isUploading ? "not-allowed" : "pointer" }}>Cancel</button>
+                </div>
               </div>
+            ) : (
+              <form onSubmit={handleAddMedia}>
+                {gallery.Gallery_Type === 'both' && (
+                  <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+                    <button type="button" onClick={() => setNewMediaType('photo')} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: newMediaType === 'photo' ? "2px solid #0f172a" : "1px solid #cbd5e1", background: "white", color: newMediaType === 'photo' ? "#0f172a" : "#64748b" }}>Photo</button>
+                    <button type="button" onClick={() => setNewMediaType('video')} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: newMediaType === 'video' ? "2px solid #0f172a" : "1px solid #cbd5e1", background: "white", color: newMediaType === 'video' ? "#0f172a" : "#64748b" }}>Video</button>
+                  </div>
+                )}
+
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.5rem" }}>
+                    {newMediaType === 'photo' ? "Image URL (Google Drive, Cloudinary, etc.)" : "Video URL (YouTube or Vimeo)"}
+                  </label>
+                  <input 
+                    autoFocus
+                    required
+                    type="text" 
+                    placeholder="https://"
+                    value={newMediaUrl} 
+                    onChange={e => setNewMediaUrl(e.target.value)}
+                    style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
+                  />
+                  <p style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.5rem" }}>
+                    {newMediaType === 'photo' 
+                      ? "For Google Drive, paste the 'Anyone with link can view' URL. It will be converted automatically." 
+                      : "Paste a YouTube or Vimeo link."}
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+                  <button type="button" onClick={() => setIsAddMediaOpen(false)} style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1", background: "white" }}>Cancel</button>
+                  <button type="submit" style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", border: "none", background: "#0f172a", color: "white" }}>Add</button>
+                </div>
+              </form>
             )}
-
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.5rem" }}>
-                {newMediaType === 'photo' ? "Image URL (Google Drive, Cloudinary, etc.)" : "Video URL (YouTube or Vimeo)"}
-              </label>
-              <input 
-                autoFocus
-                required
-                type="text" 
-                placeholder="https://"
-                value={newMediaUrl} 
-                onChange={e => setNewMediaUrl(e.target.value)}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1" }}
-              />
-              <p style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.5rem" }}>
-                {newMediaType === 'photo' 
-                  ? "For Google Drive, paste the 'Anyone with link can view' URL. It will be converted automatically." 
-                  : "Paste a YouTube or Vimeo link."}
-              </p>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-              <button type="button" onClick={() => setIsAddMediaOpen(false)} style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1", background: "white" }}>Cancel</button>
-              <button type="submit" style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", border: "none", background: "#0f172a", color: "white" }}>Add</button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
     </div>
