@@ -80,7 +80,7 @@ const CheckboxComponent = ({ node, updateAttributes }: any) => {
         type="checkbox" 
         style={{ cursor: 'pointer', width: '14px', height: '14px', verticalAlign: 'middle' }} 
         checked={isRequired}
-        readOnly
+        onChange={() => updateAttributes({ required: !isRequired })}
       />
       <span 
         onClick={() => updateAttributes({ required: !isRequired })}
