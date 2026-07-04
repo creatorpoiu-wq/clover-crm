@@ -201,6 +201,7 @@ export default function GalleryManager() {
   const handleUploadFiles = async (files: FileList) => {
     if (!files || files.length === 0) return;
     setIsUploading(true);
+    let uploadHasError = false;
     
     const newItems = Array.from(files).map(f => ({
       name: f.name,
@@ -273,15 +274,18 @@ export default function GalleryManager() {
 
       } catch (err: any) {
         console.error(err);
+        uploadHasError = true;
         setUploadQueue(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'error' } : item));
       }
     }
 
     setIsUploading(false);
-    setTimeout(() => {
-      setIsAddMediaOpen(false);
-      setUploadQueue([]);
-    }, 1500);
+    if (!uploadHasError) {
+      setTimeout(() => {
+        setIsAddMediaOpen(false);
+        setUploadQueue([]);
+      }, 1500);
+    }
   };
 
   const handleDeleteMedia = async (mediaId: number) => {
@@ -597,6 +601,9 @@ export default function GalleryManager() {
               <div style={{ marginBottom: "1.5rem" }}>
                 <div 
                   onClick={() => !isUploading && document.getElementById('file-upload-input')?.click()}
+                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  onDrop={(e) => { e.preventDefault(); e.stopPropagation(); if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleUploadFiles(e.dataTransfer.files); }}
                   style={{
                     border: "2px dashed #cbd5e1",
                     borderRadius: "0.75rem",
