@@ -31,7 +31,7 @@ export default function GalleryManager() {
   const [newMediaType, setNewMediaType] = useState<'photo' | 'video'>('photo');
   const [uploadTab, setUploadTab] = useState<'upload' | 'url'>('upload');
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadQueue, setUploadQueue] = useState<{ name: string; progress: number; status: 'pending' | 'uploading' | 'success' | 'error' }[]>([]);
+  const [uploadQueue, setUploadQueue] = useState<{ name: string; progress: number; status: 'pending' | 'uploading' | 'success' | 'error'; error?: string }[]>([]);
 
   useEffect(() => {
     fetchGallery();
@@ -275,7 +275,8 @@ export default function GalleryManager() {
       } catch (err: any) {
         console.error(err);
         uploadHasError = true;
-        setUploadQueue(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'error' } : item));
+        const errMsg = err.message || 'Unknown error';
+        setUploadQueue(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'error', error: errMsg } : item));
       }
     }
 
@@ -630,14 +631,21 @@ export default function GalleryManager() {
                   </div>
                 </div>
 
-                {uploadQueue.length > 0 && (
+                 {uploadQueue.length > 0 && (
                   <div style={{ marginTop: "1.5rem", maxHeight: "150px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid #e2e8f0", padding: "0.5rem", borderRadius: "0.5rem" }}>
                     {uploadQueue.map((item, idx) => (
-                      <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", padding: "0.25rem 0" }}>
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>{item.name}</span>
-                        <span style={{ fontWeight: 600, color: item.status === 'success' ? '#16a34a' : item.status === 'error' ? '#dc2626' : '#3b82f6' }}>
-                          {item.status === 'uploading' ? `${item.progress}%` : item.status === 'success' ? 'Uploaded' : item.status === 'error' ? 'Failed' : 'Pending'}
-                        </span>
+                      <div key={idx} style={{ display: "flex", flexDirection: "column", fontSize: "0.75rem", padding: "0.25rem 0", borderBottom: idx < uploadQueue.length - 1 ? "1px solid #f1f5f9" : "none" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "250px", fontWeight: 500 }}>{item.name}</span>
+                          <span style={{ fontWeight: 600, color: item.status === 'success' ? '#16a34a' : item.status === 'error' ? '#dc2626' : '#3b82f6' }}>
+                            {item.status === 'uploading' ? `${item.progress}%` : item.status === 'success' ? 'Uploaded' : item.status === 'error' ? 'Failed' : 'Pending'}
+                          </span>
+                        </div>
+                        {item.status === 'error' && item.error && (
+                          <div style={{ color: "#dc2626", fontSize: "0.7rem", marginTop: "2px", lineHeight: "1.2" }}>
+                            Reason: {item.error}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
