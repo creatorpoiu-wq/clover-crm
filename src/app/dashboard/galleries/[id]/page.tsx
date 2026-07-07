@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Image as ImageIcon, Video, Settings, ExternalLink, Trash2, GripVertical, Check, Eye, EyeOff } from "lucide-react";
+import { ChevronLeft, Plus, Image as ImageIcon, Video, Settings, ExternalLink, Trash2, GripVertical, Check, Eye, EyeOff, Heart } from "lucide-react";
 import Link from "next/link";
 import ImageDropzone from "@/components/ui/ImageDropzone";
 
@@ -20,8 +20,10 @@ export default function GalleryManager() {
   const [customDomain, setCustomDomain] = useState("");
 
   // UI state
-  const [activeTab, setActiveTab] = useState<'media' | 'settings'>('media');
+  const [activeTab, setActiveTab] = useState<'media' | 'settings' | 'proofing'>('media');
   const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null);
+  const [proofingFavorites, setProofingFavorites] = useState<Record<string, any[]>>({});
+  const [selectedClientEmail, setSelectedClientEmail] = useState<string | null>(null);
   
   // Modals
   const [isAddAlbumOpen, setIsAddAlbumOpen] = useState(false);
@@ -86,6 +88,27 @@ export default function GalleryManager() {
       setIsSaving(false);
     }
   };
+
+  const fetchProofingFavorites = async () => {
+    try {
+      const res = await fetch(`/api/gallery-favorites/admin?galleryId=${galleryId}`);
+      const data = await res.json();
+      if (data.success) {
+        setProofingFavorites(data.data);
+        if (Object.keys(data.data).length > 0 && !selectedClientEmail) {
+          setSelectedClientEmail(Object.keys(data.data)[0]);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'proofing') {
+      fetchProofingFavorites();
+    }
+  }, [activeTab]);
 
   const handleDeleteGallery = async () => {
     if (!confirm("Are you sure you want to permanently delete this gallery and all its media? This cannot be undone.")) return;
@@ -349,6 +372,14 @@ export default function GalleryManager() {
             >
               <Settings size={18} /> Settings
             </button>
+            {gallery.Enable_Proofing && (
+              <button 
+                onClick={() => setActiveTab('proofing')}
+                style={{ width: "100%", textAlign: "left", padding: "0.75rem 1rem", borderRadius: "0.5rem", border: "none", background: activeTab === 'proofing' ? "#fff1f2" : "transparent", color: activeTab === 'proofing' ? "#be123c" : "#64748b", fontWeight: activeTab === 'proofing' ? 600 : 500, cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}
+              >
+                <Heart size={18} /> Client Proofing
+              </button>
+            )}
           </div>
 
           {activeTab === 'media' && (
@@ -444,7 +475,7 @@ export default function GalleryManager() {
               </div>
             )}
           </div>
-        ) : (
+        ) : activeTab === 'settings' ? (
           <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
             <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#0f172a", margin: "0 0 2rem 0" }}>Gallery Settings</h2>
             
@@ -516,6 +547,17 @@ export default function GalleryManager() {
                 />
               </div>
 
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <input 
+                  type="checkbox" 
+                  id="enable_proofing"
+                  checked={gallery.Enable_Proofing || false}
+                  onChange={e => setGallery({...gallery, Enable_Proofing: e.target.checked})}
+                  style={{ width: "1.25rem", height: "1.25rem", cursor: "pointer" }}
+                />
+                <label htmlFor="enable_proofing" style={{ fontSize: "0.875rem", fontWeight: 600, color: "#334155", cursor: "pointer" }}>Enable Client Proofing (Favorites)</label>
+              </div>
+
               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #e2e8f0" }}>
                 {saveSuccess && <span style={{ color: "#16a34a", fontSize: "0.875rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.25rem" }}><Check size={16}/> Saved!</span>}
                 <button 
@@ -526,7 +568,8 @@ export default function GalleryManager() {
                     Event_Date: gallery.Event_Date,
                     Download_Url: gallery.Download_Url,
                     Password: gallery.Password,
-                    Is_Published: gallery.Is_Published
+                    Is_Published: gallery.Is_Published,
+                    Enable_Proofing: gallery.Enable_Proofing
                   })}
                   disabled={isSaving}
                   style={{ backgroundColor: "#0f172a", color: "white", border: "none", padding: "0.75rem 2rem", borderRadius: "0.5rem", fontWeight: 600, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.7 : 1 }}
@@ -548,6 +591,79 @@ export default function GalleryManager() {
               </div>
 
             </div>
+          </div>
+        ) : (
+          <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
+            <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#0f172a", margin: "0 0 2rem 0" }}>Client Proofing</h2>
+            {Object.keys(proofingFavorites).length === 0 ? (
+              <div style={{ backgroundColor: "white", padding: "4rem 2rem", borderRadius: "1rem", border: "1px dashed #cbd5e1", textAlign: "center", color: "#64748b" }}>
+                <Heart size={48} style={{ margin: "0 auto 1rem auto", color: "#cbd5e1" }} />
+                <p>No clients have favorited any media yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "2rem", minHeight: "60vh" }}>
+                {/* Email List */}
+                <div style={{ width: "280px", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  <h3 style={{ fontSize: "0.875rem", fontWeight: 700, textTransform: "uppercase", color: "#94a3b8", marginBottom: "0.5rem" }}>Clients</h3>
+                  {Object.keys(proofingFavorites).map(email => (
+                    <button
+                      key={email}
+                      onClick={() => setSelectedClientEmail(email)}
+                      style={{
+                        textAlign: "left",
+                        padding: "0.75rem 1rem",
+                        borderRadius: "0.5rem",
+                        border: "none",
+                        background: selectedClientEmail === email ? "#eff6ff" : "white",
+                        color: selectedClientEmail === email ? "#1d4ed8" : "#475569",
+                        fontWeight: selectedClientEmail === email ? 600 : 500,
+                        cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        boxShadow: selectedClientEmail === email ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
+                      }}
+                    >
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: "180px", whiteSpace: "nowrap" }}>{email}</span>
+                      <span style={{ fontSize: "0.75rem", backgroundColor: selectedClientEmail === email ? "#bfdbfe" : "#f1f5f9", padding: "0.2rem 0.5rem", borderRadius: "999px", fontWeight: 700 }}>
+                        {proofingFavorites[email].length}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Favorites Grid */}
+                <div style={{ flex: 1, backgroundColor: "white", padding: "1.5rem", borderRadius: "1rem", border: "1px solid #e2e8f0" }}>
+                  {selectedClientEmail && proofingFavorites[selectedClientEmail] ? (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                        <h3 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#0f172a", margin: 0 }}>
+                          Favorites for <span style={{ color: "#3b82f6" }}>{selectedClientEmail}</span>
+                        </h3>
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}>
+                        {proofingFavorites[selectedClientEmail].map(fav => (
+                          <div key={fav.favoriteId} style={{ position: "relative", aspectRatio: fav.mediaType === 'video' ? '16/9' : '1', backgroundColor: "#e2e8f0", borderRadius: "0.5rem", overflow: "hidden" }}>
+                            <img src={fav.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            {fav.mediaType === 'video' && (
+                              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                                  <Video size={16} />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#64748b" }}>
+                      Select a client to view their favorites.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

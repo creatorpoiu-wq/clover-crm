@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
+import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft, Heart } from "lucide-react";
 import dynamic from "next/dynamic";
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 
@@ -25,6 +25,12 @@ export default function PublicGallery() {
   const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<'photos' | 'films'>('photos');
+  const [clientEmail, setClientEmail] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [tempEmail, setTempEmail] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favoriteActionMediaId, setFavoriteActionMediaId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -57,6 +63,107 @@ export default function PublicGallery() {
     };
     fetchGallery();
   }, [slug]);
+
+  // Load email from local storage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedEmail = localStorage.getItem(`gallery_email_${slug}`);
+      if (savedEmail) {
+        setClientEmail(savedEmail);
+      }
+    }
+  }, [slug]);
+
+  // Fetch favorites when email or gallery changes
+  useEffect(() => {
+    if (clientEmail && gallery?.Gallery_ID) {
+      fetchFavorites();
+    }
+  }, [clientEmail, gallery]);
+
+  const fetchFavorites = async () => {
+    try {
+      const res = await fetch(`/api/gallery-favorites?galleryId=${gallery.Gallery_ID}&email=${encodeURIComponent(clientEmail || '')}`);
+      const data = await res.json();
+      if (data.success) {
+        setFavorites(data.data);
+      }
+    } catch (err) {
+      console.error("Error loading favorites:", err);
+    }
+  };
+
+  const handleToggleFavorite = async (mediaId: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
+    if (!clientEmail) {
+      setFavoriteActionMediaId(mediaId);
+      setIsEmailModalOpen(true);
+      return;
+    }
+
+    try {
+      const isFav = favorites.includes(mediaId);
+      setFavorites(prev => isFav ? prev.filter(id => id !== mediaId) : [...prev, mediaId]);
+
+      const res = await fetch('/api/gallery-favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          galleryId: gallery.Gallery_ID,
+          mediaId,
+          email: clientEmail
+        })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setFavorites(prev => isFav ? [...prev, mediaId] : prev.filter(id => id !== mediaId));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleFavoriteDirect = async (mediaId: number, email: string) => {
+    try {
+      const isFav = favorites.includes(mediaId);
+      setFavorites(prev => isFav ? prev.filter(id => id !== mediaId) : [...prev, mediaId]);
+
+      const res = await fetch('/api/gallery-favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          galleryId: gallery.Gallery_ID,
+          mediaId,
+          email
+        })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setFavorites(prev => isFav ? [...prev, mediaId] : prev.filter(id => id !== mediaId));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tempEmail || !tempEmail.includes('@')) return;
+    
+    const email = tempEmail.toLowerCase().trim();
+    localStorage.setItem(`gallery_email_${slug}`, email);
+    setClientEmail(email);
+    setIsEmailModalOpen(false);
+    
+    if (favoriteActionMediaId !== null) {
+      const mediaId = favoriteActionMediaId;
+      setFavoriteActionMediaId(null);
+      setTimeout(() => {
+        handleToggleFavoriteDirect(mediaId, email);
+      }, 100);
+    }
+  };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,8 +230,16 @@ export default function PublicGallery() {
     );
   }
 
-  const photos = media.filter(m => m.Media_Type === 'photo' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
-  const videos = media.filter(m => m.Media_Type === 'video' && (activeAlbumId ? m.Album_ID === activeAlbumId : true));
+  const photos = media.filter(m => {
+    const matchesAlbum = activeAlbumId ? m.Album_ID === activeAlbumId : true;
+    const matchesFavorites = showFavoritesOnly ? favorites.includes(m.Media_ID) : true;
+    return m.Media_Type === 'photo' && matchesAlbum && matchesFavorites;
+  });
+  const videos = media.filter(m => {
+    const matchesAlbum = activeAlbumId ? m.Album_ID === activeAlbumId : true;
+    const matchesFavorites = showFavoritesOnly ? favorites.includes(m.Media_ID) : true;
+    return m.Media_Type === 'video' && matchesAlbum && matchesFavorites;
+  });
   const hasVideos = media.some(m => m.Media_Type === 'video'); // compute on all media
   const hasPhotos = media.some(m => m.Media_Type === 'photo');
 
@@ -222,6 +337,31 @@ export default function PublicGallery() {
                 style={{ marginBottom: "0.5rem", position: "relative", breakInside: "avoid", cursor: "pointer", overflow: "hidden" }}
               >
                 <img src={photo.Url} alt="" style={{ width: "100%", display: "block", backgroundColor: "#f3f4f6" }} />
+                {gallery.Enable_Proofing && (
+                  <button
+                    onClick={(e) => handleToggleFavorite(photo.Media_ID, e)}
+                    style={{
+                      position: "absolute",
+                      top: "1rem",
+                      left: "1rem",
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: "36px",
+                      height: "36px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                      zIndex: 10,
+                      transition: "transform 0.2s"
+                    }}
+                    className="hover:scale-105"
+                  >
+                    <Heart size={16} fill={favorites.includes(photo.Media_ID) ? "#ef4444" : "none"} color={favorites.includes(photo.Media_ID) ? "#ef4444" : "#475569"} />
+                  </button>
+                )}
                 {gallery.Allow_Download !== false && (
                   <button 
                     onClick={(e) => handleDownloadSingle(photo.Url, e)}
@@ -278,6 +418,16 @@ export default function PublicGallery() {
             style={{ position: "absolute", right: "1.5rem", background: "rgba(255,255,255,0.1)", border: "none", borderRadius: "50%", width: "48px", height: "48px", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
           ><ChevronRight size={24} /></button>
 
+          {gallery.Enable_Proofing && (
+            <button 
+              onClick={(e) => handleToggleFavorite(photos[lightboxIndex].Media_ID, e)}
+              style={{ position: "absolute", top: "1.5rem", right: "14rem", background: "none", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "2rem", padding: "0.5rem 1.5rem", color: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem" }}
+            >
+              <Heart size={16} fill={favorites.includes(photos[lightboxIndex].Media_ID) ? "#ef4444" : "none"} color={favorites.includes(photos[lightboxIndex].Media_ID) ? "#ef4444" : "white"} />
+              {favorites.includes(photos[lightboxIndex].Media_ID) ? "Favorited" : "Favorite"}
+            </button>
+          )}
+
           {gallery.Allow_Download !== false && (
             <button 
               onClick={(e) => handleDownloadSingle(photos[lightboxIndex].Url, e)}
@@ -326,6 +476,73 @@ export default function PublicGallery() {
               );
             })()}
           </div>
+        </div>
+      )}
+
+      {/* Floating Favorites Bar */}
+      {gallery.Enable_Proofing && favorites.length > 0 && (
+        <div style={{
+          position: "fixed",
+          bottom: "2rem",
+          left: "50%",
+          transform: "translateX(-50%)",
+          backgroundColor: "#0f172a",
+          color: "white",
+          padding: "0.75rem 1.5rem",
+          borderRadius: "9999px",
+          display: "flex",
+          alignItems: "center",
+          gap: "1.5rem",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+          zIndex: 45,
+          fontFamily: "system-ui, -apple-system, sans-serif"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Heart size={18} fill="#ef4444" color="#ef4444" />
+            <span style={{ fontSize: "0.875rem", fontWeight: 600 }}>{favorites.length} Selected</span>
+          </div>
+          <div style={{ width: "1px", height: "16px", backgroundColor: "#334155" }} />
+          <button 
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            style={{
+              background: "none",
+              border: "none",
+              color: showFavoritesOnly ? "#ef4444" : "#94a3b8",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "0.25rem"
+            }}
+          >
+            {showFavoritesOnly ? "Show All" : "View Selected Only"}
+          </button>
+        </div>
+      )}
+
+      {/* Email Collection Modal */}
+      {isEmailModalOpen && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 110 }}>
+          <form onSubmit={handleEmailSubmit} style={{ backgroundColor: "white", padding: "2rem", borderRadius: "1rem", width: "100%", maxWidth: "400px", textAlign: "center", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}>
+            <Heart size={32} fill="#ef4444" color="#ef4444" style={{ margin: "0 auto 1rem auto" }} />
+            <h2 style={{ fontSize: "1.25rem", fontWeight: "bold", color: "#0f172a", margin: "0 0 0.5rem 0" }}>Favorite this Photo</h2>
+            <p style={{ color: "#64748b", fontSize: "0.875rem", margin: "0 0 1.5rem 0" }}>
+              Please enter your email to create a favorites list. This allows the photographer to view your selections.
+            </p>
+            <input 
+              required
+              type="email" 
+              placeholder="your.email@example.com"
+              value={tempEmail}
+              onChange={e => setTempEmail(e.target.value)}
+              style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1", marginBottom: "1.5rem", textAlign: "center" }}
+            />
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button type="button" onClick={() => setIsEmailModalOpen(false)} style={{ flex: 1, padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}>Cancel</button>
+              <button type="submit" style={{ flex: 1, padding: "0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#0f172a", color: "white", fontWeight: 600, cursor: "pointer" }}>Submit</button>
+            </div>
+          </form>
         </div>
       )}
 
