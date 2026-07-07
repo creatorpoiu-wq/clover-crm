@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 export async function GET(request: Request) {
   try {
@@ -28,8 +29,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized to access this gallery\'s proofing data' }, { status: 403 });
     }
 
+    // Use service role client to fetch favorites to bypass RLS since we already authorized
+    const serviceSupabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Fetch all favorites with media metadata
-    const { data: favorites, error: favsError } = await supabase
+    const { data: favorites, error: favsError } = await serviceSupabase
       .from('Gallery_Favorites')
       .select(`
         Favorite_ID,
