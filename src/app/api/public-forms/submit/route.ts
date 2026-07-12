@@ -100,6 +100,21 @@ export async function POST(req: NextRequest) {
       contactId = newContact.Contact_ID;
     }
 
+    // Build field id → label map from the form schema
+    const fieldLabelMap: Record<string, string> = {};
+    if (form.fields) {
+      form.fields.forEach((f: any) => {
+        if (f.id && f.label) fieldLabelMap[f.id] = f.label;
+      });
+    }
+
+    // Remap formData keys to human-readable labels before storing
+    const labeledFormData: Record<string, any> = {};
+    for (const [key, value] of Object.entries(formData)) {
+      const label = fieldLabelMap[key] || key; // fallback to raw key if no match
+      labeledFormData[label] = value;
+    }
+
     // 3. Create Inquiry
     const { data: newInquiry, error: inquiryError } = await supabase
       .from('Inquiries')
@@ -108,7 +123,7 @@ export async function POST(req: NextRequest) {
         Contact_ID: contactId,
         Service_Type: packageSelection || `Form Submission: ${form.title}`,
         Pipeline_Stage: 'New Inquiry',
-        Questionnaire_Data: formData, // Store all form data here
+        Questionnaire_Data: labeledFormData, // Store with readable labels
       })
       .select()
       .single();
@@ -134,9 +149,8 @@ export async function POST(req: NextRequest) {
     }
 
     let formSummaryText = `Submitted form: ${form.title}\n\n`;
-    for (const [key, value] of Object.entries(formData)) {
+    for (const [label, value] of Object.entries(labeledFormData)) {
       const displayValue = Array.isArray(value) ? value.join(', ') : value;
-      const label = fieldMap[key] || key;
       formSummaryText += `${label}:\n${displayValue}\n\n`;
     }
 
@@ -191,9 +205,8 @@ export async function POST(req: NextRequest) {
         // (fieldMap already generated above)
         
         let isEven = false;
-        for (const [key, value] of Object.entries(formData)) {
+        for (const [label, value] of Object.entries(labeledFormData)) {
           const displayValue = Array.isArray(value) ? value.join(', ') : value;
-          const label = fieldMap[key] || key;
           const bg = isEven ? '#f8fafc' : '#ffffff';
           
           htmlBody += `

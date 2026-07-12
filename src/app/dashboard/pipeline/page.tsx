@@ -32,6 +32,24 @@ const STAGES = [
   "Booked",
 ];
 
+/** Converts a field key to a readable label.
+ *  - Legacy FIELD_timestamp_rand keys → strips the prefix (they'll just show as-is from the new code)
+ *  - camelCase keys → "Camel Case"
+ *  - Already human-readable keys → returned as-is
+ */
+function formatFieldKey(key: string): string {
+  // Legacy raw field ID: FIELD_1781033765695_664 → show a generic label
+  if (/^FIELD_\d+_\d+$/.test(key)) {
+    return key; // fallback — new submissions won't hit this
+  }
+  // camelCase → spaced words
+  if (/[a-z][A-Z]/.test(key)) {
+    return key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+  }
+  // Already a readable label — return as-is
+  return key;
+}
+
 export default function PipelinePage() {
   const [inquiries, setInquiries] = useState<InquiryData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -366,22 +384,26 @@ export default function PipelinePage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                       {Object.entries(selectedInquiry.Questionnaire_Data).map(([key, value]) => {
                         if (key === 'customAnswers') {
-                          return Object.entries(value as object).map(([q, a]) => (
-                            <div key={q}>
-                              <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>{q}</div>
-                              <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{String(a) || "N/A"}</div>
-                            </div>
-                          ));
+                          return Object.entries(value as object).map(([q, a]) => {
+                            const displayKey = formatFieldKey(q);
+                            return (
+                              <div key={q}>
+                                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>{displayKey}</div>
+                                <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{String(a) || "N/A"}</div>
+                              </div>
+                            );
+                          });
                         }
                         
                         // Skip empty values or boolean false
                         if (!value || value === false) return null;
                         
-                        const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        const displayKey = formatFieldKey(key);
+                        const displayValue = Array.isArray(value) ? (value as any[]).join(', ') : String(value);
                         return (
                           <div key={key}>
                             <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>{displayKey}</div>
-                            <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{String(value)}</div>
+                            <div style={{ fontWeight: 500, color: "#0f172a", fontSize: "0.875rem" }}>{displayValue}</div>
                           </div>
                         );
                       })}
