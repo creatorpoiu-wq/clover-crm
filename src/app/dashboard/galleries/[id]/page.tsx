@@ -24,6 +24,7 @@ export default function GalleryManager() {
   const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null);
   const [proofingFavorites, setProofingFavorites] = useState<Record<string, any[]>>({});
   const [selectedClientEmail, setSelectedClientEmail] = useState<string | null>(null);
+  const [copiedNames, setCopiedNames] = useState(false);
   
   // Modals
   const [isAddAlbumOpen, setIsAddAlbumOpen] = useState(false);
@@ -632,26 +633,56 @@ export default function GalleryManager() {
                   ))}
                 </div>
 
-                {/* Favorites Grid */}
+                {/* Favorites List */}
                 <div style={{ flex: 1, backgroundColor: "white", padding: "1.5rem", borderRadius: "1rem", border: "1px solid #e2e8f0" }}>
                   {selectedClientEmail && proofingFavorites[selectedClientEmail] ? (
                     <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.75rem" }}>
                         <h3 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#0f172a", margin: 0 }}>
                           Favorites for <span style={{ color: "#3b82f6" }}>{selectedClientEmail}</span>
+                          <span style={{ fontSize: "0.875rem", fontWeight: 400, color: "#64748b", marginLeft: "0.5rem" }}>({proofingFavorites[selectedClientEmail].length} photo{proofingFavorites[selectedClientEmail].length !== 1 ? 's' : ''})</span>
                         </h3>
+                        <button
+                          onClick={() => {
+                            const names = proofingFavorites[selectedClientEmail]
+                              .map(f => f.fileName || `media-${f.mediaId}`)
+                              .join(', ');
+                            navigator.clipboard.writeText(names);
+                            setCopiedNames(true);
+                            setTimeout(() => setCopiedNames(false), 2000);
+                          }}
+                          style={{
+                            display: "flex", alignItems: "center", gap: "0.4rem",
+                            padding: "0.5rem 1rem", borderRadius: "0.5rem",
+                            border: "1px solid",
+                            borderColor: copiedNames ? "#16a34a" : "#cbd5e1",
+                            background: copiedNames ? "#f0fdf4" : "white",
+                            color: copiedNames ? "#16a34a" : "#334155",
+                            fontWeight: 600, fontSize: "0.875rem",
+                            cursor: "pointer", transition: "all 0.2s"
+                          }}
+                        >
+                          {copiedNames ? <><Check size={15} /> Copied!</> : <>Copy Filenames</>}
+                        </button>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}>
-                        {proofingFavorites[selectedClientEmail].map(fav => (
-                          <div key={fav.favoriteId} style={{ position: "relative", aspectRatio: fav.mediaType === 'video' ? '16/9' : '1', backgroundColor: "#e2e8f0", borderRadius: "0.5rem", overflow: "hidden" }}>
-                            <img src={fav.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            {fav.mediaType === 'video' && (
-                              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
-                                  <Video size={16} />
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        {proofingFavorites[selectedClientEmail].map((fav, idx) => (
+                          <div key={fav.favoriteId} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.625rem 0.75rem", borderRadius: "0.5rem", background: idx % 2 === 0 ? "#f8fafc" : "white", border: "1px solid #f1f5f9" }}>
+                            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94a3b8", width: "2rem", textAlign: "right", flexShrink: 0 }}>{idx + 1}</span>
+                            <div style={{ width: "48px", height: "48px", borderRadius: "0.375rem", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", position: "relative" }}>
+                              <img src={fav.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              {fav.mediaType === 'video' && (
+                                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)" }}>
+                                  <Video size={14} color="white" />
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
+                            <span style={{ flex: 1, fontSize: "0.875rem", color: "#0f172a", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {fav.fileName || `media-${fav.mediaId}`}
+                            </span>
+                            <span style={{ fontSize: "0.7rem", color: "#94a3b8", flexShrink: 0 }}>
+                              {fav.mediaType}
+                            </span>
                           </div>
                         ))}
                       </div>
