@@ -83,7 +83,7 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
     );
   }
 
-  const pkg = proposal.Packages;
+  const pkg = Array.isArray(proposal.Packages) ? proposal.Packages[0] : proposal.Packages;
   const clientName = proposal.Contacts?.Name?.split(' ')[0] || 'there';
   const companyName = config.Company_Name || 'Your Photographer';
   const coverImage = proposal.Cover_Image || funnelSettings.Cover_Image || funnelSettings.Style_Photo_Url || '';
