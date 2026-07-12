@@ -37,7 +37,7 @@ export default function BookingFunnel() {
 
     const queryParams = new URLSearchParams();
     queryParams.append('type', 'settings');
-    if (customDomain) queryParams.append('customDomain', hostname);
+    if (isCustomDomain) queryParams.append('customDomain', hostname);
     if (urlUserId) queryParams.append('userId', urlUserId);
     if (proposalId) queryParams.append('proposalId', proposalId);
 

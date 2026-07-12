@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { data, error } = await supabase
       .from('Proposals')
       .select(`
-        Proposal_ID, Title, Status, Custom_Notes, Cover_Image, Addons,
+        Proposal_ID, user_id, Title, Status, Custom_Notes, Cover_Image, Addons,
         Sent_At, Accepted_At, Declined_At, Decline_Reason,
         Questionnaire_Template_ID, Contract_Template_ID,
         Contact_ID,
@@ -34,17 +34,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { data: config } = await supabase
       .from('AppConfig')
       .select('Company_Name, Logo_Url, Brand_Color')
-      .eq('user_id', data.user_id || '')
-      .single()
-      .catch(() => ({ data: null }));
+      .eq('user_id', (data as any).user_id || '')
+      .single();
 
     // Fetch funnel settings for fallback cover image / style
     const { data: funnelSettings } = await supabase
       .from('Booking_Settings')
       .select('Cover_Image, Style_Photo_Url, Style_Heading, Style_Description, Style_Bullets')
       .eq('user_id', (data as any).user_id || '')
-      .single()
-      .catch(() => ({ data: null }));
+      .single();
 
     return NextResponse.json({
       success: true,

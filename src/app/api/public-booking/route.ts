@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, template });
     }
 
+    if (type === 'settings') {
       let proposalOverrides = null;
       let proposalPkgId = null;
       const proposalId = searchParams.get('proposalId');
