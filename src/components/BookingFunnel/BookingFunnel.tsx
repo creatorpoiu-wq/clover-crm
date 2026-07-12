@@ -26,20 +26,34 @@ export default function BookingFunnel() {
 
   useEffect(() => {
     const urlUserId = searchParams.get('userId');
+    const proposalId = searchParams.get('proposalId');
     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
     const isCustomDomain = hostname && hostname !== 'localhost' && !hostname.includes('vercel.app');
 
     // Capture userId from URL immediately if present
     if (urlUserId) setResolvedUserId(urlUserId);
 
-    const settingsFetch = (urlUserId || isCustomDomain)
-      ? fetch(`/api/public-booking?type=settings&customDomain=${hostname}${urlUserId ? `&userId=${urlUserId}` : ''}`)
+    let proposalPkgId: any = null;
+
+    const queryParams = new URLSearchParams();
+    queryParams.append('type', 'settings');
+    if (customDomain) queryParams.append('customDomain', hostname);
+    if (urlUserId) queryParams.append('userId', urlUserId);
+    if (proposalId) queryParams.append('proposalId', proposalId);
+
+    const settingsFetch = (urlUserId || isCustomDomain || proposalId)
+      ? fetch(`/api/public-booking?${queryParams.toString()}`)
           .then(res => res.json())
           .then(data => {
             if (data.success) {
               setFunnelSettings(data.settings);
-              // If the API resolved userId via custom domain, capture it
               if (data.userId && !urlUserId) setResolvedUserId(data.userId);
+              if (data.proposalPkgId) proposalPkgId = data.proposalPkgId;
+              
+              // Select all addons by default if it's a proposal
+              if (proposalId && data.settings.addons) {
+                setSelectedAddons(data.settings.addons.map((a: any) => a.id));
+              }
             }
           })
           .catch(() => {})
@@ -53,16 +67,18 @@ export default function BookingFunnel() {
           })
           .catch(() => {});
 
-    const pkgFetch = (urlUserId || isCustomDomain)
-      ? fetch(`/api/public-booking?type=packages&customDomain=${hostname}${urlUserId ? `&userId=${urlUserId}` : ''}`)
+    const pkgFetch = (urlUserId || isCustomDomain || proposalId)
+      ? fetch(`/api/public-booking?type=packages${isCustomDomain ? `&customDomain=${hostname}` : ''}${urlUserId ? `&userId=${urlUserId}` : ''}`)
           .then(res => res.json())
           .then(data => { 
             if (data.success) {
               const weddingPkgs = data.packages.filter((p: any) => p.Sessions?.Service_Type?.toLowerCase().includes('wedding'));
               setPackages(weddingPkgs);
+              return weddingPkgs;
             } 
+            return [];
           })
-          .catch(() => {})
+          .catch(() => [])
       : fetch('/api/packages?type=packages')
           .then(res => res.json())
           .then(data => { 
@@ -73,7 +89,13 @@ export default function BookingFunnel() {
           })
           .catch(() => {});
 
-    Promise.all([pkgFetch, settingsFetch]).finally(() => setLoading(false));
+    Promise.all([pkgFetch, settingsFetch]).then(([weddingPkgs]) => {
+      // If we have a specific package for this proposal, auto-select it
+      if (proposalPkgId && weddingPkgs && Array.isArray(weddingPkgs)) {
+        const targetPkg = weddingPkgs.find((p: any) => p.Package_ID == proposalPkgId);
+        if (targetPkg) setSelectedPackage(targetPkg);
+      }
+    }).finally(() => setLoading(false));
   }, [searchParams]);
 
   const steps = ['Client Info', 'Questionnaire', 'Contract', 'Payment'];

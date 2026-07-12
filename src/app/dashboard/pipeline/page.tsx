@@ -228,8 +228,31 @@ export default function PipelinePage() {
                           </button>
                           {openDropdownId === inq.Inquiry_ID && (
                             <div style={{ position: "absolute", top: "100%", right: 0, marginTop: "0.25rem", backgroundColor: "var(--background)", border: "1px solid var(--border)", borderRadius: "0.5rem", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", zIndex: 10, minWidth: "160px", overflow: "hidden" }}>
+                              <button 
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  setOpenDropdownId(null);
+                                  const res = await fetch('/api/proposals', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ 
+                                      title: `${inq.Contact_Name} - Wedding Proposal`, 
+                                      contactId: inq.Contact_ID,
+                                      inquiryId: inq.Inquiry_ID,
+                                      packageId: inq.Package_ID
+                                    }),
+                                  });
+                                  const data = await res.json();
+                                  if (data.success) window.location.href = `/dashboard/proposals/${data.proposal.Proposal_ID}`;
+                                }}
+                                style={{ display: "block", width: "100%", textAlign: "left", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", border: "none", background: "transparent", borderBottom: "1px solid var(--border)", cursor: "pointer" }} 
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} 
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                              >
+                                Send Custom Proposal
+                              </button>
                               <a href={`/dashboard/finance?tab=contracts&create=contract&client=${inq.Contact_ID}`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none", borderBottom: "1px solid var(--border)" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
-                                New Contract / Proposal
+                                New Basic Contract
                               </a>
                               <a href={`/dashboard/finance?tab=invoices&create=invoice&client=${inq.Contact_ID}`} style={{ display: "block", padding: "0.5rem 1rem", fontSize: "0.875rem", color: "var(--foreground)", textDecoration: "none" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--muted-bg)"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
                                 New Invoice

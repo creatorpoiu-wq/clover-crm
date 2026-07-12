@@ -69,12 +69,27 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, template });
     }
 
-    if (!targetUserId) {
-      return NextResponse.json({ success: false, error: 'Missing userId or customDomain' }, { status: 400 });
-    }
+      let proposalOverrides = null;
+      let proposalPkgId = null;
+      const proposalId = searchParams.get('proposalId');
+      
+      if (proposalId) {
+        const { data: prop } = await supabase
+          .from('Proposals')
+          .select('*')
+          .eq('Proposal_ID', proposalId)
+          .single();
+        if (prop) {
+          proposalOverrides = prop;
+          if (prop.user_id) targetUserId = prop.user_id;
+          if (prop.Package_ID) proposalPkgId = prop.Package_ID;
+        }
+      }
 
-    // ── Booking Settings (includes questionnaire & contract template IDs) ─────
-    if (type === 'settings') {
+      if (!targetUserId) {
+        return NextResponse.json({ success: false, error: 'Missing userId or customDomain' }, { status: 400 });
+      }
+
       const [{ data: row }, { data: appConfig }] = await Promise.all([
         supabase.from('Booking_Settings').select('*').eq('user_id', targetUserId).single(),
         supabase.from('AppConfig').select('Paypal_Client_Id').eq('user_id', targetUserId).single(),
@@ -117,15 +132,15 @@ export async function GET(req: NextRequest) {
             { title: row?.Step3_Title || DEFAULTS.Step3_Title, subtitle: row?.Step3_Subtitle || DEFAULTS.Step3_Subtitle },
             { title: row?.Step4_Title || DEFAULTS.Step4_Title, subtitle: row?.Step4_Subtitle || DEFAULTS.Step4_Subtitle },
           ],
-          addons: JSON.parse(row?.Addons || '[]'),
+          addons: proposalOverrides?.Addons ? proposalOverrides.Addons : JSON.parse(row?.Addons || '[]'),
           paymentMethods: JSON.parse(row?.Payment_Methods || '[]'),
           confirmationTitle: row?.Confirmation_Title || 'Booking Confirmed!',
           confirmationMessage: row?.Confirmation_Message || DEFAULTS.Confirmation_Message,
-          questionnaireTemplateId: row?.Questionnaire_Template_ID || null,
-          contractTemplateId: row?.Contract_Template_ID || null,
+          questionnaireTemplateId: proposalOverrides?.Questionnaire_Template_ID || row?.Questionnaire_Template_ID || null,
+          contractTemplateId: proposalOverrides?.Contract_Template_ID || row?.Contract_Template_ID || null,
           welcomeHeroHeadline: row?.Welcome_Hero_Headline || DEFAULTS.Welcome_Hero_Headline,
           welcomeHeroSubheadline: row?.Welcome_Hero_Subheadline || 'Thank you for inquiring! We are thrilled to be part of your special journey. This guide outlines our signature style and the simple process to secure your session.',
-          coverImage: row?.Cover_Image || DEFAULTS.Cover_Image,
+          coverImage: proposalOverrides?.Cover_Image || row?.Cover_Image || DEFAULTS.Cover_Image,
           styleHeading: row?.Style_Heading || DEFAULTS.Style_Heading,
           styleDescription: row?.Style_Description || DEFAULTS.Style_Description,
           stylePhotoUrl: row?.Style_Photo_Url || DEFAULTS.Style_Photo_Url,
@@ -142,7 +157,8 @@ export async function GET(req: NextRequest) {
           retainerAmount: row?.Retainer_Amount != null ? Number(row.Retainer_Amount) : 50,
           retainerType: row?.Retainer_Type || 'percent',
         },
-        userId: targetUserId
+        userId: targetUserId,
+        proposalPkgId
       });
     }
 

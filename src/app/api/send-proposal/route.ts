@@ -6,10 +6,10 @@ import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { contactId, contractId, questionnaireId } = await req.json();
+    const { proposalId, contactId } = await req.json();
     
-    if (!contactId) {
-      return NextResponse.json({ success: false, error: 'Missing contactId' }, { status: 400 });
+    if (!proposalId) {
+      return NextResponse.json({ success: false, error: 'Missing proposalId' }, { status: 400 });
     }
 
     const { data: userAuth } = await supabase.auth.getUser();
@@ -37,67 +37,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Email configuration is missing. Please set up your SMTP credentials in Settings.' }, { status: 400 });
     }
 
-    // 3. Get the Contract Template and Create a Contract Record
-    let realContractId = contractId;
-    const today = new Date().toISOString().split('T')[0];
-    
-    if (contractId) {
-      // Find the latest Inquiry for this contact to attach the Contract to
-      const { data: latestInq } = await supabase
-        .from('Inquiries')
-        .select('Inquiry_ID')
-        .eq('Contact_ID', contactId)
-        .order('Inquiry_ID', { ascending: false })
-        .limit(1)
-        .single();
-        
-      const inquiryId = latestInq?.Inquiry_ID || null;
-
-      // Fetch template
-      const { data: template } = await supabase
-        .from('Contract_Templates')
-        .select('Name, Content')
-        .eq('Template_ID', contractId)
-        .single();
-        
-      if (template) {
-        const clientNameForVars = contact?.Name || 'Client Name';
-        const clientFirstName = clientNameForVars.split(' ')[0] || 'there';
-        const companyName = config?.Company_Name || 'Your Photographer';
-        const todayString = new Date().toLocaleDateString();
-
-        const replaceVars = (text: string) => {
-          if (!text) return '';
-          return text
-            .replace(/\[Client Name\]|\{Client Name\}/gi, clientNameForVars)
-            .replace(/\[Name\]|\{Name\}/gi, clientFirstName)
-            .replace(/\[Company\]|\{Company\}/gi, companyName)
-            .replace(/\[Company Name\]|\{Company Name\}/gi, companyName)
-            .replace(/\[Date\]|\{Date\}/gi, todayString)
-            .replace(/\[Today's Date\]|\{Today's Date\}/gi, todayString);
-        };
-
-        const finalContent = replaceVars(template.Content || '');
-
-        // Create Contract
-        const { data: newContract, error: insertError } = await supabase
-          .from('Contracts')
-          .insert({
-            user_id: userAuth.user.id,
-            Inquiry_ID: inquiryId,
-            Contract_Title: template.Name || 'Booking Proposal',
-            Contract_Text: finalContent,
-            Status: 'Sent',
-            Sent_Date: today,
-            Type: 'Proposal'
-          })
-          .select()
-          .single();
-          
-        if (newContract && !insertError) {
-          realContractId = newContract.Contract_ID.toString();
-        }
-      }
+    // 3. Fetch Proposal Data
+    const { data: proposal, error: propError } = await supabase
+      .from('Proposals')
+      .select('Proposal_ID, Title')
+      .eq('Proposal_ID', proposalId)
+      .single();
+      
+    if (propError || !proposal) {
+      return NextResponse.json({ success: false, error: 'Proposal not found' }, { status: 404 });
     }
 
     // 4. Create the Proposal Link
@@ -110,7 +58,7 @@ export async function POST(req: NextRequest) {
       : process.env.NEXT_PUBLIC_BASE_URL 
         || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) 
         || `${protocol}://${host}`;
-    const proposalLink = `${appUrl}/booking?userId=${userId}&contractId=${realContractId}&questionnaireId=${questionnaireId}`;
+    const proposalLink = `${appUrl}/proposal/${proposal.Proposal_ID}`;
 
     // 5. Configure Nodemailer Transporter
     const transporter = nodemailer.createTransport({
@@ -176,7 +124,11 @@ export async function POST(req: NextRequest) {
     });
 
     // 7. Update CRM Statuses
-    // 7. Update CRM Statuses
+    await supabase
+      .from('Proposals')
+      .update({ Status: 'Sent', Sent_At: new Date().toISOString() })
+      .eq('Proposal_ID', proposalId);
+      
     if (contactId) {
       // Find the latest Inquiry for this contact to update Pipeline
       const { data: latestInq } = await supabase
