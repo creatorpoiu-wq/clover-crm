@@ -75,8 +75,9 @@ export async function POST(request: Request) {
     // Generate presigned PUT URL valid for 1 hour (3600 seconds)
     const uploadUrl = await getSignedUrl(r3Client, command, { expiresIn: 3600 });
 
-    const publicUrlBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '';
-    const publicUrl = `${publicUrlBase.replace(/\/$/, '')}/${key}`;
+    // Use the server-side proxy URL so thumbnails work without R2 public access
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const publicUrl = `${baseUrl}/api/r2?key=${encodeURIComponent(key)}`;
 
     return NextResponse.json({
       success: true,
