@@ -17,6 +17,9 @@ function calculateStatusFlag(inquiry: any): string {
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     
     // We fetch Inquiries, joined with Contacts and Communications
     const { data: rawInquiries, error } = await supabase
@@ -32,6 +35,7 @@ export async function GET(req: NextRequest) {
         Contacts!inner ( Name, Email, Phone, Lead_Source, Package_ID ),
         Communications ( Last_Contact_Date, Last_Contact_By, Message, Proposal_Link )
       `)
+      .eq('user_id', user.id)
       .neq('Pipeline_Stage', 'Lost/Archived')
       .order('Inquiry_ID', { ascending: false });
 
