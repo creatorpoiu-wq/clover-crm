@@ -9,6 +9,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
   const router = useRouter();
 
   const [proposal, setProposal] = useState<any>(null);
+  const [config, setConfig] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [packages, setPackages] = useState<any[]>([]);
@@ -30,7 +31,10 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
       fetch('/api/forms?type=template').then(r => r.json()),
       fetch('/api/contract-templates').then(r => r.json())
     ]).then(([propData, contData, inqData, pkgData, qData, cData]) => {
-      if (propData.success) setProposal(propData.proposal);
+      if (propData.success) {
+        setProposal(propData.proposal);
+        if (propData.config) setConfig(propData.config);
+      }
       if (contData.success) setContacts(contData.contacts || []);
       if (inqData.success) setInquiries(inqData.inquiries || []);
       if (pkgData.success) setPackages(pkgData.packages || []);
@@ -103,9 +107,12 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
     setSending(false);
   };
 
+  const proposalUrl = config?.Custom_Domain 
+    ? `https://${config.Custom_Domain}/proposal/${id}`
+    : (typeof window !== 'undefined' ? `${window.location.origin}/proposal/${id}` : `/proposal/${id}`);
+
   const copyLink = () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    navigator.clipboard.writeText(`${origin}/proposal/${id}`);
+    navigator.clipboard.writeText(proposalUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -140,7 +147,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Link href={`/proposal/${id}`} target="_blank">
+          <Link href={proposalUrl} target="_blank">
             <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>
               <Eye size={16} /> Preview
             </button>

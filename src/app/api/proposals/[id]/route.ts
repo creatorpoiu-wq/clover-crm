@@ -33,7 +33,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     // Also fetch the photographer's branding from AppConfig
     const { data: config } = await supabase
       .from('AppConfig')
-      .select('Company_Name, Logo_Url, Brand_Color')
+      .select('Company_Name, Logo_Url, Brand_Color, Custom_Domain')
       .eq('user_id', (data as any).user_id || '')
       .single();
 
