@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
       questionnaireTemplateId, contractTemplateId,
     } = body;
 
-    if (!contactId) return NextResponse.json({ success: false, error: 'contactId is required' }, { status: 400 });
+    // Allow creating draft proposals without a contact linked initially
+    // if (!contactId) return NextResponse.json({ success: false, error: 'contactId is required' }, { status: 400 });
 
     const { data, error } = await supabase
       .from('Proposals')
