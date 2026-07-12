@@ -96,7 +96,8 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { 
       name: "Templates", icon: LayoutTemplate,
       subItems: [
-        { name: "Email Templates", href: "/dashboard/templates" },
+        { name: "Email Templates", href: "/dashboard/templates?tab=email" },
+        { name: "Smart Files (Contracts)", href: "/dashboard/templates?tab=contracts" },
         { name: "Email Design", href: "/dashboard/email-settings" },
       ]
     },

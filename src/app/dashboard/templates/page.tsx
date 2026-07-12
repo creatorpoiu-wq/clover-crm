@@ -63,7 +63,18 @@ export default function TemplatesPage() {
   const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
   const [importingId, setImportingId] = useState<string | null>(null);
 
+  // Preview Modal State
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewContent, setPreviewContent] = useState('');
+
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const search = new URLSearchParams(window.location.search);
+      const tab = search.get('tab');
+      if (tab === 'email') setFilter('Email');
+      else if (tab === 'contracts') setFilter('Contract');
+    }
+
     Promise.all([
       fetchTemplates(),
       fetchContractTemplates(),
@@ -465,10 +476,16 @@ export default function TemplatesPage() {
                         </>
                       )}
                       {item.type === 'contract' && (
-                        <button onClick={() => { setActiveMenuId(null); openEditDocModal(item.original, 'contract'); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Edit</button>
+                        <>
+                          <button onClick={() => { setActiveMenuId(null); openEditDocModal(item.original, 'contract'); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Edit</button>
+                          <button onClick={() => { setActiveMenuId(null); setPreviewContent(item.original.Content); setIsPreviewModalOpen(true); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Preview</button>
+                        </>
                       )}
                       {item.type === 'invoice' && (
-                        <button onClick={() => { setActiveMenuId(null); openEditDocModal(item.original, 'invoice'); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Edit</button>
+                        <>
+                          <button onClick={() => { setActiveMenuId(null); openEditDocModal(item.original, 'invoice'); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Edit</button>
+                          <button onClick={() => { setActiveMenuId(null); setPreviewContent(item.original.Content); setIsPreviewModalOpen(true); }} style={{ width: '100%', padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>Preview</button>
+                        </>
                       )}
                       <button 
                         onClick={() => handleDelete(item.id, item.type)} 
@@ -511,10 +528,16 @@ export default function TemplatesPage() {
                           <button onClick={() => openEditEmailModal(item.original)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
                        )}
                        {item.type === 'contract' && (
-                          <button onClick={() => openEditDocModal(item.original, 'contract')} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                          <>
+                            <button onClick={() => { setPreviewContent(item.original.Content); setIsPreviewModalOpen(true); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginRight: '0.5rem' }}>Preview</button>
+                            <button onClick={() => openEditDocModal(item.original, 'contract')} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                          </>
                        )}
                        {item.type === 'invoice' && (
-                          <button onClick={() => openEditDocModal(item.original, 'invoice')} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                          <>
+                            <button onClick={() => { setPreviewContent(item.original.Content); setIsPreviewModalOpen(true); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginRight: '0.5rem' }}>Preview</button>
+                            <button onClick={() => openEditDocModal(item.original, 'invoice')} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                          </>
                        )}
                        <button onClick={() => handleDelete(item.id, item.type)} style={{ background: 'none', border: 'none', color: confirmDeleteId === item.id ? '#ef4444' : '#64748b', cursor: 'pointer' }}>
                           <Trash2 size={16} />
@@ -639,6 +662,23 @@ export default function TemplatesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {isPreviewModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+          <div style={{ background: 'white', width: '100%', maxWidth: '850px', height: '90vh', borderRadius: '1rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <h3 style={{ margin: 0, fontWeight: 700, fontSize: '1.2rem' }}>Document Preview</h3>
+               <button onClick={() => setIsPreviewModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={24} /></button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', background: '#f8fafc' }}>
+               <div style={{ background: 'white', padding: '3rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', minHeight: '100%' }}>
+                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: previewContent }} />
+               </div>
+            </div>
           </div>
         </div>
       )}
