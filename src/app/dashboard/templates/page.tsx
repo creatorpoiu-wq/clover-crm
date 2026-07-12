@@ -445,7 +445,7 @@ export default function TemplatesPage() {
           {filteredItems.map(item => {
             const uid = `${item.type}-${item.id}`;
             return (
-              <div key={uid} style={{ background: 'white', borderRadius: '0.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', transition: 'transform 0.2s, box-shadow 0.2s', position: 'relative' }} className="hover:shadow-lg hover:-translate-y-1">
+              <div key={uid} style={{ background: 'white', borderRadius: '0.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', transition: 'transform 0.2s, box-shadow 0.2s', position: 'relative', zIndex: activeMenuId === uid ? 20 : 1 }} className="hover:shadow-lg hover:-translate-y-1">
                 {/* Thumbnail */}
                 <div style={{ height: '180px', width: '100%', overflow: 'hidden', backgroundColor: '#f1f5f9', borderRadius: '0.5rem 0.5rem 0 0' }}>
                   <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
