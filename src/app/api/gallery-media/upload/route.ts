@@ -56,15 +56,22 @@ export async function POST(request: Request) {
 
     const r3Client = getR2Client();
 
-    // Generate unique key for file path
-    const fileExtension = filename.split('.').pop() || '';
-    const uniqueId = Math.random().toString(36).substring(2, 10);
-    const key = `galleries/${galleryId}/${albumId || 'root'}/${Date.now()}-${uniqueId}.${fileExtension}`;
+    // Sanitize original filename: strip path separators, collapse spaces/special chars to underscores
+    const sanitizedName = filename
+      .replace(/[/\\]/g, '')               // strip slashes
+      .replace(/[^a-zA-Z0-9._-]/g, '_')   // replace unsafe chars with underscores
+      .replace(/__+/g, '_');               // collapse multiple underscores
+
+    // Build key: keep original name but prefix with a timestamp to avoid collisions
+    const uniqueId = Date.now();
+    const key = `galleries/${galleryId}/${albumId || 'root'}/${uniqueId}_${sanitizedName}`;
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: key,
       ContentType: contentType,
+      // Hint browsers to download with the original filename
+      ContentDisposition: `inline; filename="${sanitizedName}"`,
     });
 
     // Generate presigned PUT URL valid for 1 hour (3600 seconds)
@@ -78,6 +85,7 @@ export async function POST(request: Request) {
       uploadUrl,
       publicUrl,
       key,
+      originalFilename: sanitizedName,
     });
   } catch (err: any) {
     console.error('R2 upload endpoint error:', err);

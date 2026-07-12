@@ -287,7 +287,7 @@ export default function GalleryManager() {
             Media_Type: file.type.startsWith('video/') ? 'video' : 'photo',
             Url: data.publicUrl,
             Thumbnail_Url: data.publicUrl,
-            File_Name: file.name
+            File_Name: data.originalFilename || file.name
           })
         });
         const dbData = await dbRes.json();
