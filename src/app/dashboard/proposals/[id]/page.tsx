@@ -27,7 +27,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
       fetch(`/api/proposals/${id}`).then(r => r.json()),
       fetch('/api/contacts').then(r => r.json()),
       fetch('/api/inquiries').then(r => r.json()),
-      fetch('/api/packages').then(r => r.json()),
+      fetch('/api/packages?type=packages').then(r => r.json()),
       fetch('/api/forms?type=template').then(r => r.json()),
       fetch('/api/contract-templates').then(r => r.json())
     ]).then(([propData, contData, inqData, pkgData, qData, cData]) => {
