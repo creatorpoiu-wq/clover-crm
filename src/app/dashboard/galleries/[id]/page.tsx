@@ -270,11 +270,11 @@ export default function GalleryManager() {
             if (xhr.status === 200) {
               resolve();
             } else {
-              reject(new Error(`Upload failed: ${xhr.status}`));
+              reject(new Error(`Upload failed (HTTP ${xhr.status}). Check R2 CORS settings.`));
             }
           };
 
-          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.onerror = () => reject(new Error('Network error — R2 bucket may need CORS configured to allow PUT from this origin'));
           xhr.send(file);
         });
 

@@ -70,8 +70,6 @@ export async function POST(request: Request) {
       Bucket: bucketName,
       Key: key,
       ContentType: contentType,
-      // Hint browsers to download with the original filename
-      ContentDisposition: `inline; filename="${sanitizedName}"`,
     });
 
     // Generate presigned PUT URL valid for 1 hour (3600 seconds)
