@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ShoppingCart, User, ArrowLeft, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
+import DynamicMockup from "@/components/store/DynamicMockup";
 
 export default function Storefront() {
   const params = useParams();
@@ -14,6 +15,7 @@ export default function Storefront() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyName, setCompanyName] = useState("");
+  const [heroImage, setHeroImage] = useState<string | undefined>(undefined);
 
   const categories = ["Prints", "Wall Art", "Cards", "Albums & Books"];
 
@@ -25,6 +27,9 @@ export default function Storefront() {
         if (dataGal.success && dataGal.data) {
           setGallery(dataGal.data);
           setCompanyName(dataGal.companyName || "C. R MARK PHOTOGRAPHY");
+          if (dataGal.media && dataGal.media.length > 0) {
+            setHeroImage(dataGal.media[0].Url);
+          }
 
           const resProd = await fetch(`/api/store/products?userId=${dataGal.data.User_ID}`);
           const dataProd = await resProd.json();
@@ -102,17 +107,13 @@ export default function Storefront() {
                 {catProducts.map((product) => (
                   <div key={product.Product_ID} className="group" style={{ cursor: "pointer", transition: "transform 0.2s ease" }}>
                     <div style={{ aspectRatio: "4/5", backgroundColor: "#f5f5f5", overflow: "hidden", marginBottom: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {product.Image_Url ? (
-                        <img 
-                          src={product.Image_Url} 
-                          alt={product.Name} 
-                          style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }} 
-                          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                        />
-                      ) : (
-                        <ImageIcon size={48} color="#ccc" />
-                      )}
+                      <DynamicMockup 
+                        frameUrl={product.Image_Url}
+                        photoUrl={heroImage}
+                        productName={product.Name}
+                        insetTopBottom={product.Category === "Prints" ? "0%" : "12%"}
+                        insetLeftRight={product.Category === "Prints" ? "0%" : "12%"}
+                      />
                     </div>
                     <div style={{ textAlign: "center" }}>
                       <h4 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem 0", color: "#111" }}>{product.Name}</h4>
