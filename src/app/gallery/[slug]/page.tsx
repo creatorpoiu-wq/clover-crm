@@ -22,6 +22,7 @@ export default function PublicGallery() {
   const [passwordError, setPasswordError] = useState("");
 
   const [activeAlbumId, setActiveAlbumId] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
@@ -225,6 +226,17 @@ export default function PublicGallery() {
     }
   };
 
+  const handleAlbumChange = (albumId: number) => {
+    if (activeAlbumId === albumId) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveAlbumId(albumId);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 200);
+  };
+
   const handleDownloadSingle = (url: string, e: React.MouseEvent) => {
     e.stopPropagation();
     window.open(`/api/gallery-download?url=${encodeURIComponent(url)}`, '_blank');
@@ -378,7 +390,7 @@ export default function PublicGallery() {
             {visibleAlbums.map(album => (
               <button
                 key={album.Album_ID}
-                onClick={() => setActiveAlbumId(album.Album_ID)}
+                onClick={() => handleAlbumChange(album.Album_ID)}
                 style={{ background: "none", border: "none", padding: 0, fontSize: "0.75rem", fontWeight: activeAlbumId === album.Album_ID ? 600 : 400, color: activeAlbumId === album.Album_ID ? "#000" : "#737373", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", position: "relative", whiteSpace: "nowrap", transition: "color 0.2s" }}
               >
                 {album.Name}
@@ -389,7 +401,7 @@ export default function PublicGallery() {
       )}
 
       {/* Content Area */}
-      <div style={{ padding: "0.5rem", maxWidth: "2400px", margin: "0 auto" }}>
+      <div style={{ padding: "0.5rem", maxWidth: "2400px", margin: "0 auto", minHeight: "100vh", opacity: isTransitioning ? 0 : 1, transition: "opacity 0.2s ease-in-out" }}>
         
         {viewMode === 'photos' ? (
           <div style={{ columnCount: 3, columnGap: "0.5rem" }}>
