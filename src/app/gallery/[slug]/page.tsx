@@ -35,6 +35,7 @@ export default function PublicGallery() {
   const [favoriteActionMediaId, setFavoriteActionMediaId] = useState<number | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     setShareUrl(window.location.href);
@@ -200,45 +201,17 @@ export default function PublicGallery() {
     }
   };
 
-  const handleShare = (platform: string) => {
-    const url = encodeURIComponent(shareUrl);
-    const text = encodeURIComponent('Check out this gallery!');
-    
-    switch (platform) {
-      case 'Messenger':
-        window.open(`fb-messenger://share/?link=${url}`, '_blank');
-        break;
-      case 'WhatsApp':
-        window.open(`https://api.whatsapp.com/send?text=${url}`, '_blank');
-        break;
-      case 'Facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-        break;
-      case 'Email':
-        window.location.href = `mailto:?subject=${text}&body=${url}`;
-        break;
-      case 'X (Twitter)':
-        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
-        break;
-      case 'Pinterest':
-        window.open(`https://pinterest.com/pin/create/button/?url=${url}`, '_blank');
-        break;
-      case 'Threads':
-        window.open(`https://threads.net/intent/post?text=${url}`, '_blank');
-        break;
-      case 'More':
-        if (navigator.share) {
-          navigator.share({
-            title: 'Gallery',
-            text: 'Check out this gallery!',
-            url: shareUrl
-          }).catch(console.error);
-        } else {
-          alert('Native sharing is not supported on this device.');
-        }
-        break;
-      default:
-        break;
+  // We use direct <a> tags for social sharing now to prevent popup blockers,
+  // but we keep handleShare for 'More' to use the native Web Share API
+  const handleShareMore = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Gallery',
+        text: 'Check out this gallery!',
+        url: shareUrl
+      }).catch(console.error);
+    } else {
+      alert('Native sharing is not supported on this device.');
     }
   };
 
@@ -654,30 +627,41 @@ export default function PublicGallery() {
                 style={{ flex: 1, padding: "1rem", border: "none", backgroundColor: "transparent", color: "#333", fontSize: "0.875rem" }}
               />
               <button 
-                onClick={() => { navigator.clipboard.writeText(shareUrl); alert("Copied!"); }}
-                style={{ backgroundColor: "#333", color: "white", border: "none", padding: "0 2rem", fontWeight: 500, letterSpacing: "0.1em", cursor: "pointer" }}
+                onClick={() => { 
+                  navigator.clipboard.writeText(shareUrl); 
+                  setIsCopied(true);
+                  setTimeout(() => setIsCopied(false), 2000);
+                }}
+                style={{ backgroundColor: isCopied ? "#10b981" : "#333", color: "white", border: "none", padding: "0 2rem", fontWeight: 500, letterSpacing: "0.1em", cursor: "pointer", transition: "background-color 0.2s" }}
               >
-                COPY
+                {isCopied ? "COPIED" : "COPY"}
               </button>
             </div>
             
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.5rem", textAlign: "center" }}>
               {[
-                { name: 'Messenger', icon: <MessageCircle size={24} /> },
-                { name: 'WhatsApp', icon: <MessageCircle size={24} /> },
-                { name: 'Facebook', icon: <Share2 size={24} /> },
-                { name: 'Email', icon: <Mail size={24} /> },
-                { name: 'X (Twitter)', icon: <Share2 size={24} /> },
-                { name: 'Pinterest', icon: <Share2 size={24} /> },
-                { name: 'Threads', icon: <Share2 size={24} /> },
-                { name: 'More', icon: <Share2 size={24} /> },
+                { name: 'Messenger', href: `fb-messenger://share/?link=${encodeURIComponent(shareUrl)}`, icon: <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> },
+                { name: 'WhatsApp', href: `https://api.whatsapp.com/send?text=${encodeURIComponent(shareUrl)}`, icon: <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"></path><path d="M9 10a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"></path></svg> },
+                { name: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, icon: <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg> },
+                { name: 'Email', href: `mailto:?subject=${encodeURIComponent('Check out this gallery')}&body=${encodeURIComponent(shareUrl)}`, icon: <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg> },
+                { name: 'X (Twitter)', href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`, icon: <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l11.733 16h4.267l-11.733 -16z"></path><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path></svg> },
+                { name: 'Pinterest', href: `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}`, icon: <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M8 20l4-9"></path><path d="M10.7 14c.437 1.263 1.43 2 2.55 2 2.071 0 3.75-1.554 3.75-4a5 5 0 1 0-9.7 1.7"></path><circle cx="12" cy="12" r="9"></circle></svg> },
+                { name: 'Threads', href: `https://threads.net/intent/post?text=${encodeURIComponent(shareUrl)}`, icon: <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"></path><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"></path><path d="M16 12l0 1a4 4 0 0 1-8 0"></path></svg> },
+                { name: 'More', href: '#', isMore: true, icon: <Share2 size={24} /> },
               ].map(item => (
-                <div key={item.name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", cursor: "pointer" }} onClick={() => handleShare(item.name)}>
+                <a 
+                  key={item.name} 
+                  href={item.href} 
+                  target={item.isMore ? "_self" : "_blank"} 
+                  rel={item.isMore ? "" : "noopener noreferrer"}
+                  onClick={item.isMore ? (e) => { e.preventDefault(); handleShareMore(); } : undefined}
+                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", cursor: "pointer", textDecoration: "none" }}
+                >
                   <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "#737373", color: "white", display: "flex", alignItems: "center", justifyContent: "center", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#111"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#737373"}>
                     {item.icon}
                   </div>
                   <span style={{ fontSize: "0.75rem", color: "#737373" }}>{item.name}</span>
-                </div>
+                </a>
               ))}
             </div>
           </div>
