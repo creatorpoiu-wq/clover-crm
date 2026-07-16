@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft, Heart, ShoppingCart, MessageCircle, Facebook, Mail, Twitter } from "lucide-react";
+import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft, Heart, ShoppingCart, MessageCircle, Mail } from "lucide-react";
 import dynamic from "next/dynamic";
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 
@@ -331,12 +331,12 @@ export default function PublicGallery() {
 
         {/* Right: Actions */}
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          <button onClick={() => gallery.Store_Url ? window.open(gallery.Store_Url, '_blank') : alert("No store URL configured for this gallery.")} style={{ background: "none", border: "none", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.1em", color: "#a3a3a3", cursor: "pointer", textTransform: "uppercase", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"}>
+          <button onClick={() => window.location.href = `/gallery/${slug}/store`} style={{ background: "none", border: "none", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.1em", color: "#a3a3a3", cursor: "pointer", textTransform: "uppercase", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"}>
             Print Store
           </button>
           
           <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", color: "#a3a3a3" }}>
-            <ShoppingCart size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => gallery.Store_Url ? window.open(gallery.Store_Url, '_blank') : alert("No store URL configured for this gallery.")} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
+            <ShoppingCart size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => window.location.href = `/gallery/${slug}/store`} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
             <Heart size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setShowFavoritesOnly(!showFavoritesOnly)} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
             <Download size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={handleDownloadAll} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
             <Share2 size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setIsShareModalOpen(true)} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
@@ -616,9 +616,9 @@ export default function PublicGallery() {
               {[
                 { name: 'Messenger', icon: <MessageCircle size={24} /> },
                 { name: 'WhatsApp', icon: <MessageCircle size={24} /> },
-                { name: 'Facebook', icon: <Facebook size={24} /> },
+                { name: 'Facebook', icon: <Share2 size={24} /> },
                 { name: 'Email', icon: <Mail size={24} /> },
-                { name: 'X (Twitter)', icon: <Twitter size={24} /> },
+                { name: 'X (Twitter)', icon: <Share2 size={24} /> },
                 { name: 'Pinterest', icon: <Share2 size={24} /> },
                 { name: 'Threads', icon: <Share2 size={24} /> },
                 { name: 'More', icon: <Share2 size={24} /> },

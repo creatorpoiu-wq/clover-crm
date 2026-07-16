@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { 
   LayoutDashboard, Kanban, Calendar, FileText, Database, Settings, LogOut, 
   MailOpen, ExternalLink, DollarSign, Package, Zap, MessageCircle, PieChart, 
-  Clock, ChevronDown, ChevronUp, Users, PenTool, LayoutTemplate, HelpCircle, User, X, Image as ImageIcon
+  Clock, ChevronDown, ChevronUp, Users, PenTool, LayoutTemplate, HelpCircle, User, X, Image as ImageIcon, ShoppingCart
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -66,6 +66,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const middleGroup: NavItem[] = [
     { name: "Contacts", href: "/dashboard/contacts", icon: Users },
     { name: "Galleries", href: "/dashboard/galleries", icon: ImageIcon },
+    { name: "Store", href: "/dashboard/store", icon: ShoppingCart },
     { 
       name: "Lead capture", icon: Zap,
       subItems: [
