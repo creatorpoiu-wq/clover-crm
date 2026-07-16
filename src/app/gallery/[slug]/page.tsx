@@ -23,6 +23,7 @@ export default function PublicGallery() {
 
   const [activeAlbumId, setActiveAlbumId] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
@@ -228,11 +229,33 @@ export default function PublicGallery() {
 
   const handleAlbumChange = (albumId: number) => {
     if (activeAlbumId === albumId) return;
+    
+    // Synchronously lock height in DOM bypassing React render cycle
+    const contentEl = contentRef.current;
+    if (contentEl) {
+      contentEl.style.minHeight = `${contentEl.offsetHeight}px`;
+    }
+
     setIsTransitioning(true);
+    
     setTimeout(() => {
       setActiveAlbumId(albumId);
+      
+      // If user scrolled down far, snap scroll back to album nav seamlessly while opacity is 0
+      const albumNav = document.getElementById('gallery-album-nav');
+      if (albumNav) {
+        const rect = albumNav.getBoundingClientRect();
+        if (rect.top < 80) {
+           window.scrollTo({ top: window.scrollY + rect.top - 80, behavior: 'instant' });
+        }
+      }
+
       setTimeout(() => {
         setIsTransitioning(false);
+        // Release the height lock after new images have established their heights
+        setTimeout(() => {
+          if (contentEl) contentEl.style.minHeight = '100vh';
+        }, 800);
       }, 50);
     }, 200);
   };
@@ -385,7 +408,7 @@ export default function PublicGallery() {
 
       {/* Album Navigation (Secondary) */}
       {visibleAlbums.length > 1 && (
-        <div style={{ backgroundColor: "#fafafa", borderBottom: "1px solid #e5e5e5", padding: "1rem 2rem", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div id="gallery-album-nav" style={{ backgroundColor: "#fafafa", borderBottom: "1px solid #e5e5e5", padding: "1rem 2rem", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "2rem", overflowX: "auto" }}>
             {visibleAlbums.map(album => (
               <button
@@ -401,7 +424,7 @@ export default function PublicGallery() {
       )}
 
       {/* Content Area */}
-      <div style={{ padding: "0.5rem", maxWidth: "2400px", margin: "0 auto", minHeight: "100vh", opacity: isTransitioning ? 0 : 1, transition: "opacity 0.2s ease-in-out" }}>
+      <div ref={contentRef} style={{ padding: "0.5rem", maxWidth: "2400px", margin: "0 auto", minHeight: "100vh", opacity: isTransitioning ? 0 : 1, transition: "opacity 0.2s ease-in-out" }}>
         
         {viewMode === 'photos' ? (
           <div style={{ columnCount: 3, columnGap: "0.5rem" }}>
