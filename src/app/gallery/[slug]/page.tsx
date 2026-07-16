@@ -200,6 +200,48 @@ export default function PublicGallery() {
     }
   };
 
+  const handleShare = (platform: string) => {
+    const url = encodeURIComponent(shareUrl);
+    const text = encodeURIComponent('Check out this gallery!');
+    
+    switch (platform) {
+      case 'Messenger':
+        window.open(`fb-messenger://share/?link=${url}`, '_blank');
+        break;
+      case 'WhatsApp':
+        window.open(`https://api.whatsapp.com/send?text=${url}`, '_blank');
+        break;
+      case 'Facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+        break;
+      case 'Email':
+        window.location.href = `mailto:?subject=${text}&body=${url}`;
+        break;
+      case 'X (Twitter)':
+        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+        break;
+      case 'Pinterest':
+        window.open(`https://pinterest.com/pin/create/button/?url=${url}`, '_blank');
+        break;
+      case 'Threads':
+        window.open(`https://threads.net/intent/post?text=${url}`, '_blank');
+        break;
+      case 'More':
+        if (navigator.share) {
+          navigator.share({
+            title: 'Gallery',
+            text: 'Check out this gallery!',
+            url: shareUrl
+          }).catch(console.error);
+        } else {
+          alert('Native sharing is not supported on this device.');
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordInput === gallery.Password) {
@@ -630,7 +672,7 @@ export default function PublicGallery() {
                 { name: 'Threads', icon: <Share2 size={24} /> },
                 { name: 'More', icon: <Share2 size={24} /> },
               ].map(item => (
-                <div key={item.name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", cursor: "pointer" }} onClick={() => alert("Integration pending for " + item.name)}>
+                <div key={item.name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", cursor: "pointer" }} onClick={() => handleShare(item.name)}>
                   <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "#737373", color: "white", display: "flex", alignItems: "center", justifyContent: "center", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#111"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#737373"}>
                     {item.icon}
                   </div>
