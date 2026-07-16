@@ -102,6 +102,12 @@ export default function PublicGallery() {
     fetchGallery();
   }, [slug]);
 
+  useEffect(() => {
+    if (gallery) {
+      document.title = `${gallery.Client_Name || gallery.Title} | ${companyName || 'Gallery'}`;
+    }
+  }, [gallery, companyName]);
+
   // Load email from local storage
   useEffect(() => {
     if (typeof window !== "undefined") {

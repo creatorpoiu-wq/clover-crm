@@ -46,6 +46,12 @@ export default function Storefront() {
     fetchData();
   }, [slug]);
 
+  useEffect(() => {
+    if (gallery) {
+      document.title = `${gallery.Client_Name || gallery.Title} Print Store | ${companyName || 'Gallery'}`;
+    }
+  }, [gallery, companyName]);
+
   if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading Store...</div>;
   if (!gallery) return <div style={{ padding: "4rem", textAlign: "center" }}>Store not found.</div>;
 
