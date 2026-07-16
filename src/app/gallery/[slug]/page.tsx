@@ -267,9 +267,9 @@ export default function PublicGallery() {
 
   const visibleAlbums = useMemo(() => {
     return albums.filter(album => {
-      return media.some(m => m.Album_ID === album.Album_ID && m.Media_Type === (viewMode === 'photos' ? 'photo' : 'video'));
+      return media.some(m => m.Album_ID === album.Album_ID);
     });
-  }, [albums, media, viewMode]);
+  }, [albums, media]);
 
   useEffect(() => {
     if (visibleAlbums.length > 0 && !visibleAlbums.some(a => a.Album_ID === activeAlbumId)) {
@@ -277,7 +277,22 @@ export default function PublicGallery() {
     } else if (visibleAlbums.length === 0 && activeAlbumId !== null) {
       setActiveAlbumId(null);
     }
-  }, [viewMode, visibleAlbums, activeAlbumId]);
+  }, [visibleAlbums, activeAlbumId]);
+
+  // Auto-switch viewMode if the active album strictly contains only one media type
+  useEffect(() => {
+    if (activeAlbumId) {
+      const albumMedia = media.filter(m => m.Album_ID === activeAlbumId);
+      const hasPhotos = albumMedia.some(m => m.Media_Type === 'photo');
+      const hasVideos = albumMedia.some(m => m.Media_Type === 'video');
+      
+      if (hasVideos && !hasPhotos && viewMode !== 'films') {
+        setViewMode('films');
+      } else if (hasPhotos && !hasVideos && viewMode !== 'photos') {
+        setViewMode('photos');
+      }
+    }
+  }, [activeAlbumId, media, viewMode]);
 
   const handleDownloadAll = () => {
     if (gallery.Download_Url) {
