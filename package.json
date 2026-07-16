@@ -89,6 +89,7 @@
     "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "puppeteer": "^25.3.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wait-on": "^9.0.5"

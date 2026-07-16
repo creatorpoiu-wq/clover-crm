@@ -40,6 +40,32 @@ export default function PublicGallery() {
     setShareUrl(window.location.href);
   }, []);
 
+  const photos = media.filter(m => {
+    const matchesAlbum = activeAlbumId ? m.Album_ID === activeAlbumId : true;
+    const matchesFavorites = showFavoritesOnly ? favorites.includes(m.Media_ID) : true;
+    return m.Media_Type === 'photo' && matchesAlbum && matchesFavorites;
+  });
+  const videos = media.filter(m => {
+    const matchesAlbum = activeAlbumId ? m.Album_ID === activeAlbumId : true;
+    const matchesFavorites = showFavoritesOnly ? favorites.includes(m.Media_ID) : true;
+    return m.Media_Type === 'video' && matchesAlbum && matchesFavorites;
+  });
+  const hasVideos = media.some(m => m.Media_Type === 'video'); // compute on all media
+  const hasPhotos = media.some(m => m.Media_Type === 'photo');
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isSlideshowPlaying && lightboxIndex !== null && photos.length > 0) {
+      interval = setInterval(() => {
+        setLightboxIndex(prev => {
+          if (prev === null) return 0;
+          return prev < photos.length - 1 ? prev + 1 : 0;
+        });
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [isSlideshowPlaying, lightboxIndex, photos.length]);
+
   useEffect(() => {
     const fetchGallery = async () => {
       try {
@@ -239,36 +265,13 @@ export default function PublicGallery() {
     );
   }
 
-  const photos = media.filter(m => {
-    const matchesAlbum = activeAlbumId ? m.Album_ID === activeAlbumId : true;
-    const matchesFavorites = showFavoritesOnly ? favorites.includes(m.Media_ID) : true;
-    return m.Media_Type === 'photo' && matchesAlbum && matchesFavorites;
-  });
-  const videos = media.filter(m => {
-    const matchesAlbum = activeAlbumId ? m.Album_ID === activeAlbumId : true;
-    const matchesFavorites = showFavoritesOnly ? favorites.includes(m.Media_ID) : true;
-    return m.Media_Type === 'video' && matchesAlbum && matchesFavorites;
-  });
-  const hasVideos = media.some(m => m.Media_Type === 'video'); // compute on all media
-  const hasPhotos = media.some(m => m.Media_Type === 'photo');
 
 
 
 
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isSlideshowPlaying && lightboxIndex !== null && photos.length > 0) {
-      interval = setInterval(() => {
-        setLightboxIndex(prev => {
-          if (prev === null) return 0;
-          return prev < photos.length - 1 ? prev + 1 : 0;
-        });
-      }, 3000);
-    }
-    return () => clearInterval(interval);
-  }, [isSlideshowPlaying, lightboxIndex, photos.length]);
 
+ 
   const scrollToContent = () => {
     document.getElementById('gallery-content')?.scrollIntoView({ behavior: 'smooth' });
   };
