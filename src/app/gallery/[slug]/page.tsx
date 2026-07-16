@@ -34,7 +34,11 @@ export default function PublicGallery() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [favoriteActionMediaId, setFavoriteActionMediaId] = useState<number | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const [shareUrl, setShareUrl] = useState('');
+
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, []);
 
   useEffect(() => {
     const fetchGallery = async () => {
