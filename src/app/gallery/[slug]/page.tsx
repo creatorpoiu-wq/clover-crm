@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft, Heart, ShoppingCart, MessageCircle, Mail } from "lucide-react";
+import { Download, Play, X, Lock, MonitorPlay, CloudDownload, Share2, ArrowLeft, ChevronRight, ChevronLeft, Heart, ShoppingCart, MessageCircle, Mail, Film, Image as ImageIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 
@@ -412,10 +412,18 @@ export default function PublicGallery() {
             <Heart size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setShowFavoritesOnly(!showFavoritesOnly)} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
             <Download size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={handleDownloadAll} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
             <Share2 size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setIsShareModalOpen(true)} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
-            {hasVideos ? (
-              <Play size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setViewMode('films')} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
-            ) : (
-              <Play size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => { if(photos.length > 0) { setLightboxIndex(0); setIsSlideshowPlaying(true); } }} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
+            <div title="Slideshow">
+              <MonitorPlay size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => { if(photos.length > 0) { setLightboxIndex(0); setIsSlideshowPlaying(true); } }} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
+            </div>
+
+            {hasVideos && (
+              <div title={viewMode === 'photos' ? "View Films" : "View Photos"}>
+                {viewMode === 'photos' ? (
+                  <Film size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setViewMode('films')} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
+                ) : (
+                  <ImageIcon size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setViewMode('photos')} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
+                )}
+              </div>
             )}
           </div>
         </div>
