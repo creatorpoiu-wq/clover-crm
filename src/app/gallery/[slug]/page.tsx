@@ -415,16 +415,6 @@ export default function PublicGallery() {
             <div title="Slideshow">
               <MonitorPlay size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => { if(photos.length > 0) { setLightboxIndex(0); setIsSlideshowPlaying(true); } }} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
             </div>
-
-            {hasVideos && (
-              <div title={viewMode === 'photos' ? "View Films" : "View Photos"}>
-                {viewMode === 'photos' ? (
-                  <Film size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setViewMode('films')} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
-                ) : (
-                  <ImageIcon size={20} style={{ cursor: "pointer", transition: "color 0.2s" }} onClick={() => setViewMode('photos')} onMouseEnter={(e) => e.currentTarget.style.color = "#111"} onMouseLeave={(e) => e.currentTarget.style.color = "#a3a3a3"} />
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>
