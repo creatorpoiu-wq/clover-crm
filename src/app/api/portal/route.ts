@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
           stage: inquiry.Pipeline_Stage,
           estimatedValue: inquiry.Estimated_Value,
           questionnaireData: inquiry.Questionnaire_Data,
-          deliverableMilestones: []
+          deliverableMilestones: inquiry.Questionnaire_Data?.Deliverable_Milestones || null
         },
         contracts: contracts || [],
         invoices: invoices || [],

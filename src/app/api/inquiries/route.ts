@@ -103,16 +103,19 @@ export async function PUT(req: NextRequest) {
       Event_Date
     };
 
-    if (Deliverable_Milestones !== undefined) {
-      updatePayload.Deliverable_Milestones = Deliverable_Milestones;
-    }
-
-    // Fetch existing inquiry to check if stage changed
+    // Fetch existing inquiry to check if stage changed and get Questionnaire_Data
     const { data: existingInquiry } = await supabase
       .from('Inquiries')
-      .select('Pipeline_Stage')
+      .select('Pipeline_Stage, Questionnaire_Data')
       .eq('Inquiry_ID', id)
       .single();
+
+    if (Deliverable_Milestones !== undefined) {
+      updatePayload.Questionnaire_Data = {
+        ...(existingInquiry?.Questionnaire_Data || {}),
+        Deliverable_Milestones
+      };
+    }
 
     const { error } = await supabase
       .from('Inquiries')
