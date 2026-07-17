@@ -190,7 +190,7 @@ export default function CalendarPage() {
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const dayEvents = events.filter((e) => e.Event_Date === dateStr);
-    const dayBlocks = blockedDates.filter((b) => dateStr >= b.Start_Date && dateStr <= b.End_Date);
+    const dayBlocks = blockedDates.filter((b) => dateStr === b.Date);
     const isToday = dateStr === new Date().toISOString().split("T")[0];
 
     // If there is any full day block, we might want to color the whole cell or just add a big pill. Let's add a solid gray pill.

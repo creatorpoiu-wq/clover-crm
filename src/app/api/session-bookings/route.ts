@@ -89,8 +89,7 @@ export async function POST(req: NextRequest) {
       }
       const { error: blockError } = await supabase.from('Blocked_Dates').insert({
         user_id: userId,
-        Start_Date: bookedDate,
-        End_Date: bookedDate,
+        Date: bookedDate,
         Is_All_Day: false,
         Start_Time: formattedStartTime,
         End_Time: endTime

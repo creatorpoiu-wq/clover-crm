@@ -39,16 +39,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Start and End dates are required.' }, { status: 400 });
     }
 
-    const { error } = await supabase
-      .from('Blocked_Dates')
-      .insert({
+    const parseDate = (dstr: string) => {
+      const [y, m, d] = dstr.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    };
+    const curr = parseDate(startDate);
+    const end = parseDate(endDate);
+    
+    const inserts = [];
+    while (curr <= end) {
+      const dStr = `${curr.getFullYear()}-${String(curr.getMonth()+1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+      inserts.push({
         user_id: user.id,
-        Start_Date: startDate,
-        End_Date: endDate,
+        Date: dStr,
         Is_All_Day: isAllDay,
         Start_Time: startTime || null,
         End_Time: endTime || null
       });
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    const { error } = await supabase
+      .from('Blocked_Dates')
+      .insert(inserts);
 
     if (error) throw error;
 
