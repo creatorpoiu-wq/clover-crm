@@ -47,6 +47,12 @@ export default function ClientPortal() {
   };
 
   useEffect(() => {
+    if (data?.vendor?.companyName) {
+      document.title = `Client Portal | ${data.vendor.companyName}`;
+    }
+  }, [data]);
+
+  useEffect(() => {
     if (activeTab === 'messages') {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }

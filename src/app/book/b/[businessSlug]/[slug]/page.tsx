@@ -161,6 +161,12 @@ export default function BookSessionPage({ params }: { params: Promise<{ business
   }, [resolvedParams.businessSlug, resolvedParams.slug]);
 
   useEffect(() => {
+    if (session) {
+      document.title = `Book ${session.Session_Type} | ${funnelSettings?.companyName || 'Booking'}`;
+    }
+  }, [session, funnelSettings]);
+
+  useEffect(() => {
     if (!showSigPad || !sigCanvasRef.current) return;
     const canvas = sigCanvasRef.current;
     const ratio = window.devicePixelRatio || 1;

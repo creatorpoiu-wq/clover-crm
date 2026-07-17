@@ -35,6 +35,12 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (config?.Company_Name) {
+      document.title = `Proposal | ${config.Company_Name}`;
+    }
+  }, [config]);
+
   const handleAccept = async () => {
     setAccepting(true);
     await fetch(`/api/proposals/${id}`, {

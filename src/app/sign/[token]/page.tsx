@@ -36,6 +36,12 @@ export default function SignPage() {
   }, [token]);
 
   useEffect(() => {
+    if (contract) {
+      document.title = `${contract.Contract_Title || contract.Title || 'Contract'} | ${companyName || 'Sign'}`;
+    }
+  }, [contract, companyName]);
+
+  useEffect(() => {
     if (!showSigPad || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const ratio = Math.max(window.devicePixelRatio || 1, 1);

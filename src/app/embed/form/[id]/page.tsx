@@ -32,6 +32,12 @@ export default function FormEmbedPage({ params }: { params: Promise<{ id: string
       .finally(() => setLoading(false));
   }, [resolvedParams.id]);
 
+  useEffect(() => {
+    if (formConfig) {
+      document.title = formConfig.title || 'Form';
+    }
+  }, [formConfig]);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
