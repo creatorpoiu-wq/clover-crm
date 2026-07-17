@@ -157,11 +157,9 @@ export async function POST(req: NextRequest) {
     // 4. Log Communication
     await supabase.from('Communications').insert({
       user_id: userId,
-      Contact_ID: contactId,
       Inquiry_ID: newInquiry.Inquiry_ID,
       Last_Contact_By: 'Client',
       Last_Contact_Date: new Date().toISOString(),
-      Method: 'Form',
       Message: formSummaryText.trim()
     });
 

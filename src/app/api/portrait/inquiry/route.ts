@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     try {
       await supabase.from('Communications').insert({
         user_id: userId,
-        Contact_ID: contactId,
+        Inquiry_ID: newInquiry.Inquiry_ID,
         Last_Contact_By: name,
         Last_Contact_Date: new Date().toISOString(),
         Message: `<strong>New booking inquiry submitted via Portrait Booking Page</strong><br/>
