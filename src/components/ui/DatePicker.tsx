@@ -13,9 +13,10 @@ interface DatePickerProps {
   placeholder?: string;
   required?: boolean;
   style?: React.CSSProperties;
+  popperPlacement?: any;
 }
 
-export function DatePicker({ value, onChange, userId, className, placeholder = "Select a date", required, style }: DatePickerProps) {
+export function DatePicker({ value, onChange, userId, className, placeholder = "Select a date", required, style, popperPlacement = "auto" }: DatePickerProps) {
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -63,6 +64,7 @@ export function DatePicker({ value, onChange, userId, className, placeholder = "
   return (
     <div className="custom-datepicker-wrapper" style={{ width: '100%', position: 'relative' }}>
       <ReactDatePicker
+        popperPlacement={popperPlacement}
         selected={selectedDate}
         onChange={(date: Date | null) => {
           if (date) {
