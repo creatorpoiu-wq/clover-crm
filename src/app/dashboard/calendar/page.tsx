@@ -29,8 +29,7 @@ interface ReminderData {
 
 interface BlockedDate {
   Block_ID: number;
-  Start_Date: string;
-  End_Date: string;
+  Date: string;
   Is_All_Day: boolean;
   Start_Time?: string;
   End_Time?: string;
