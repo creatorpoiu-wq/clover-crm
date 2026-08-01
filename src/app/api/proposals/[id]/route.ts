@@ -32,7 +32,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { data, error } = await query.single();
 
-    if (error || !data) return NextResponse.json({ success: false, error: 'Proposal not found' }, { status: 404 });
+    if (error) {
+      console.error("Supabase Proposal query error:", error);
+      return NextResponse.json({ success: false, error: `Proposal query failed: ${error.message} (Code: ${error.code})` }, { status: 404 });
+    }
+    if (!data) {
+      return NextResponse.json({ success: false, error: 'Proposal not found (no data returned)' }, { status: 404 });
+    }
 
     // Also fetch the photographer's branding from AppConfig
     const { data: config } = await supabase
