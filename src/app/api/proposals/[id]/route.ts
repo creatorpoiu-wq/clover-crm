@@ -47,14 +47,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!data) {
       return NextResponse.json({ 
         success: false, 
-        error: `Proposal with ID or Slug "${id}" not found in the database. DB URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}. URL: ${req.url}. Data: ${JSON.stringify(data)}. Error: ${JSON.stringify(error)}`
+        error: `Proposal not found`
       }, { status: 404 });
     }
 
     // Also fetch the photographer's branding from AppConfig
     const { data: config } = await supabase
       .from('AppConfig')
-      .select('Company_Name, Logo_Url, Brand_Color, Custom_Domain')
+      .select('Company_Name, Business_Logo, Brand_Color, Custom_Domain')
       .eq('user_id', (data as any).user_id || '')
       .single();
 

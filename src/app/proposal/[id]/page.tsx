@@ -139,8 +139,8 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
 
         {/* Branding */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '1.5rem 2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {config.Logo_Url ? (
-            <img src={config.Logo_Url} alt={companyName} style={{ height: 36, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          {config.Business_Logo ? (
+            <img src={config.Business_Logo} alt={companyName} style={{ height: 36, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
           ) : (
             <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.02em' }}>{companyName}</span>
           )}
