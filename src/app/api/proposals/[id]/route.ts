@@ -30,14 +30,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       query = query.eq('Slug', id);
     }
 
-    const { data, error } = await query.single();
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
-      console.error("Supabase Proposal query error:", error);
-      return NextResponse.json({ success: false, error: `Proposal query failed: ${error.message} (Code: ${error.code})` }, { status: 404 });
+      console.error("Supabase Proposal query error (multiple rows?):", error);
+      return NextResponse.json({ success: false, error: `Proposal query failed for ID "${id}": Multiple rows found or database error. ${error.message} (Code: ${error.code})` }, { status: 500 });
     }
     if (!data) {
-      return NextResponse.json({ success: false, error: 'Proposal not found (no data returned)' }, { status: 404 });
+      return NextResponse.json({ success: false, error: `Proposal with ID or Slug "${id}" not found in the database. Please ensure it was created correctly.` }, { status: 404 });
     }
 
     // Also fetch the photographer's branding from AppConfig
