@@ -74,13 +74,12 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
     } else {
       const templateId = funnelSettings?.contractTemplateId;
       if (templateId) {
-        fetch('/api/contract-templates')
+        fetch(`/api/public-booking?type=contract_template&templateId=${templateId}`)
           .then(res => res.json())
-          .then(tData => {
-            const matched = tData.templates?.find((t: any) => String(t.Template_ID) === String(templateId));
-            if (matched) {
-              setTemplate(matched);
-              extractVariables(matched.Content);
+          .then(data => {
+            if (data.success && data.template) {
+              setTemplate(data.template);
+              extractVariables(data.template.Content);
             }
           })
           .finally(() => setLoading(false));
