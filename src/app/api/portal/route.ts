@@ -62,7 +62,10 @@ export async function GET(req: NextRequest) {
     // 3. Fetch Invoices linked to Inquiry
     const { data: invoices } = await supabase
       .from('Invoices')
-      .select('Invoice_ID, Issue_Date, Due_Date, Status, Total_Amount')
+      .select(`
+        Invoice_ID, Issue_Date, Due_Date, Status, Total_Amount,
+        Invoice_Items ( Item_ID, Description, Quantity, Price )
+      `)
       .eq('Inquiry_ID', parsedInquiryId)
       .order('Issue_Date', { ascending: false });
 

@@ -164,11 +164,6 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
             Access Your Client Portal →
           </a>
         )}
-        <div>
-          <button onClick={() => window.location.href = '/'} style={{ background: 'transparent', color: '#6b7280', padding: '12px 24px', border: '1px solid #e5e7eb', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
-            Return Home
-          </button>
-        </div>
       </div>
     );
   }

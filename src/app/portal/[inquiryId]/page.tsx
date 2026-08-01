@@ -158,7 +158,7 @@ export default function ClientPortal() {
       });
     }
     if (pendingInvoices.length > 0) {
-      items.push({ text: `Pay Invoice #${pendingInvoices[0].Invoice_ID}`, tab: 'documents', action: () => setPayingInvoice(pendingInvoices[0]) });
+      items.push({ text: `View Invoice #${pendingInvoices[0].Invoice_ID}`, tab: 'documents', action: () => setPayingInvoice(pendingInvoices[0]) });
     }
     
     if (items.length === 0) {
@@ -547,9 +547,7 @@ export default function ClientPortal() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                           <span style={{ fontSize: 13, fontWeight: 600, color: inv.Status === 'Paid' ? '#10b981' : '#f59e0b' }}>{inv.Status}</span>
-                          {inv.Status !== 'Paid' && vendor.paypalClientId && (
-                            <button onClick={() => setPayingInvoice(inv)} style={{ padding: '8px 16px', background: brandColor, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Pay via PayPal</button>
-                          )}
+                          <button onClick={() => setPayingInvoice(inv)} style={{ padding: '8px 16px', background: brandColor, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>View Invoice</button>
                         </div>
                       </div>
                     ))}
@@ -690,25 +688,84 @@ export default function ClientPortal() {
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* Invoice Modal */}
       {payingInvoice && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
-          <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '400px', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '20px' }}>
+          <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
             <button 
               onClick={() => setPayingInvoice(null)} 
               style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
             >
               <X size={20} />
             </button>
-            <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 800, color: '#0f172a' }}>Pay Invoice #{payingInvoice.Invoice_ID}</h3>
-            <p style={{ margin: '0 0 24px', fontSize: 14, color: '#64748b' }}>Complete your payment of <strong>${payingInvoice.Total_Amount}</strong> securely via PayPal.</p>
-            <PayPalCheckoutButton 
-              clientId={vendor.paypalClientId} 
-              amount={Number(payingInvoice.Total_Amount)} 
-              description={`Invoice #${payingInvoice.Invoice_ID}`}
-              onSuccess={handleInvoicePayment}
-              onError={(err) => alert("PayPal payment failed. Please try again or use another method.")}
-            />
+            <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '24px' }}>
+              <h2 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 800, color: '#0f172a' }}>Invoice #{payingInvoice.Invoice_ID}</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: 14 }}>
+                <div><strong>Issue Date:</strong> {new Date(payingInvoice.Issue_Date).toLocaleDateString()}</div>
+                <div><strong>Status:</strong> <span style={{ color: payingInvoice.Status === 'Paid' ? '#10b981' : '#f59e0b', fontWeight: 700 }}>{payingInvoice.Status}</span></div>
+              </div>
+            </div>
+
+            {/* Line Items */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '32px' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#64748b', fontSize: 13, textAlign: 'left' }}>
+                  <th style={{ padding: '12px 8px' }}>Description</th>
+                  <th style={{ padding: '12px 8px', width: '80px', textAlign: 'center' }}>Qty</th>
+                  <th style={{ padding: '12px 8px', width: '100px', textAlign: 'right' }}>Price</th>
+                  <th style={{ padding: '12px 8px', width: '100px', textAlign: 'right' }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payingInvoice.Invoice_Items && payingInvoice.Invoice_Items.length > 0 ? payingInvoice.Invoice_Items.map((item: any) => (
+                  <tr key={item.Item_ID} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '16px 8px', color: '#0f172a' }}>{item.Description}</td>
+                    <td style={{ padding: '16px 8px', textAlign: 'center', color: '#64748b' }}>{item.Quantity}</td>
+                    <td style={{ padding: '16px 8px', textAlign: 'right', color: '#64748b' }}>${item.Price}</td>
+                    <td style={{ padding: '16px 8px', textAlign: 'right', color: '#0f172a', fontWeight: 600 }}>${(item.Price * item.Quantity).toFixed(2)}</td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={4} style={{ padding: '16px 8px', textAlign: 'center', color: '#94a3b8' }}>No items found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
+              <div style={{ width: '250px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 14, color: '#64748b' }}>
+                  <span>Subtotal</span>
+                  <span>${payingInvoice.Total_Amount}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderTop: '2px solid #e2e8f0', fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+                  <span>Total</span>
+                  <span>${payingInvoice.Total_Amount}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Section */}
+            {payingInvoice.Status !== 'Paid' && (
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
+                {vendor.paypalClientId ? (
+                  <>
+                    <h4 style={{ margin: '0 0 16px', fontSize: 16, color: '#0f172a' }}>Complete your payment securely via PayPal</h4>
+                    <PayPalCheckoutButton 
+                      clientId={vendor.paypalClientId} 
+                      amount={Number(payingInvoice.Total_Amount)} 
+                      description={`Invoice #${payingInvoice.Invoice_ID}`}
+                      onSuccess={handleInvoicePayment}
+                      onError={(err: any) => alert("PayPal payment failed. Please try again or use another method.")}
+                    />
+                  </>
+                ) : (
+                  <div style={{ color: '#64748b', fontSize: 14 }}>
+                    Please contact <strong>{vendor.companyName}</strong> to arrange payment for this invoice.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

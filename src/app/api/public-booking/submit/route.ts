@@ -167,8 +167,8 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      const isPaid = paymentMethod === 'paypal';
-      const status = isPaid ? (paymentChoice === 'full' ? 'Paid' : 'Deposit Paid') : 'Unpaid';
+      const isPaid = paymentMethod === 'paypal' || paymentMethod === 'receipt' || !!receiptUrl;
+      const status = isPaid ? (paymentChoice === 'full' ? 'Paid' : 'Partially Paid') : 'Unpaid';
 
       const { data: newInv } = await supabase
         .from('Invoices')
