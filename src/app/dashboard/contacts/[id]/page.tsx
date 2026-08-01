@@ -29,6 +29,7 @@ interface Inquiry {
   Event_Date?: string | null;
   Estimated_Value?: number | null;
   Package_ID?: number | null;
+  Questionnaire_Data?: any;
 }
 
 interface Communication {
