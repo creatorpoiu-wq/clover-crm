@@ -21,25 +21,32 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   useEffect(() => {
     // Fetch all required data in parallel
     Promise.all([
-      fetch(`/api/proposals/${id}`).then(r => r.json()),
-      fetch('/api/contacts').then(r => r.json()),
-      fetch('/api/inquiries').then(r => r.json()),
-      fetch('/api/packages?type=packages').then(r => r.json()),
-      fetch('/api/questionnaire?type=templates').then(r => r.json()),
-      fetch('/api/contract-templates').then(r => r.json())
+      fetch(`/api/proposals/${id}`).then(r => r.json().catch(() => ({ success: false, error: 'Invalid JSON response' }))),
+      fetch('/api/contacts').then(r => r.json().catch(() => ({ success: false }))),
+      fetch('/api/inquiries').then(r => r.json().catch(() => ({ success: false }))),
+      fetch('/api/packages?type=packages').then(r => r.json().catch(() => ({ success: false }))),
+      fetch('/api/questionnaire?type=templates').then(r => r.json().catch(() => ({ success: false }))),
+      fetch('/api/contract-templates').then(r => r.json().catch(() => ({ success: false })))
     ]).then(([propData, contData, inqData, pkgData, qData, cData]) => {
-      if (propData.success) {
+      if (propData.success && propData.proposal) {
         setProposal(propData.proposal);
         if (propData.config) setConfig(propData.config);
+      } else {
+        setErrorMsg(propData.error || 'Failed to load proposal data. Please ensure it exists.');
       }
       if (contData.success) setContacts(contData.contacts || []);
       if (inqData.success) setInquiries(inqData.inquiries || []);
       if (pkgData.success) setPackages(pkgData.packages || []);
       if (qData.success) setQTemplates(qData.templates || []);
       if (cData.success) setCTemplates(cData.templates || []);
+    }).catch(err => {
+      console.error("Fetch error:", err);
+      setErrorMsg(err.message || 'An unexpected error occurred while loading.');
     });
   }, [id]);
 
@@ -91,7 +98,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           contactId: proposal.Contact_ID,
-          proposalId: id
+          proposalId: proposal.Proposal_ID || id
         }),
       });
       const data = await res.json();
@@ -118,6 +125,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (errorMsg) return <div style={{ padding: '4rem', textAlign: 'center', color: '#ef4444' }}>Error: {errorMsg}</div>;
   if (!proposal) return <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Loading proposal...</div>;
 
   const contactInquiries = inquiries.filter(i => i.Contact_ID == proposal.Contact_ID);

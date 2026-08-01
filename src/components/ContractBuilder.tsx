@@ -75,12 +75,23 @@ const InputNode = Node.create({
 const CheckboxComponent = ({ node, updateAttributes }: any) => {
   const isRequired = !!node.attrs.required;
   return (
-    <NodeViewWrapper as="span" style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'baseline', margin: '0 4px', userSelect: 'none' }}>
+    <NodeViewWrapper as="span" style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'baseline', margin: '0 4px' }}>
       <input 
         type="checkbox" 
         style={{ cursor: 'pointer', width: '14px', height: '14px', verticalAlign: 'middle' }} 
         checked={isRequired}
         onChange={() => updateAttributes({ required: !isRequired })}
+      />
+      <input
+        type="text"
+        value={node.attrs.label || ''}
+        onChange={(e) => updateAttributes({ label: e.target.value })}
+        placeholder="Checkbox label"
+        style={{
+          border: 'none', background: 'transparent',
+          padding: '0 6px', fontSize: 'inherit', fontFamily: 'inherit',
+          color: 'inherit', outline: 'none', minWidth: '60px'
+        }}
       />
       <span 
         onClick={() => updateAttributes({ required: !isRequired })}
@@ -91,6 +102,7 @@ const CheckboxComponent = ({ node, updateAttributes }: any) => {
           borderRadius: '4px',
           fontWeight: 700,
           cursor: 'pointer',
+          userSelect: 'none',
           backgroundColor: isRequired ? '#fee2e2' : '#f3f4f6',
           color: isRequired ? '#ef4444' : '#6b7280',
           border: isRequired ? '1px solid #fca5a5' : '1px solid #e5e7eb'
@@ -109,6 +121,11 @@ const CheckboxNode = Node.create({
       required: {
         default: true,
         parseHTML: element => {
+          if (element.tagName === 'LABEL') {
+            const input = element.querySelector('input');
+            if (input && input.getAttribute('data-required') === 'false') return false;
+            return true;
+          }
           if (element.getAttribute('data-required') === 'false') return false;
           return true;
         },
@@ -118,18 +135,40 @@ const CheckboxNode = Node.create({
             'data-required': attributes.required ? 'true' : 'false'
           };
         }
+      },
+      label: {
+        default: 'Checkbox label',
+        parseHTML: element => {
+          if (element.tagName === 'LABEL') return element.getAttribute('data-label') || 'Checkbox label';
+          return 'Checkbox label';
+        },
+        renderHTML: attributes => {
+          return { 'data-label': attributes.label };
+        }
       }
     };
   },
-  parseHTML() { return [{ tag: 'input[data-custom-checkbox]' }]; },
+  parseHTML() { 
+    return [
+      { tag: 'label[data-custom-checkbox-wrapper]' },
+      { tag: 'input[data-custom-checkbox]' }
+    ]; 
+  },
   renderHTML({ HTMLAttributes, node }) {
     const requiredAttrs = node?.attrs?.required ? { required: 'required', 'data-required': 'true' } : { 'data-required': 'false' };
-    return ['input', mergeAttributes(HTMLAttributes, { 
-      'data-custom-checkbox': true, 
-      type: 'checkbox', 
-      style: 'width: 14px; height: 14px; vertical-align: middle;',
-      ...requiredAttrs
-    })];
+    const { 'data-label': dataLabel, ...inputAttrs } = HTMLAttributes;
+    
+    return [
+      'label',
+      { 'data-custom-checkbox-wrapper': 'true', 'data-label': node?.attrs?.label || '', style: 'display: inline-flex; align-items: center; gap: 6px; cursor: pointer;' },
+      ['input', mergeAttributes(inputAttrs, { 
+        'data-custom-checkbox': 'true', 
+        type: 'checkbox', 
+        style: 'width: 14px; height: 14px; vertical-align: middle; margin: 0;',
+        ...requiredAttrs
+      })],
+      ['span', { style: 'font-size: inherit; font-family: inherit; color: inherit;' }, node?.attrs?.label || '']
+    ];
   },
   addNodeView() { return ReactNodeViewRenderer(CheckboxComponent); },
 });

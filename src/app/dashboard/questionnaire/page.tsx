@@ -183,22 +183,50 @@ export default function QuestionnaireBuilder() {
     }
 
     setIsSending(true);
-    const res = await fetch('/api/send-proposal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sendFormData)
-    });
+    try {
+      // 1. Create a proposal first
+      const createRes = await fetch('/api/proposals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Custom Booking Proposal',
+          contactId: sendFormData.contactId,
+          contractTemplateId: sendFormData.contractId,
+          questionnaireTemplateId: sendFormData.questionnaireId
+        })
+      });
+      const createData = await createRes.json();
+      
+      if (!createRes.ok || !createData.success) {
+        throw new Error(createData.error || 'Failed to create proposal');
+      }
 
-    setIsSending(false);
-    const data = await res.json().catch(() => ({}));
+      const proposalId = createData.proposal.Proposal_ID;
 
-    if (res.ok && data.success) {
-      setShowSendModal(false);
-      setToast({ message: 'Proposal sent successfully!', type: 'success' });
+      // 2. Send the proposal email
+      const sendRes = await fetch('/api/send-proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId: sendFormData.contactId,
+          proposalId: proposalId
+        })
+      });
+
+      const sendData = await sendRes.json();
+
+      if (sendRes.ok && sendData.success) {
+        setShowSendModal(false);
+        setToast({ message: 'Proposal sent successfully!', type: 'success' });
+        setTimeout(() => setToast(null), 4000);
+      } else {
+        throw new Error(sendData.error || 'Unknown error occurred.');
+      }
+    } catch (err: any) {
+      setToast({ message: `Failed to send proposal: ${err.message}`, type: 'error' });
       setTimeout(() => setToast(null), 4000);
-    } else {
-      setToast({ message: `Failed to send proposal: ${data.error || 'Unknown error occurred.'}`, type: 'error' });
-      setTimeout(() => setToast(null), 4000);
+    } finally {
+      setIsSending(false);
     }
   };
 
