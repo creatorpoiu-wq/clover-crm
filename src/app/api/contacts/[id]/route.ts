@@ -50,8 +50,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       const commsPromise = supabase.from('Communications').select('*').in('Inquiry_ID', inquiryIds).eq('user_id', userId).order('Last_Contact_Date', { ascending: false });
       const invPromise = supabase.from('Invoices').select('*, Invoice_Items(*)').in('Inquiry_ID', inquiryIds).eq('user_id', userId);
       const conPromise = supabase.from('Contracts').select('*').in('Inquiry_ID', inquiryIds).eq('user_id', userId);
+      const propPromise = supabase.from('Proposals').select('*').eq('Contact_ID', id).eq('user_id', userId);
 
-      const [commsRes, invRes, conRes] = await Promise.all([commsPromise, invPromise, conPromise]);
+      const [commsRes, invRes, conRes, propRes] = await Promise.all([commsPromise, invPromise, conPromise, propPromise]);
 
       if (commsRes.error) throw commsRes.error;
       if (invRes.error) throw invRes.error;
@@ -60,7 +61,21 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       communications = commsRes.data || [];
       invoices = invRes.data || [];
       contracts = conRes.data || [];
+      const proposals = propRes.data || [];
+
+      return NextResponse.json({
+        success: true,
+        contact,
+        inquiries: inquiries || [],
+        communications,
+        invoices,
+        contracts,
+        proposals
+      });
     }
+
+    // Fallback if no inquiries
+    const { data: fallbackProposals } = await supabase.from('Proposals').select('*').eq('Contact_ID', id).eq('user_id', userId);
 
     return NextResponse.json({
       success: true,
@@ -68,7 +83,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       inquiries: inquiries || [],
       communications,
       invoices,
-      contracts
+      contracts,
+      proposals: fallbackProposals || []
     });
 
   } catch (error: any) {

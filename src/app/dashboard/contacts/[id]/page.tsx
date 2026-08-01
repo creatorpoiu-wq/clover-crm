@@ -65,6 +65,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
   const [communications, setCommunications] = useState<Communication[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [proposals, setProposals] = useState<any[]>([]);
   const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -114,6 +115,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           setCommunications(data.communications);
           setInvoices(data.invoices || []);
           setContracts(data.contracts || []);
+          setProposals(data.proposals || []);
         }
       })
       .catch(console.error)
@@ -195,7 +197,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const tabs = ["Overview", "Communications", "Documents", "Payments", "Sessions", "Deliverables"];
+  const tabs = ["Overview", "Proposals", "Communications", "Documents", "Payments", "Sessions", "Deliverables"];
 
   const handleDeleteCommunication = async (commId: number) => {
     if (!confirm("Are you sure you want to delete this communication?")) return;
@@ -810,6 +812,66 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           ) : (
             <p style={{ color: '#a0a0a0', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No sessions booked yet.</p>
           )}
+        </div>
+      )}
+
+      {activeTab === 'proposals' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', border: '1px solid #f0efe9' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Proposals Sent</h2>
+              <button onClick={() => router.push(`/dashboard/proposals?client=${contact.Contact_ID}`)} style={{ backgroundColor: '#4da685', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>New Proposal</button>
+            </div>
+            {proposals.length > 0 ? (
+              <div className="space-y-4">
+                {proposals.map(p => (
+                  <div key={p.Proposal_ID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '1px solid #f0efe9', borderRadius: '0.5rem' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: '0 0 0.5rem 0' }}>{p.Title || "Untitled Proposal"}</h3>
+                      <div style={{ fontSize: '0.875rem', color: '#a0a0a0' }}>
+                        {p.Sent_At ? `Sent: ${new Date(p.Sent_At).toLocaleDateString()}` : 'Draft'} 
+                        {p.Accepted_At && ` • Accepted: ${new Date(p.Accepted_At).toLocaleDateString()}`}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '1rem', textTransform: 'uppercase', backgroundColor: p.Status === 'Accepted' ? '#e8f5f0' : (p.Status === 'Declined' ? '#fef2f2' : '#fff8f0'), color: p.Status === 'Accepted' ? '#4da685' : (p.Status === 'Declined' ? '#ef4444' : '#d97706') }}>
+                        {p.Status}
+                      </span>
+                      <button onClick={() => router.push(`/dashboard/proposals/${p.Proposal_ID}`)} style={{ background: 'none', border: 'none', color: '#4da685', fontWeight: 600, cursor: 'pointer' }}>View</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: '#a0a0a0', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No proposals have been generated for this contact.</p>
+            )}
+          </div>
+
+          {/* Questionnaire Answers */}
+          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', border: '1px solid #f0efe9' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', marginBottom: '1.5rem' }}>Questionnaire Answers</h2>
+            {inquiries.filter(inq => inq.Questionnaire_Data && Object.keys(inq.Questionnaire_Data).length > 0).length > 0 ? (
+              <div className="space-y-6">
+                {inquiries.filter(inq => inq.Questionnaire_Data && Object.keys(inq.Questionnaire_Data).length > 0).map(inq => (
+                  <div key={inq.Inquiry_ID} style={{ padding: '1.5rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #e2e8f0' }}>
+                      {inq.Service_Type} - {inq.Event_Date ? new Date(inq.Event_Date).toLocaleDateString() : 'No Date'}
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                      {Object.entries(inq.Questionnaire_Data).map(([key, value]) => (
+                        <div key={key}>
+                          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748b', marginBottom: '0.25rem' }}>{key}</div>
+                          <div style={{ fontSize: '1rem', color: '#0f172a' }}>{String(value) || '-'}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: '#a0a0a0', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No questionnaire answers submitted yet.</p>
+            )}
+          </div>
         </div>
       )}
 
