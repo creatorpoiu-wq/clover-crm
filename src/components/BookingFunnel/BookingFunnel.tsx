@@ -480,7 +480,7 @@ export default function BookingFunnel() {
               Ready to make it official?
             </h2>
             <p style={{ color: '#64748b', fontSize: '1.125rem', marginBottom: '2.5rem' }}>
-              Click below to continue and secure your session immediately.
+              Secure your date and book your wedding now.
             </p>
             <button 
               onClick={() => {
@@ -494,7 +494,7 @@ export default function BookingFunnel() {
               }}
               style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '1.25rem', fontWeight: 800, padding: '1.25rem 2.5rem', borderRadius: '9999px', backgroundColor: '#0f172a', color: 'white', textDecoration: 'none', border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px 0 rgba(15, 23, 42, 0.4)' }}
             >
-              Book Your Session Now
+              Book Your Wedding Now
             </button>
           </section>
         </div>
