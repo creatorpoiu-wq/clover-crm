@@ -77,7 +77,7 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
         fetch('/api/contract-templates')
           .then(res => res.json())
           .then(tData => {
-            const matched = tData.templates?.find((t: any) => t.Template_ID === templateId);
+            const matched = tData.templates?.find((t: any) => String(t.Template_ID) === String(templateId));
             if (matched) {
               setTemplate(matched);
               extractVariables(matched.Content);
