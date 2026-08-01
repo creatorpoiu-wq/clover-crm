@@ -7,7 +7,7 @@ interface Field {
   Label: string;
   Type: string;
   Options: string;
-  Is_Required: number;
+  Is_Required: boolean;
   Order_Index: number;
 }
 
@@ -51,7 +51,7 @@ export default function EventQuestionnaire({ data, setData, onNext, onBack, funn
     setData((prev: any) => ({ ...prev, [label]: value }));
   };
 
-  const isValid = fields.filter(f => f.Is_Required === 1).every(f => {
+  const isValid = fields.filter(f => f.Is_Required).every(f => {
     const val = data[f.Label];
     return val !== undefined && val !== null && String(val).trim() !== '';
   });
@@ -78,7 +78,7 @@ export default function EventQuestionnaire({ data, setData, onNext, onBack, funn
             <div key={field.Field_ID}>
               {field.Type !== 'checkbox' && (
                 <label style={labelStyle}>
-                  {field.Label} {field.Is_Required === 1 && <span style={{ color: '#ef4444' }}>*</span>}
+                  {field.Label} {field.Is_Required && <span style={{ color: '#ef4444' }}>*</span>}
                 </label>
               )}
 

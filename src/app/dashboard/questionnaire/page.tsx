@@ -8,7 +8,7 @@ interface Field {
   Label: string;
   Type: string;
   Options: string;
-  Is_Required: number;
+  Is_Required: boolean;
   Order_Index: number;
 }
 
@@ -155,7 +155,7 @@ export default function QuestionnaireBuilder() {
   };
 
   const editField = (f: Field) => {
-    setFieldFormData({ id: f.Field_ID, label: f.Label, fieldType: f.Type, options: f.Options, isRequired: f.Is_Required === 1, orderIndex: f.Order_Index });
+    setFieldFormData({ id: f.Field_ID, label: f.Label, fieldType: f.Type, options: f.Options, isRequired: !!f.Is_Required, orderIndex: f.Order_Index });
     setShowFieldForm(true);
   };
 
@@ -369,7 +369,7 @@ export default function QuestionnaireBuilder() {
                           <div style={{ color: '#9ca3af', fontWeight: 800, width: 24, paddingTop: 2 }}>{i+1}.</div>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: 800, color: '#111827', fontSize: 15, marginBottom: 4 }}>
-                              {f.Label} {f.Is_Required === 1 && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
+                              {f.Label} {f.Is_Required && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
                             </div>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6b7280', background: '#f3f4f6', padding: '4px 10px', borderRadius: 20, fontWeight: 600 }}>
                               {getIcon(f.Type)}
