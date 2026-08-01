@@ -53,6 +53,7 @@ const DEFAULT_SETTINGS = {
   confirmationMessage: "Your deposit has been received and your contract is securely signed. We are officially locked in!",
   contractTemplateId: null as number | null,
   questionnaireTemplateId: null as number | null,
+  requireReceiptUpload: false,
 };
 
 export default function BookingSettingsPage() {
