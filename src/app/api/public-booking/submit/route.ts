@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
               Name: clientName,
               Email: clientEmail,
               Phone: phone || undefined,
-              Package_ID: pkg?.Package_ID || pkg?.id || null,
+              Package_ID: (pkg?.Package_ID && pkg.Package_ID !== 'custom') ? pkg.Package_ID : (pkg?.id && pkg.id !== 'custom' ? pkg.id : null),
               Status: 'Client'
             })
             .eq('Contact_ID', inq.Contact_ID);
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
             Email: clientEmail,
             Phone: phone,
             Lead_Source: 'Booking Funnel',
-            Package_ID: pkg?.Package_ID || pkg?.id || null,
+            Package_ID: (pkg?.Package_ID && pkg.Package_ID !== 'custom') ? pkg.Package_ID : (pkg?.id && pkg.id !== 'custom' ? pkg.id : null),
             Status: 'Client'
           })
           .select()
