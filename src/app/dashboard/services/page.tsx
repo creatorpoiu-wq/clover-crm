@@ -6,7 +6,7 @@ import ImageUploadInput from '@/components/ui/ImageUploadInput';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SERVICE_TYPES = ['Photography', 'Videography', 'Photo & Video', 'Headshots', 'Commercial', 'Events', 'Other'];
-const WEDDING_SERVICE_TYPES = ['Wedding Photo', 'Wedding Video', 'Wedding Content Creation'];
+const WEDDING_SERVICE_TYPES = ['Wedding Photo', 'Wedding Video', 'Wedding Photo + Video', 'Wedding Content Creation'];
 
 interface TimeSlot {
   Slot_ID: number;
