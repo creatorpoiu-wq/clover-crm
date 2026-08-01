@@ -34,6 +34,9 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
   const [portalLink, setPortalLink] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [hpValue, setHpValue] = useState('');
+  
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState('');
 
   // ── Pricing ──────────────────────────────────────────────────────────────
   const pkgPrice  = pkg?.Price || 0;
@@ -83,6 +86,34 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
     setIsProcessing(true);
     setErrorMsg('');
     try {
+      let finalReceiptUrl = receiptUrl;
+      const requireUpload = funnelSettings?.requireReceiptUpload && activeMethodId !== 'paypal';
+
+      if (requireUpload && !receiptFile && !finalReceiptUrl) {
+        throw new Error('Please upload a screenshot or receipt of your payment to continue.');
+      }
+
+      if (receiptFile && !finalReceiptUrl) {
+        const upRes = await fetch('/api/public-booking/upload-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: receiptFile.name, contentType: receiptFile.type })
+        });
+        const upData = await upRes.json();
+        if (!upData.success) throw new Error('Failed to get upload URL for receipt');
+
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', upData.uploadUrl);
+          xhr.setRequestHeader('Content-Type', receiptFile.type);
+          xhr.onload = () => { if (xhr.status === 200) resolve(); else reject(new Error('Upload failed')); };
+          xhr.onerror = () => reject(new Error('Upload failed'));
+          xhr.send(receiptFile);
+        });
+        finalReceiptUrl = upData.publicUrl;
+        setReceiptUrl(upData.publicUrl);
+      }
+
       const res = await fetch('/api/public-booking/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,6 +127,9 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
           contractHtml,
           totalAmount: total,
           depositAmount: retainerDue,
+          paymentChoice: 'deposit',
+          paymentMethod: activeMethodId,
+          receiptUrl: finalReceiptUrl,
           _hp: hpValue,
         }),
       });
@@ -246,6 +280,33 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
               );
             })}
           </div>
+
+          {activeMethodId && activeMethodId !== 'paypal' && (
+            <div style={{ marginBottom: 24, padding: 16, border: '1px dashed #cbd5e1', borderRadius: 12, background: '#f8fafc' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>
+                  Payment Proof {funnelSettings?.requireReceiptUpload ? <span style={{ color: '#ef4444' }}>*</span> : '(Optional)'}
+                </span>
+                {receiptFile && <span style={{ fontSize: 12, color: '#10b981', fontWeight: 600 }}>✓ Attached</span>}
+              </div>
+              <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12, lineHeight: 1.5 }}>
+                {funnelSettings?.requireReceiptUpload 
+                  ? 'Please attach a screenshot of your sent payment to proceed.' 
+                  : 'You can attach a screenshot of your sent payment here for our records.'}
+              </p>
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    setReceiptFile(e.target.files[0]);
+                    setReceiptUrl(''); // Reset url so it re-uploads on submit
+                  }
+                }}
+                style={{ fontSize: 13 }}
+              />
+            </div>
+          )}
 
           {/* PayPal button OR Confirm button */}
           {activeMethodId === 'paypal' && paypalClientId ? (

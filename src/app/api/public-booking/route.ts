@@ -159,6 +159,7 @@ export async function GET(req: NextRequest) {
           paypalClientId: appConfig?.Paypal_Client_Id || null,
           retainerAmount: row?.Retainer_Amount != null ? Number(row.Retainer_Amount) : 50,
           retainerType: row?.Retainer_Type || 'percent',
+          requireReceiptUpload: row?.Require_Receipt_Upload || false,
         },
         userId: targetUserId,
         proposalPkgId,

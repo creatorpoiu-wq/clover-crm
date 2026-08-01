@@ -14,8 +14,7 @@ function getServiceClient() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceClient();
-    const payload = await req.json();
-    const { userId, contractId, questionnaire, pkg, addons, signature, contractHtml, totalAmount, depositAmount, paymentChoice, paymentMethod, _hp } = payload;
+    const { userId, contractId, questionnaire, pkg, addons, signature, contractHtml, totalAmount, depositAmount, paymentChoice, paymentMethod, _hp, receiptUrl } = await req.json();
 
     // Honeypot check - silently ignore spam
     if (_hp) {
@@ -179,7 +178,8 @@ export async function POST(req: NextRequest) {
           Issue_Date: today,
           Total_Amount: totalAmount,
           Status: status,
-          Due_Date: today
+          Due_Date: today,
+          Receipt_Url: receiptUrl || null
         })
         .select('Invoice_ID')
         .single();

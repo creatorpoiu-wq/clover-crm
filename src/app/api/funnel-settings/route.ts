@@ -79,6 +79,7 @@ export async function GET() {
       retainerAmount: row?.Retainer_Amount != null ? Number(row.Retainer_Amount) : 50,
       retainerType: row?.Retainer_Type || 'percent',
       paypalClientId: appConfig?.Paypal_Client_Id || null,
+      requireReceiptUpload: row?.Require_Receipt_Upload || false,
       userId: userAuth.user.id,
     };
 
@@ -100,6 +101,7 @@ export async function PUT(req: NextRequest) {
       whatsNextHeading, whatsNextSub, whatsNextSteps,
       contractTemplateId, questionnaireTemplateId,
       retainerAmount, retainerType,
+      requireReceiptUpload
     } = body;
 
     const { data: userAuth } = await supabase.auth.getUser();
@@ -143,6 +145,7 @@ export async function PUT(req: NextRequest) {
         Questionnaire_Template_ID: questionnaireTemplateId !== undefined ? questionnaireTemplateId : null,
         Retainer_Amount: retainerAmount != null ? Number(retainerAmount) : 50,
         Retainer_Type: retainerType || 'percent',
+        Require_Receipt_Upload: requireReceiptUpload !== undefined ? requireReceiptUpload : false,
       }, { onConflict: 'user_id' });
 
     if (error) throw error;

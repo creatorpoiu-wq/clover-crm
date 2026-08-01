@@ -576,6 +576,22 @@ export default function BookingSettingsPage() {
               ))}
             </div>
           )}
+
+          <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
+            <h4 style={{ fontSize: 14, fontWeight: 800, margin: '0 0 12px' }}>Payment Proof Options</h4>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: 'var(--background)', padding: 16, borderRadius: 12, border: '1px solid var(--border)' }}>
+              <input 
+                type="checkbox" 
+                checked={settings.requireReceiptUpload || false} 
+                onChange={e => setSettings(s => ({ ...s, requireReceiptUpload: e.target.checked }))} 
+                style={{ width: 18, height: 18 }} 
+              />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground)' }}>Require Receipt Upload</div>
+                <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>If enabled, clients must upload a screenshot/receipt of their payment before they can complete booking (applies to manual payment methods only).</div>
+              </div>
+            </label>
+          </div>
         </div>
       )}
 
