@@ -32,8 +32,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         Packages ( Package_ID, Name, Price, Duration, Items )
       `);
 
-    if (/^\\d+$/.test(id)) {
-      query = query.or(`Proposal_ID.eq.${id},Slug.eq.${id}`);
+    if (/^\d+$/.test(id)) {
+      query = query.eq('Proposal_ID', id);
     } else {
       query = query.eq('Slug', id);
     }
@@ -84,7 +84,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     // Resolve slug/id to actual Proposal_ID using service client (since public needs to accept)
     const serviceClient = getServiceClient();
     let resolveQuery = serviceClient.from('Proposals').select('Proposal_ID, user_id');
-    if (/^\d+$/.test(id)) resolveQuery = resolveQuery.or(`Proposal_ID.eq.${id},Slug.eq.${id}`);
+    if (/^\d+$/.test(id)) resolveQuery = resolveQuery.eq('Proposal_ID', id);
     else resolveQuery = resolveQuery.eq('Slug', id);
     
     const { data: existing } = await resolveQuery.single();
