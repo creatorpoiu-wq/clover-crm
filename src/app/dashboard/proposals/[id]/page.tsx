@@ -72,7 +72,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
           contactId: proposal.Contact_ID,
           inquiryId: proposal.Inquiry_ID,
           packageId: useCustomPackage ? null : (proposal.Package_ID || null),
-          customPackage: useCustomPackage ? { ...customPkg, price: Number(customPkg.price) || 0 } : null,
+          customPackage: useCustomPackage ? { ...customPkg, price: Number(String(customPkg.price).replace(/[^0-9.-]+/g, '')) || 0 } : null,
           coverImage: proposal.Cover_Image,
           customNotes: proposal.Custom_Notes,
           questionnaireTemplateId: proposal.Questionnaire_Template_ID,

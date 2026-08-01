@@ -538,7 +538,7 @@ export default function BookingFunnel() {
               <DigitalContract 
                 questionnaire={questionnaireData} 
                 pkg={selectedPackage} 
-                addons={selectedAddons} 
+                addons={funnelSettings?.addons?.filter((a: any) => selectedAddons.includes(a.id)) || []} 
                 signature={signature}
                 setSignature={setSignature}
                 setContractHtml={setContractHtml}
@@ -552,7 +552,7 @@ export default function BookingFunnel() {
               <PaymentCheckout 
                 questionnaire={questionnaireData} 
                 pkg={selectedPackage} 
-                addons={selectedAddons} 
+                addons={funnelSettings?.addons?.filter((a: any) => selectedAddons.includes(a.id)) || []} 
                 signature={signature}
                 contractHtml={contractHtml}
                 onBack={handleBack}
