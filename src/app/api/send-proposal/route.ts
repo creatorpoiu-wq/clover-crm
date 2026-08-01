@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // 3. Fetch Proposal Data
     const { data: proposal, error: propError } = await supabase
       .from('Proposals')
-      .select('Proposal_ID, Title')
+      .select('Proposal_ID, Title, Slug')
       .eq('Proposal_ID', proposalId)
       .single();
       
@@ -58,7 +58,9 @@ export async function POST(req: NextRequest) {
       : process.env.NEXT_PUBLIC_BASE_URL 
         || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) 
         || `${protocol}://${host}`;
-    const proposalLink = `${appUrl}/proposal/${proposal.Proposal_ID}`;
+    
+    const urlIdentifier = proposal.Slug || proposal.Proposal_ID;
+    const proposalLink = `${appUrl}/proposal/${urlIdentifier}`;
 
     // 5. Configure Nodemailer Transporter
     const transporter = nodemailer.createTransport({

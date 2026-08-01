@@ -139,16 +139,14 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
 
         {/* Branding */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '1.5rem 2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {config.Logo_Url && (
+          {config.Logo_Url ? (
             <img src={config.Logo_Url} alt={companyName} style={{ height: 36, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          ) : (
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.02em' }}>{companyName}</span>
           )}
-          <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.02em' }}>{companyName}</span>
         </div>
 
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem', zIndex: 10 }}>
-          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 9999, padding: '0.4rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '1.5rem' }}>
-            Personal Proposal
-          </div>
           <h1 style={{ fontSize: 'clamp(2rem, 6vw, 3.5rem)', fontWeight: 900, color: 'white', lineHeight: 1.1, marginBottom: '1rem', letterSpacing: '-0.03em' }}>
             {proposal.Title}
           </h1>

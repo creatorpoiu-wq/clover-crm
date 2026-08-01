@@ -96,7 +96,7 @@ export default function BookingSettingsPage() {
       .then(r => r.json())
       .then(d => { if (d.success && d.config?.customDomain) setCustomDomain(d.config.customDomain); });
       
-    fetch("/api/questionnaire?type=template")
+    fetch("/api/questionnaire?type=templates")
       .then(r => r.json())
       .then(d => { if (d.success) setQTemplates(d.templates || []); });
 

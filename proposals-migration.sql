@@ -7,6 +7,7 @@ create table if not exists public."Proposals" (
   "Contact_ID"                bigint references public."Contacts"("Contact_ID") on delete cascade,
   "Inquiry_ID"                bigint references public."Inquiries"("Inquiry_ID") on delete set null,
   "Title"                     text not null default 'Wedding Proposal',
+  "Slug"                      text unique,
   "Status"                    text not null default 'Draft', -- Draft | Sent | Accepted | Declined
   "Package_ID"                bigint references public."Packages"("Package_ID") on delete set null,
   "Addons"                    jsonb not null default '[]',

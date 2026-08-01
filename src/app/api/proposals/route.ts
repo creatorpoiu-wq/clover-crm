@@ -42,11 +42,22 @@ export async function POST(req: NextRequest) {
     // Allow creating draft proposals without a contact linked initially
     // if (!contactId) return NextResponse.json({ success: false, error: 'contactId is required' }, { status: 400 });
 
+    const titleValue = title || 'Wedding Proposal';
+    let slug = titleValue.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    if (!slug) slug = 'proposal';
+    
+    // Ensure uniqueness
+    const { data: existing } = await supabase.from('Proposals').select('Slug').eq('Slug', slug).maybeSingle();
+    if (existing) {
+      slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
+    }
+
     const { data, error } = await supabase
       .from('Proposals')
       .insert({
         user_id: user.id,
-        Title: title || 'Wedding Proposal',
+        Title: titleValue,
+        Slug: slug,
         Contact_ID: contactId,
         Inquiry_ID: inquiryId || null,
         Package_ID: packageId || null,

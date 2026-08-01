@@ -75,11 +75,11 @@ export async function GET(req: NextRequest) {
       const proposalId = searchParams.get('proposalId');
       
       if (proposalId) {
-        const { data: prop } = await supabase
-          .from('Proposals')
-          .select('*')
-          .eq('Proposal_ID', proposalId)
-          .single();
+        let propQuery = supabase.from('Proposals').select('*');
+        if (/^\\d+$/.test(proposalId)) propQuery = propQuery.or(`Proposal_ID.eq.${proposalId},Slug.eq.${proposalId}`);
+        else propQuery = propQuery.eq('Slug', proposalId);
+
+        const { data: prop } = await propQuery.single();
         if (prop) {
           proposalOverrides = prop;
           if (prop.user_id) targetUserId = prop.user_id;

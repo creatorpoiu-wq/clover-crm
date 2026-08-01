@@ -15,18 +15,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const supabase = getServiceClient(); // public read — no auth required
 
-    const { data, error } = await supabase
-      .from('Proposals')
-      .select(`
-        Proposal_ID, user_id, Title, Status, Custom_Notes, Cover_Image, Addons,
+    let query = supabase.from('Proposals').select(`
+        Proposal_ID, Slug, user_id, Title, Status, Custom_Notes, Cover_Image, Addons,
         Sent_At, Accepted_At, Declined_At, Decline_Reason,
         Questionnaire_Template_ID, Contract_Template_ID,
         Contact_ID,
         Contacts ( Name, Email ),
         Packages ( Package_ID, Name, Price, Duration, Items )
-      `)
-      .eq('Proposal_ID', id)
-      .single();
+      `);
+
+    if (/^\\d+$/.test(id)) {
+      query = query.or(`Proposal_ID.eq.${id},Slug.eq.${id}`);
+    } else {
+      query = query.eq('Slug', id);
+    }
+
+    const { data, error } = await query.single();
 
     if (error || !data) return NextResponse.json({ success: false, error: 'Proposal not found' }, { status: 404 });
 
@@ -55,14 +59,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
-// PUT /api/proposals/[id] — update proposal (owner only)
+// PUT /api/proposals/[id] — update proposal (owner or public for accept/decline)
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    
+    // Resolve slug/id to actual Proposal_ID using service client (since public needs to accept)
+    const serviceClient = getServiceClient();
+    let resolveQuery = serviceClient.from('Proposals').select('Proposal_ID, user_id');
+    if (/^\d+$/.test(id)) resolveQuery = resolveQuery.or(`Proposal_ID.eq.${id},Slug.eq.${id}`);
+    else resolveQuery = resolveQuery.eq('Slug', id);
+    
+    const { data: existing } = await resolveQuery.single();
+    if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+    const realId = existing.Proposal_ID;
+    const ownerId = existing.user_id;
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-
+    
     const body = await req.json();
     const {
       title, contactId, inquiryId, packageId, addons,
@@ -70,16 +85,26 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       contractTemplateId, status, declineReason,
     } = body;
 
+    const isPublicUpdate = !user && status && Object.keys(body).every(k => ['status', 'declineReason'].includes(k));
+    if (!user && !isPublicUpdate) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const updatePayload: any = {};
-    if (title !== undefined) updatePayload.Title = title;
-    if (contactId !== undefined) updatePayload.Contact_ID = contactId;
-    if (inquiryId !== undefined) updatePayload.Inquiry_ID = inquiryId;
-    if (packageId !== undefined) updatePayload.Package_ID = packageId;
-    if (addons !== undefined) updatePayload.Addons = addons;
-    if (coverImage !== undefined) updatePayload.Cover_Image = coverImage;
-    if (customNotes !== undefined) updatePayload.Custom_Notes = customNotes;
-    if (questionnaireTemplateId !== undefined) updatePayload.Questionnaire_Template_ID = questionnaireTemplateId;
-    if (contractTemplateId !== undefined) updatePayload.Contract_Template_ID = contractTemplateId;
+    if (user) {
+      // Owner-only fields
+      if (title !== undefined) updatePayload.Title = title;
+      if (contactId !== undefined) updatePayload.Contact_ID = contactId || null;
+      if (inquiryId !== undefined) updatePayload.Inquiry_ID = inquiryId || null;
+      if (packageId !== undefined) updatePayload.Package_ID = packageId || null;
+      if (addons !== undefined) updatePayload.Addons = addons;
+      if (coverImage !== undefined) updatePayload.Cover_Image = coverImage || null;
+      if (customNotes !== undefined) updatePayload.Custom_Notes = customNotes;
+      if (questionnaireTemplateId !== undefined) updatePayload.Questionnaire_Template_ID = questionnaireTemplateId || null;
+      if (contractTemplateId !== undefined) updatePayload.Contract_Template_ID = contractTemplateId || null;
+    }
+
+    // Status can be updated by owner or public
     if (status !== undefined) {
       updatePayload.Status = status;
       if (status === 'Sent') updatePayload.Sent_At = new Date().toISOString();
@@ -90,11 +115,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       }
     }
 
-    const { data, error } = await supabase
+    // Use service client if public, otherwise normal client
+    const clientToUse = isPublicUpdate ? serviceClient : supabase;
+
+    const { data, error } = await clientToUse
       .from('Proposals')
       .update(updatePayload)
-      .eq('Proposal_ID', id)
-      .eq('user_id', user.id)
+      .eq('Proposal_ID', realId)
+      .eq('user_id', ownerId)
       .select()
       .single();
 

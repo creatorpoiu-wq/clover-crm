@@ -28,7 +28,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
       fetch('/api/contacts').then(r => r.json()),
       fetch('/api/inquiries').then(r => r.json()),
       fetch('/api/packages?type=packages').then(r => r.json()),
-      fetch('/api/forms?type=template').then(r => r.json()),
+      fetch('/api/questionnaire?type=templates').then(r => r.json()),
       fetch('/api/contract-templates').then(r => r.json())
     ]).then(([propData, contData, inqData, pkgData, qData, cData]) => {
       if (propData.success) {
@@ -38,7 +38,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
       if (contData.success) setContacts(contData.contacts || []);
       if (inqData.success) setInquiries(inqData.inquiries || []);
       if (pkgData.success) setPackages(pkgData.packages || []);
-      if (qData.success) setQTemplates(qData.forms || []);
+      if (qData.success) setQTemplates(qData.templates || []);
       if (cData.success) setCTemplates(cData.templates || []);
     });
   }, [id]);
@@ -107,9 +107,10 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
     setSending(false);
   };
 
+  const urlIdentifier = proposal?.Slug || id;
   const proposalUrl = config?.Custom_Domain 
-    ? `https://${config.Custom_Domain}/proposal/${id}`
-    : (typeof window !== 'undefined' ? `${window.location.origin}/proposal/${id}` : `/proposal/${id}`);
+    ? `https://${config.Custom_Domain}/proposal/${urlIdentifier}`
+    : (typeof window !== 'undefined' ? `${window.location.origin}/proposal/${urlIdentifier}` : `/proposal/${urlIdentifier}`);
 
   const copyLink = () => {
     navigator.clipboard.writeText(proposalUrl);
@@ -257,7 +258,7 @@ export default function ProposalBuilderPage({ params }: { params: Promise<{ id: 
                 >
                   <option value="">-- Select --</option>
                   {qTemplates.map(q => (
-                    <option key={q.Form_ID} value={q.Form_ID}>{q.Title}</option>
+                    <option key={q.Template_ID} value={q.Template_ID}>{q.Name}</option>
                   ))}
                 </select>
               </div>
