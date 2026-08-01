@@ -25,6 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     let query = supabase.from('Proposals').select(`
         Proposal_ID, Slug, user_id, Title, Status, Custom_Notes, Cover_Image, Addons,
+        Custom_Package,
         Sent_At, Accepted_At, Declined_At, Decline_Reason,
         Questionnaire_Template_ID, Contract_Template_ID,
         Contact_ID,
@@ -114,6 +115,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       if (contactId !== undefined) updatePayload.Contact_ID = contactId || null;
       if (inquiryId !== undefined) updatePayload.Inquiry_ID = inquiryId || null;
       if (packageId !== undefined) updatePayload.Package_ID = packageId || null;
+      if ('customPackage' in body) updatePayload.Custom_Package = body.customPackage || null;
       if (addons !== undefined) updatePayload.Addons = addons;
       if (coverImage !== undefined) updatePayload.Cover_Image = coverImage || null;
       if (customNotes !== undefined) updatePayload.Custom_Notes = customNotes;

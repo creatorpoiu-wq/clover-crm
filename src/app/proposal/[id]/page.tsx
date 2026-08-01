@@ -49,8 +49,8 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
       body: JSON.stringify({ status: 'Accepted' }),
     });
     setDone('accepted');
-    // Redirect to booking funnel with proposalId
-    setTimeout(() => router.push(`/booking?proposalId=${id}`), 1500);
+    // Skip the funnel welcome/package page — go straight to Client Info (step 1)
+    setTimeout(() => router.push(`/booking?proposalId=${id}&skipWelcome=true`), 1500);
   };
 
   const handleDecline = async () => {
@@ -89,7 +89,19 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
     );
   }
 
-  const pkg = Array.isArray(proposal.Packages) ? proposal.Packages[0] : proposal.Packages;
+  const pkg = (() => {
+    // Prefer linked package row; fall back to custom package if set
+    if (Array.isArray(proposal.Packages)) return proposal.Packages[0];
+    if (proposal.Packages) return proposal.Packages;
+    if (proposal.Custom_Package) return {
+      ...proposal.Custom_Package,
+      Name: proposal.Custom_Package.name,
+      Price: proposal.Custom_Package.price,
+      Duration: proposal.Custom_Package.duration,
+      Items: proposal.Custom_Package.items,
+    };
+    return null;
+  })();
   const clientName = proposal.Contacts?.Name?.split(' ')[0] || 'there';
   const companyName = config.Company_Name || 'Your Photographer';
   const coverImage = proposal.Cover_Image || funnelSettings.Cover_Image || funnelSettings.Style_Photo_Url || '';

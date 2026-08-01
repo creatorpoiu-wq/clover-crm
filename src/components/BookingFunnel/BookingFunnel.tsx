@@ -10,13 +10,14 @@ import Link from 'next/link';
 import { getEmbedUrl } from '@/utils/embed';
 
 export default function BookingFunnel() {
-  const [currentStep, setCurrentStep] = useState(0); // 0 = Welcome, 1 = Client Info...
+  const searchParams = useSearchParams();
+  const skipWelcome = searchParams.get('skipWelcome') === 'true';
+  const [currentStep, setCurrentStep] = useState(skipWelcome ? 1 : 0); // skip to step 1 if coming from proposal
+  
   const [loading, setLoading] = useState(true);
   const [packages, setPackages] = useState<any[]>([]);
   const [funnelSettings, setFunnelSettings] = useState<any>(null);
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  
   // Funnel State
   const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
@@ -49,7 +50,20 @@ export default function BookingFunnel() {
               setFunnelSettings(data.settings);
               if (data.userId && !urlUserId) setResolvedUserId(data.userId);
               if (data.proposalPkgId) proposalPkgId = data.proposalPkgId;
-              
+
+              // If proposal has a custom package, use it immediately
+              if (data.proposalCustomPackage) {
+                const cp = data.proposalCustomPackage;
+                setSelectedPackage({
+                  Package_ID: 'custom',
+                  Name: cp.name,
+                  Price: cp.price,
+                  Duration: cp.duration,
+                  Items: cp.items,
+                  _isCustom: true,
+                });
+              }
+
               // Select all addons by default if it's a proposal
               if (proposalId && data.settings.addons) {
                 setSelectedAddons(data.settings.addons.map((a: any) => a.id));

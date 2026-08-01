@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       title, contactId, inquiryId, packageId,
-      addons, coverImage, customNotes,
+      customPackage, addons, coverImage, customNotes,
       questionnaireTemplateId, contractTemplateId,
     } = body;
 
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         Contact_ID: contactId,
         Inquiry_ID: inquiryId || null,
         Package_ID: packageId || null,
+        Custom_Package: customPackage || null,
         Addons: addons || [],
         Cover_Image: coverImage || null,
         Custom_Notes: customNotes || null,

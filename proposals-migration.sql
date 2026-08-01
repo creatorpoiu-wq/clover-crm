@@ -10,6 +10,7 @@ create table if not exists public."Proposals" (
   "Slug"                      text unique,
   "Status"                    text not null default 'Draft', -- Draft | Sent | Accepted | Declined
   "Package_ID"                bigint references public."Packages"("Package_ID") on delete set null,
+  "Custom_Package"            jsonb default null, -- { name, price, duration, items } for one-off packages
   "Addons"                    jsonb not null default '[]',
   "Cover_Image"               text,
   "Custom_Notes"              text,
@@ -22,6 +23,9 @@ create table if not exists public."Proposals" (
   "Created_At"                timestamptz not null default now(),
   "Updated_At"                timestamptz not null default now()
 );
+
+-- Add Custom_Package column if table already exists (safe to run multiple times)
+alter table public."Proposals" add column if not exists "Custom_Package" jsonb default null;
 
 -- Enable RLS
 alter table public."Proposals" enable row level security;

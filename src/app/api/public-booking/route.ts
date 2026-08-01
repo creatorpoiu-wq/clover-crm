@@ -72,11 +72,12 @@ export async function GET(req: NextRequest) {
     if (type === 'settings') {
       let proposalOverrides = null;
       let proposalPkgId = null;
+      let proposalCustomPackage = null;
       const proposalId = searchParams.get('proposalId');
       
       if (proposalId) {
         let propQuery = supabase.from('Proposals').select('*');
-        if (/^\\d+$/.test(proposalId)) propQuery = propQuery.or(`Proposal_ID.eq.${proposalId},Slug.eq.${proposalId}`);
+        if (/^\d+$/.test(proposalId)) propQuery = propQuery.eq('Proposal_ID', proposalId);
         else propQuery = propQuery.eq('Slug', proposalId);
 
         const { data: prop } = await propQuery.single();
@@ -84,6 +85,7 @@ export async function GET(req: NextRequest) {
           proposalOverrides = prop;
           if (prop.user_id) targetUserId = prop.user_id;
           if (prop.Package_ID) proposalPkgId = prop.Package_ID;
+          if (prop.Custom_Package) proposalCustomPackage = prop.Custom_Package;
         }
       }
 
@@ -159,7 +161,8 @@ export async function GET(req: NextRequest) {
           retainerType: row?.Retainer_Type || 'percent',
         },
         userId: targetUserId,
-        proposalPkgId
+        proposalPkgId,
+        proposalCustomPackage,
       });
     }
 
