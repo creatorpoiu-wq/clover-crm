@@ -45,7 +45,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ success: false, error: `Proposal query failed for ID "${id}": Multiple rows found or database error. ${error.message} (Code: ${error.code})` }, { status: 500 });
     }
     if (!data) {
-      return NextResponse.json({ success: false, error: `Proposal with ID or Slug "${id}" not found in the database. Please ensure it was created correctly.` }, { status: 404 });
+      return NextResponse.json({ 
+        success: false, 
+        error: `Proposal with ID or Slug "${id}" not found in the database. DB URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`
+      }, { status: 404 });
     }
 
     // Also fetch the photographer's branding from AppConfig
