@@ -307,7 +307,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
             {[
               { group: 'Signer 1', fields: ['Client Name', 'Client Email'] },
               { group: 'Signer 2', fields: ['Photographer Name'] },
-              { group: 'Document', fields: ['Contract Date', 'Total Amount', 'Effective Date'] },
+              { group: 'Document', fields: ['Contract Date', 'Effective Date', 'Amount', 'Total Amount', 'Deposit Amount', 'Balance', 'Due Date'] },
             ].map(({ group, fields }) => (
               <div key={group}>
                 <div style={{ padding: '6px 12px', fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', background: '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
@@ -416,7 +416,7 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
   const [variables, setVariables] = useState<Record<string, string>>({
     'Client Name': '', 'Client Email': '', 'Photographer Name': '',
     'Contract Date': new Date().toLocaleDateString(),
-    'Total Amount': '', 'Deposit Percentage': '50', 'Deposit Amount': '', 'Balance Due': '',
+    'Amount': '0', 'Total Amount': '0', 'Deposit Percentage': '50', 'Deposit Amount': '$0.00', 'Balance': '$0.00', 'Balance Due': '$0.00', 'Due Date': '',
     'Effective Date': new Date().toLocaleDateString(),
   });
 
@@ -430,7 +430,9 @@ export default function ContractBuilder({ onClose, onSave, onDraftSaved, initial
       setVariables(prev => ({
         ...prev,
         'Deposit Amount': `$${deposit.toFixed(2)}`,
-        'Balance Due': `$${balance.toFixed(2)}`
+        'Balance Due': `$${balance.toFixed(2)}`,
+        'Balance': `$${balance.toFixed(2)}`,
+        'Amount': prev['Total Amount']
       }));
     }
   }, [variables['Total Amount'], variables['Deposit Percentage']]);

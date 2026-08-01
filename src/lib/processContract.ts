@@ -40,6 +40,13 @@ export function processContractVariables(html: string, data: ContractVariableDat
   );
   const todayStr = data.todayDate || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
+  const totalNum = typeof data.totalAmount === 'string' ? parseFloat(data.totalAmount.replace(/[^0-9.-]+/g, '')) : (data.totalAmount || 0);
+  const retainerNum = typeof data.retainerAmount === 'string' ? parseFloat(data.retainerAmount.replace(/[^0-9.-]+/g, '')) : (data.retainerAmount !== undefined ? data.retainerAmount : totalNum * 0.5);
+  const balanceNum = Math.max(0, totalNum - retainerNum);
+  
+  const balanceStr = formatMoney(balanceNum, '[Balance Due]');
+  const dueDateStr = data.eventDate || '[Due Date]';
+
   const dictionary: Record<string, string> = {
     'client name': clientName,
     'full name': clientName,
@@ -74,6 +81,10 @@ export function processContractVariables(html: string, data: ContractVariableDat
     'retainer amount': retainerStr,
     'retainer': retainerStr,
     'deposit': retainerStr,
+    'deposit amount': retainerStr,
+    'balance': balanceStr,
+    'balance due': balanceStr,
+    'due date': dueDateStr,
   };
 
   if (data.customAnswers) {
