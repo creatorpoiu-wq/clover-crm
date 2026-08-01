@@ -72,26 +72,21 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
         .catch(() => {})
         .finally(() => setLoading(false));
     } else {
-      fetch('/api/questionnaire?type=settings')
-        .then(res => res.json())
-        .then(sData => {
-          const templateId = sData.settings?.Contract_Template_ID;
-          if (templateId) {
-            fetch('/api/contract-templates')
-              .then(res => res.json())
-              .then(tData => {
-                const matched = tData.templates?.find((t: any) => t.Template_ID === templateId);
-                if (matched) {
-                  setTemplate(matched);
-                  extractVariables(matched.Content);
-                }
-              })
-              .finally(() => setLoading(false));
-          } else {
-            setLoading(false);
-          }
-        })
-        .catch(() => setLoading(false));
+      const templateId = funnelSettings?.contractTemplateId;
+      if (templateId) {
+        fetch('/api/contract-templates')
+          .then(res => res.json())
+          .then(tData => {
+            const matched = tData.templates?.find((t: any) => t.Template_ID === templateId);
+            if (matched) {
+              setTemplate(matched);
+              extractVariables(matched.Content);
+            }
+          })
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     }
   }, [searchParams]);
 
