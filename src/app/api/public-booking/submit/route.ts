@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 import { slugifyName } from '@/lib/slugify';
-import { Client as SquareClient, Environment as SquareEnvironment } from 'square';
+import { SquareClient, SquareEnvironment } from 'square';
 import crypto from 'crypto';
 
 // The booking submission is PUBLIC — clients access it without a login session.
