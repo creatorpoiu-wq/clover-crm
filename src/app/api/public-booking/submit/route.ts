@@ -43,9 +43,7 @@ export async function POST(req: NextRequest) {
 
       try {
         const squareClient = new SquareClient({
-          bearerAuthCredentials: {
-            accessToken: appConfig.Square_Access_Token,
-          },
+          token: appConfig.Square_Access_Token,
           environment: SquareEnvironment.Production, 
         });
 
