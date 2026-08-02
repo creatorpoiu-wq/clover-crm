@@ -83,7 +83,6 @@ export default function RetainerCheckout({
       id: 'paypal',
       name: 'PayPal',
       icon: <Wallet size={20} />,
-      icon: <Wallet size={20} />,
       details: "Checkout securely with PayPal."
     });
   }
