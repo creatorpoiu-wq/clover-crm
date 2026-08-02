@@ -165,7 +165,6 @@ function SettingsInner() {
           twilioAuthToken,
           twilioPhone,
           businessSlug,
-          businessSlug,
           paypalClientId,
           squareAppId,
           squareLocationId,
