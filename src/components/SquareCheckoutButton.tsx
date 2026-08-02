@@ -28,7 +28,7 @@ export default function SquareCheckoutButton({ appId, locationId, amount, onSucc
               onError(err);
               setProcessing(false);
             }
-          } else if (token.status === 'ERROR' && token.errors && token.errors.length > 0) {
+          } else if (token.status === 'Error' && token.errors && token.errors.length > 0) {
             onError(new Error(token.errors[0].message || 'Tokenization failed'));
           }
         }}
