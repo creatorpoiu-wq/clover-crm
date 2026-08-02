@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { wrapWithGlobalBranding } from '@/lib/email-renderer';
 import { slugifyName } from '@/lib/slugify';
+import { Client as SquareClient, Environment as SquareEnvironment } from 'square';
+import crypto from 'crypto';
 
 // The booking submission is PUBLIC — clients access it without a login session.
 // We use the service role key to bypass RLS for reading/writing the CRM data.
@@ -14,7 +16,7 @@ function getServiceClient() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceClient();
-    const { userId, contractId, questionnaire, pkg, addons, signature, contractHtml, totalAmount, depositAmount, paymentChoice, paymentMethod, _hp, receiptUrl } = await req.json();
+    const { userId, contractId, questionnaire, pkg, addons, signature, contractHtml, totalAmount, depositAmount, paymentChoice, paymentMethod, _hp, receiptUrl, squareToken } = await req.json();
 
     // Honeypot check - silently ignore spam
     if (_hp) {
@@ -24,6 +26,47 @@ export async function POST(req: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Missing userId' }, { status: 400 });
+    }
+
+    // 1. Fetch vendor AppConfig to get Square Access Token (if needed)
+    const { data: appConfig } = await supabase
+      .from('AppConfig')
+      .select('Company_Name, Email_User, Email_Pass, Square_Access_Token, Email_Settings')
+      .eq('user_id', userId)
+      .single();
+
+    // 1b. Process Square Payment if selected
+    if (paymentMethod === 'square' && squareToken) {
+      if (!appConfig?.Square_Access_Token) {
+        return NextResponse.json({ success: false, error: 'Vendor has not configured Square payments properly.' }, { status: 400 });
+      }
+
+      try {
+        const squareClient = new SquareClient({
+          accessToken: appConfig.Square_Access_Token,
+          environment: SquareEnvironment.Production, 
+        });
+
+        // Convert depositAmount to cents for Square
+        const amountInCents = Math.round(depositAmount * 100);
+
+        await squareClient.paymentsApi.createPayment({
+          sourceId: squareToken,
+          idempotencyKey: crypto.randomUUID(),
+          amountMoney: {
+            amount: BigInt(amountInCents),
+            currency: 'USD',
+          },
+          note: `Booking retainer for ${pkg?.Name || 'Session'}`,
+        });
+      } catch (err: any) {
+        console.error('Square Payment Error:', err);
+        let msg = 'Payment failed.';
+        if (err.errors && err.errors.length > 0) {
+          msg = err.errors[0].detail || err.errors[0].code;
+        }
+        return NextResponse.json({ success: false, error: msg }, { status: 400 });
+      }
     }
 
     const today = new Date().toISOString().split('T')[0];
@@ -167,7 +210,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      const isPaid = paymentMethod === 'paypal' || paymentMethod === 'receipt' || !!receiptUrl;
+      const isPaid = paymentMethod === 'paypal' || paymentMethod === 'square' || paymentMethod === 'receipt' || !!receiptUrl;
       const status = isPaid ? (paymentChoice === 'full' ? 'Paid' : 'Partially Paid') : 'Unpaid';
 
       const { data: newInv } = await supabase

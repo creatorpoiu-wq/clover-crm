@@ -59,6 +59,11 @@ function SettingsInner() {
 
   // Payment Gateways
   const [paypalClientId, setPaypalClientId] = useState("");
+  const [squareAppId, setSquareAppId] = useState("");
+  const [squareLocationId, setSquareLocationId] = useState("");
+  const [squareAccessToken, setSquareAccessToken] = useState("");
+  const [enablePaypal, setEnablePaypal] = useState(true);
+  const [enableSquare, setEnableSquare] = useState(false);
 
   // Reset CRM state
   const [showResetModal, setShowResetModal] = useState(false);
@@ -98,6 +103,11 @@ function SettingsInner() {
           setTwilioPhone(data.config.twilioPhone || "");
           setBusinessSlug(data.config.businessSlug || "");
           setPaypalClientId(data.config.paypalClientId || "");
+          setSquareAppId(data.config.squareAppId || "");
+          setSquareLocationId(data.config.squareLocationId || "");
+          setSquareAccessToken(data.config.squareAccessToken || "");
+          setEnablePaypal(data.config.enablePaypal ?? true);
+          setEnableSquare(data.config.enableSquare ?? false);
           if (data.config.customDomain) {
             setCustomDomain(data.config.customDomain);
             handleCheckDomain(data.config.customDomain);
@@ -155,7 +165,13 @@ function SettingsInner() {
           twilioAuthToken,
           twilioPhone,
           businessSlug,
-          paypalClientId
+          businessSlug,
+          paypalClientId,
+          squareAppId,
+          squareLocationId,
+          squareAccessToken,
+          enablePaypal,
+          enableSquare
         })
       });
       if (res.ok) setMessage({ type: "success", text: "Settings saved successfully!" });
@@ -791,12 +807,43 @@ function SettingsInner() {
 
           <form onSubmit={handleSave} className="space-y-4 mb-6">
             <div>
-              <label style={labelStyle}>PayPal Client ID</label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <label style={labelStyle}>PayPal Client ID</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                  <input type="checkbox" checked={enablePaypal} onChange={e => setEnablePaypal(e.target.checked)} /> Enable PayPal
+                </label>
+              </div>
               <input type="text" style={inputStyle} value={paypalClientId}
                 onChange={e => setPaypalClientId(e.target.value)} placeholder="AYxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.4rem" }}>
-                Find this in your <a href="https://developer.paypal.com/dashboard/applications/live" target="_blank" rel="noreferrer" style={{ color: "var(--primary)", textDecoration: "underline" }}>PayPal Developer Dashboard</a>. Leave blank to disable PayPal checkout.
+                Find this in your <a href="https://developer.paypal.com/dashboard/applications/live" target="_blank" rel="noreferrer" style={{ color: "var(--primary)", textDecoration: "underline" }}>PayPal Developer Dashboard</a>.
               </p>
+            </div>
+            
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Square Web Payments</h3>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                  <input type="checkbox" checked={enableSquare} onChange={e => setEnableSquare(e.target.checked)} /> Enable Square
+                </label>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>Square Application ID</label>
+                  <input type="text" style={inputStyle} value={squareAppId}
+                    onChange={e => setSquareAppId(e.target.value)} placeholder="sq0idp-xxxxxxxxxxxxxxxx" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Square Location ID</label>
+                  <input type="text" style={inputStyle} value={squareLocationId}
+                    onChange={e => setSquareLocationId(e.target.value)} placeholder="LXXXXXXXXXXXX" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Square Access Token (Secret)</label>
+                  <input type="password" style={inputStyle} value={squareAccessToken}
+                    onChange={e => setSquareAccessToken(e.target.value)} placeholder="EAAAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+                </div>
+              </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button type="submit" className="btn btn-primary" style={{ width: "auto" }} disabled={saving}>

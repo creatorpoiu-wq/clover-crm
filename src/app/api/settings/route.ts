@@ -44,6 +44,11 @@ export async function GET() {
         businessSlug: config.Business_Slug || '',
         customDomain: config.Custom_Domain || '',
         paypalClientId: config.Paypal_Client_Id || '',
+        squareAppId: config.Square_App_Id || '',
+        squareLocationId: config.Square_Location_Id || '',
+        squareAccessToken: config.Square_Access_Token || '',
+        enablePaypal: config.Enable_Paypal ?? true,
+        enableSquare: config.Enable_Square ?? false,
       }
     });
   } catch (error: any) {
@@ -55,7 +60,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, emailUser, emailPass, businessLogo, businessAddress, brandColor, twilioSid, twilioAuthToken, twilioPhone, businessSlug, paypalClientId } = await req.json();
+    const { companyName, firstName, lastName, contactEmail, website, phone, timeZone, dateFormat, emailUser, emailPass, businessLogo, businessAddress, brandColor, twilioSid, twilioAuthToken, twilioPhone, businessSlug, paypalClientId, squareAppId, squareLocationId, squareAccessToken, enablePaypal, enableSquare } = await req.json();
     
     // Check if the user has an AppConfig row
     const { data: userAuth } = await supabase.auth.getUser();
@@ -81,7 +86,12 @@ export async function POST(req: NextRequest) {
       Twilio_Auth_Token: twilioAuthToken,
       Twilio_Phone_Number: twilioPhone,
       Business_Slug: businessSlug,
-      Paypal_Client_Id: paypalClientId
+      Paypal_Client_Id: paypalClientId,
+      Square_App_Id: squareAppId,
+      Square_Location_Id: squareLocationId,
+      Square_Access_Token: squareAccessToken,
+      Enable_Paypal: enablePaypal ?? true,
+      Enable_Square: enableSquare ?? false,
     };
 
     if (emailPass && emailPass.trim() !== '') {

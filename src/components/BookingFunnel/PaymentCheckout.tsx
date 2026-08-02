@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Lock, ArrowLeft, CheckCircle, AlertCircle, CreditCard, Building2, Smartphone, Wallet, FileText } from 'lucide-react';
 import PayPalCheckoutButton from '@/components/PayPalCheckoutButton';
+import SquareCheckoutButton from '@/components/SquareCheckoutButton';
 import PaymentInstruction from '@/components/PaymentInstruction';
 import { useSearchParams } from 'next/navigation';
 
@@ -18,6 +19,7 @@ interface Props {
 
 function PaymentIcon({ iconId }: { iconId: string }) {
   if (iconId === 'card')  return <CreditCard size={20} />;
+  if (iconId === 'square') return <CreditCard size={20} />;
   if (iconId === 'bank')  return <Building2 size={20} />;
   if (iconId === 'zelle') return <Smartphone size={20} />;
   if (iconId === 'paypal') return <Wallet size={20} />;
@@ -59,11 +61,16 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
         { id: 'zelle', name: 'Zelle',          icon: 'zelle', details: 'Send to: payments@studio.com' },
       ];
 
-  // Inject PayPal as a method if configured
   const paypalClientId = funnelSettings?.paypalClientId || null;
+  const enablePaypal = funnelSettings?.enablePaypal ?? true;
+  const squareAppId = funnelSettings?.squareAppId || null;
+  const squareLocationId = funnelSettings?.squareLocationId || null;
+  const enableSquare = funnelSettings?.enableSquare ?? false;
+
   const allMethods = [
     ...rawMethods,
-    ...(paypalClientId ? [{ id: 'paypal', name: 'PayPal', icon: 'paypal', details: '' }] : []),
+    ...(paypalClientId && enablePaypal ? [{ id: 'paypal', name: 'PayPal', icon: 'paypal', details: '' }] : []),
+    ...(squareAppId && squareLocationId && enableSquare ? [{ id: 'square', name: 'Credit Card (Square)', icon: 'square', details: '' }] : []),
   ];
 
   const activeMethodId = selectedMethodId || allMethods[0]?.id || '';
@@ -114,24 +121,30 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
         setReceiptUrl(upData.publicUrl);
       }
 
+      let paymentData: any = {
+        userId,
+        contractId: searchParams.get('contractId'),
+        questionnaire,
+        pkg,
+        addons,
+        signature,
+        contractHtml,
+        totalAmount: total,
+        depositAmount: retainerDue,
+        paymentChoice: 'deposit',
+        paymentMethod: activeMethodId,
+        receiptUrl: finalReceiptUrl,
+        _hp: hpValue,
+      };
+
+      if (activeMethodId === 'square' && arguments[0]) {
+        paymentData.squareToken = arguments[0];
+      }
+
       const res = await fetch('/api/public-booking/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          contractId: searchParams.get('contractId'),
-          questionnaire,
-          pkg,
-          addons,
-          signature,
-          contractHtml,
-          totalAmount: total,
-          depositAmount: retainerDue,
-          paymentChoice: 'deposit',
-          paymentMethod: activeMethodId,
-          receiptUrl: finalReceiptUrl,
-          _hp: hpValue,
-        }),
+        body: JSON.stringify(paymentData),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed to submit booking');
@@ -303,7 +316,6 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
             </div>
           )}
 
-          {/* PayPal button OR Confirm button */}
           {activeMethodId === 'paypal' && paypalClientId ? (
             <PayPalCheckoutButton
               clientId={paypalClientId}
@@ -312,9 +324,19 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
               onSuccess={() => handleSubmit()}
               onError={() => setErrorMsg('PayPal payment failed. Please try another method.')}
             />
+          ) : activeMethodId === 'square' && squareAppId && squareLocationId ? (
+            <SquareCheckoutButton
+              appId={squareAppId}
+              locationId={squareLocationId}
+              amount={retainerDue}
+              onSuccess={async (token) => {
+                await handleSubmit(token);
+              }}
+              onError={(err) => setErrorMsg(err.message || 'Square payment failed.')}
+            />
           ) : (
             <button
-              onClick={handleSubmit}
+              onClick={() => handleSubmit()}
               disabled={isProcessing}
               style={{
                 width: '100%', background: isProcessing ? '#9ca3af' : '#111827', color: '#fff',

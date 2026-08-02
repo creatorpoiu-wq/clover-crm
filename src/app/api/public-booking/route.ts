@@ -156,6 +156,10 @@ export async function GET(req: NextRequest) {
           whatsNextHeading: row?.Whats_Next_Heading || DEFAULTS.Whats_Next_Heading,
           whatsNextSub: row?.Whats_Next_Sub || DEFAULTS.Whats_Next_Sub,
           whatsNextSteps: row?.Whats_Next_Steps ? JSON.parse(row.Whats_Next_Steps) : JSON.parse(DEFAULTS.Whats_Next_Steps),
+          enablePaypal: appConfig?.Enable_Paypal ?? true,
+          enableSquare: appConfig?.Enable_Square ?? false,
+          squareAppId: appConfig?.Square_App_Id || null,
+          squareLocationId: appConfig?.Square_Location_Id || null,
           paypalClientId: appConfig?.Paypal_Client_Id || null,
           retainerAmount: row?.Retainer_Amount != null ? Number(row.Retainer_Amount) : 50,
           retainerType: row?.Retainer_Type || 'percent',
@@ -273,6 +277,10 @@ export async function GET(req: NextRequest) {
           paypalLink:          row?.Paypal_Link          || '',
           zelleContact:        row?.Zelle_Contact        || '',
           paypalClientId:      appConfig?.Paypal_Client_Id || null,
+          enablePaypal:        appConfig?.Enable_Paypal ?? true,
+          enableSquare:        appConfig?.Enable_Square ?? false,
+          squareAppId:         appConfig?.Square_App_Id || null,
+          squareLocationId:    appConfig?.Square_Location_Id || null,
         },
         userId: targetUserId
       });

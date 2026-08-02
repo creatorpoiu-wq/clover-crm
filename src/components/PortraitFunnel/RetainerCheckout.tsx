@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, CheckCircle2, FileText, CreditCard, Landmark, Wallet, AlertCircle } from 'lucide-react';
 import PayPalCheckoutButton from '../PayPalCheckoutButton';
+import SquareCheckoutButton from '../SquareCheckoutButton';
 
 interface RetainerCheckoutProps {
   userId: string;
@@ -53,7 +54,10 @@ export default function RetainerCheckout({
 
   // Re-map payment methods based on what's active in vendorInfo
   const activeMethods = vendorInfo?.paymentMethods || [];
-  const hasPaypal = vendorInfo?.paypalClientId && activeMethods.includes('PayPal');
+  const enablePaypal = vendorInfo?.enablePaypal ?? true;
+  const hasPaypal = vendorInfo?.paypalClientId && enablePaypal;
+  const enableSquare = vendorInfo?.enableSquare ?? false;
+  const hasSquare = vendorInfo?.squareAppId && vendorInfo?.squareLocationId && enableSquare;
 
   // Filter or build the methods list
   const paymentMethodsList = [];
@@ -79,7 +83,16 @@ export default function RetainerCheckout({
       id: 'paypal',
       name: 'PayPal',
       icon: <Wallet size={20} />,
+      icon: <Wallet size={20} />,
       details: "Checkout securely with PayPal."
+    });
+  }
+  if (hasSquare) {
+    paymentMethodsList.push({
+      id: 'square',
+      name: 'Credit Card (Square)',
+      icon: <CreditCard size={20} />,
+      details: "Checkout securely with credit card via Square."
     });
   }
   if (activeMethods.includes('Venmo') || activeMethods.includes('Zelle') || activeMethods.includes('Cash App')) {
@@ -111,27 +124,33 @@ export default function RetainerCheckout({
     setError('');
 
     try {
+      let paymentPayload: any = {
+        userId,
+        inquiryId, // Custom field for portrait funnel to map to existing inquiry
+        contractId: null, // New contract
+        questionnaire: {
+          'Event Date': selectedDate,
+          'Event Time': selectedTime
+        },
+        pkg: selectedPackage ? { Name: selectedPackage.name, Price: packageTotal } : { Name: 'Portrait Session', Price: packageTotal || retainerAmount },
+        addons: [],
+        signature,
+        contractHtml,
+        totalAmount: packageTotal || retainerAmount,
+        depositAmount: amountToPayToday,
+        paymentChoice,
+        paymentMethod: selectedMethod
+      };
+
+      if (selectedMethod === 'square' && arguments[0]) {
+        paymentPayload.squareToken = arguments[0];
+      }
+
       // Submit the final booking payload (Contract, Invoice, Calendar)
       const res = await fetch('/api/public-booking/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          inquiryId, // Custom field for portrait funnel to map to existing inquiry
-          contractId: null, // New contract
-          questionnaire: {
-            'Event Date': selectedDate,
-            'Event Time': selectedTime
-          },
-          pkg: selectedPackage ? { Name: selectedPackage.name, Price: packageTotal } : { Name: 'Portrait Session', Price: packageTotal || retainerAmount },
-          addons: [],
-          signature,
-          contractHtml,
-          totalAmount: packageTotal || retainerAmount,
-          depositAmount: amountToPayToday,
-          paymentChoice,
-          paymentMethod: selectedMethod
-        })
+        body: JSON.stringify(paymentPayload)
       });
 
       const data = await res.json();
@@ -364,29 +383,54 @@ export default function RetainerCheckout({
         </button>
         
         {paymentChoice !== null && (
-          selectedMethod === 'paypal' ? (
-            <div style={{ minWidth: 300 }}>
-              <PayPalCheckoutButton 
-                clientId={vendorInfo?.paypalClientId} 
-                amount={amountToPayToday} 
-                description={`${paymentChoice === 'full' ? 'Full Payment' : 'Retainer'} for ${selectedPackage?.name || 'Portrait Session'}`}
-                onSuccess={(details) => {
-                  // Details will contain PayPal order capture response
-                  handleComplete();
+            selectedMethod === 'paypal' ? (
+              <div style={{ marginTop: 24 }}>
+                <PayPalCheckoutButton 
+                  clientId={vendorInfo?.paypalClientId} 
+                  amount={amountToPayToday}
+                  description={`Retainer for ${selectedPackageName || 'Portrait Session'}`}
+                  onSuccess={() => handleComplete()}
+                  onError={() => setError('PayPal payment failed.')}
+                />
+              </div>
+            ) : selectedMethod === 'square' ? (
+              <div style={{ marginTop: 24 }}>
+                <SquareCheckoutButton 
+                  appId={vendorInfo?.squareAppId}
+                  locationId={vendorInfo?.squareLocationId}
+                  amount={amountToPayToday}
+                  onSuccess={async (token) => {
+                    await handleComplete(token);
+                  }}
+                  onError={(err) => setError(err.message || 'Square payment failed.')}
+                />
+              </div>
+            ) : (
+              <button 
+                onClick={() => handleComplete()}
+                disabled={isSubmitting}
+                style={{
+                  width: '100%',
+                  marginTop: 24,
+                  padding: '16px',
+                  backgroundColor: themeColor,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  opacity: isSubmitting ? 0.7 : 1
                 }}
-                onError={(err) => setError("PayPal payment failed. Please try again or use another method.")}
-              />
-            </div>
-          ) : (
-            <button
-              onClick={handleComplete}
-              disabled={isSubmitting}
-              className="btn btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', borderRadius: '0.75rem', color: 'white', fontWeight: 700, letterSpacing: '0.025em', textTransform: 'uppercase', transition: 'all 0.2s', cursor: isSubmitting ? 'wait' : 'pointer', backgroundColor: themeColor, border: 'none', opacity: isSubmitting ? 0.7 : 1 }}
-            >
-              {isSubmitting ? 'Processing...' : 'Confirm Payment & Book'} <CheckCircle2 size={18} />
-            </button>
-          )
+              >
+                {isSubmitting ? 'Processing...' : `Confirm & Book Session`}
+                {!isSubmitting && <CheckCircle2 size={20} />}
+              </button>
+            )
         )}
       </div>
     </div>
