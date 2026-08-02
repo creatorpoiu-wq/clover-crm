@@ -89,7 +89,7 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
     : `${retainerSetting}% Retainer`;
 
   // ── Submit Handler ────────────────────────────────────────────────────────
-  const handleSubmit = async () => {
+  const handleSubmit = async (squareToken?: string) => {
     setIsProcessing(true);
     setErrorMsg('');
     try {
@@ -137,8 +137,8 @@ export default function PaymentCheckout({ questionnaire, pkg, addons, signature,
         _hp: hpValue,
       };
 
-      if (activeMethodId === 'square' && arguments[0]) {
-        paymentData.squareToken = arguments[0];
+      if (squareToken) {
+        paymentData.squareToken = squareToken;
       }
 
       const res = await fetch('/api/public-booking/submit', {

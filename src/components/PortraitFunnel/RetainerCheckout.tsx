@@ -119,7 +119,7 @@ export default function RetainerCheckout({
     setSelectedMethod(paymentMethodsList[0].id);
   }
 
-  const handleComplete = async () => {
+  const handleComplete = async (squareToken?: string) => {
     setIsSubmitting(true);
     setError('');
 
@@ -142,8 +142,8 @@ export default function RetainerCheckout({
         paymentMethod: selectedMethod
       };
 
-      if (selectedMethod === 'square' && arguments[0]) {
-        paymentPayload.squareToken = arguments[0];
+      if (selectedMethod === 'square' && squareToken) {
+        paymentPayload.squareToken = squareToken;
       }
 
       // Submit the final booking payload (Contract, Invoice, Calendar)
