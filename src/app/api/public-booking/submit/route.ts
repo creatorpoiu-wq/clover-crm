@@ -213,13 +213,19 @@ export async function POST(req: NextRequest) {
       const isPaid = paymentMethod === 'paypal' || paymentMethod === 'square' || paymentMethod === 'receipt' || !!receiptUrl;
       const status = isPaid ? (paymentChoice === 'full' ? 'Paid' : 'Partially Paid') : 'Unpaid';
 
+      let finalInvoiceTotal = totalAmount;
+      if (isPaid && (paymentChoice === 'deposit' || paymentChoice === 'retainer')) {
+        lineItems.push({ description: 'Retainer / Deposit Paid', amount: -depositAmount, quantity: 1 });
+        finalInvoiceTotal = Math.max(0, totalAmount - depositAmount);
+      }
+
       const { data: newInv } = await supabase
         .from('Invoices')
         .insert({
           user_id: userId,
           Inquiry_ID: finalInquiryId,
           Issue_Date: today,
-          Total_Amount: totalAmount,
+          Total_Amount: finalInvoiceTotal,
           Status: status,
           Due_Date: today,
           Receipt_Url: receiptUrl || null

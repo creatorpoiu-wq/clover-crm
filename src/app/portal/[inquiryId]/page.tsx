@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Calendar, FileText, DollarSign, CheckCircle2, Clock, MessageSquare, ListTodo, DownloadCloud, Send, ExternalLink, Menu, X, ArrowRight } from 'lucide-react';
 import PayPalCheckoutButton from '@/components/PayPalCheckoutButton';
+import SquareCheckoutButton from '@/components/SquareCheckoutButton';
 
 export default function ClientPortal() {
   const params = useParams();
@@ -748,17 +749,46 @@ export default function ClientPortal() {
             {/* Payment Section */}
             {payingInvoice.Status !== 'Paid' && (
               <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-                {vendor.paypalClientId ? (
-                  <>
-                    <h4 style={{ margin: '0 0 16px', fontSize: 16, color: '#0f172a' }}>Complete your payment securely via PayPal</h4>
-                    <PayPalCheckoutButton 
-                      clientId={vendor.paypalClientId} 
-                      amount={Number(payingInvoice.Total_Amount)} 
-                      description={`Invoice #${payingInvoice.Invoice_ID}`}
-                      onSuccess={handleInvoicePayment}
-                      onError={(err: any) => alert("PayPal payment failed. Please try again or use another method.")}
+                <h4 style={{ margin: '0 0 16px', fontSize: 16, color: '#0f172a' }}>Complete your payment securely</h4>
+                {vendor.enableSquare && vendor.squareAppId && vendor.squareLocationId ? (
+                  <div style={{ maxWidth: 400, margin: '0 auto' }}>
+                    <SquareCheckoutButton
+                      appId={vendor.squareAppId}
+                      locationId={vendor.squareLocationId}
+                      onSuccess={async (paymentToken) => {
+                        try {
+                          const res = await fetch('/api/public-booking/submit', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              userId: vendor.id,
+                              questionnaire: data.event.questionnaireData || {},
+                              totalAmount: payingInvoice.Total_Amount,
+                              depositAmount: payingInvoice.Total_Amount,
+                              paymentChoice: 'full',
+                              paymentMethod: 'square',
+                              squareToken: paymentToken
+                            }),
+                          });
+                          const apiData = await res.json();
+                          if (!apiData.success) throw new Error(apiData.error);
+                          handleInvoicePayment(payingInvoice.Total_Amount);
+                        } catch (err: any) {
+                          alert('Payment failed: ' + err.message);
+                        }
+                      }}
+                      onError={(err) => alert('Square payment failed. ' + err.message)}
+                      amount={Number(payingInvoice.Total_Amount)}
                     />
-                  </>
+                  </div>
+                ) : vendor.enablePaypal && vendor.paypalClientId ? (
+                  <PayPalCheckoutButton 
+                    clientId={vendor.paypalClientId} 
+                    amount={Number(payingInvoice.Total_Amount)} 
+                    description={`Invoice #${payingInvoice.Invoice_ID}`}
+                    onSuccess={handleInvoicePayment}
+                    onError={(err: any) => alert("PayPal payment failed. Please try again or use another method.")}
+                  />
                 ) : (
                   <div style={{ color: '#64748b', fontSize: 14 }}>
                     Please contact <strong>{vendor.companyName}</strong> to arrange payment for this invoice.

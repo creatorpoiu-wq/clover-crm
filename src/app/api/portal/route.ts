@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
     // 6. Fetch Vendor Branding (AppConfig)
     const { data: config } = await supabase
       .from('AppConfig')
-      .select('Company_Name, Business_Logo, Brand_Color, Paypal_Client_Id')
+      .select('Company_Name, Business_Logo, Brand_Color, Paypal_Client_Id, Enable_Paypal, Enable_Square, Square_App_Id, Square_Location_Id')
       .eq('user_id', userId)
       .single();
 
@@ -104,8 +104,12 @@ export async function GET(req: NextRequest) {
           id: inquiry.user_id,
           companyName: config?.Company_Name || 'Your Photographer',
           businessLogo: config?.Business_Logo || null,
-          brandColor: config?.Brand_Color || '#0f172a',
-          paypalClientId: config?.Paypal_Client_Id || null
+          brandColor: config?.Brand_Color || '#111827',
+          paypalClientId: config?.Paypal_Client_Id || '',
+          enablePaypal: config?.Enable_Paypal ?? true,
+          enableSquare: config?.Enable_Square ?? false,
+          squareAppId: config?.Square_App_Id || '',
+          squareLocationId: config?.Square_Location_Id || ''
         },
         client: {
           name: Array.isArray((inquiry as any).Contacts) ? (inquiry as any).Contacts[0]?.Name : (inquiry as any).Contacts?.Name,

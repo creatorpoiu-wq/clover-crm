@@ -113,10 +113,18 @@ export default function PortraitContract({
   // Replace variables in template
   const replaceVars = (text: string) => {
     if (!text) return '';
+    const selectedPackageName = new URLSearchParams(window.location.search).get('package');
+    const selectedPackage = (vendorInfo?.packages || []).find((p: any) => p.name === selectedPackageName) || null;
+    const packageTotal = selectedPackage?.price ? Number(selectedPackage.price) : 0;
+    const retainerAmount = vendorInfo?.retainerAmount ? Number(vendorInfo.retainerAmount) : Math.round(packageTotal / 2);
+
     return processContractVariables(text, {
       clientName: contactName || "Client",
       eventDate: formattedDate,
       eventTime: selectedTime || 'TBD',
+      packageName: selectedPackage?.name || '',
+      totalAmount: packageTotal,
+      retainerAmount: retainerAmount,
       todayDate: new Date().toLocaleDateString(),
     });
   };

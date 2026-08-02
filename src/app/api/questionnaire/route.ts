@@ -107,10 +107,11 @@ export async function POST(req: NextRequest) {
       if (contractTemplateId !== undefined) updatePayload.Contract_Template_ID = contractTemplateId;
       if (questionnaireTemplateId !== undefined) updatePayload.Questionnaire_Template_ID = questionnaireTemplateId;
 
+      updatePayload.user_id = userId;
+
       const { error } = await supabase
         .from('Booking_Settings')
-        .update(updatePayload)
-        .eq('user_id', userId);
+        .upsert(updatePayload, { onConflict: 'user_id' });
 
       if (error) throw error;
       return NextResponse.json({ success: true });

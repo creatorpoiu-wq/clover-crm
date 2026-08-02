@@ -155,7 +155,11 @@ export default function DigitalContract({ questionnaire, pkg, addons, signature,
   const pkgPrice = pkg?.Price || 0;
   const addonsPrice = addons.reduce((sum, a) => sum + a.price, 0);
   const total = pkgPrice + addonsPrice;
-  const deposit = total * 0.5;
+  const retainerSetting = funnelSettings?.retainerAmount ?? 50;
+  const retainerType    = funnelSettings?.retainerType   || 'percent';
+  const deposit         = retainerType === 'fixed' 
+    ? Math.min(retainerSetting, total) 
+    : Math.round(total * (retainerSetting / 100));
 
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const clientName = questionnaire['Full Name'] || questionnaire['Name'] || questionnaire.name || '[Client Name]';
