@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         // Convert depositAmount to cents for Square
         const amountInCents = Math.round(depositAmount * 100);
 
-        await squareClient.paymentsApi.createPayment({
+        await squareClient.payments.createPayment({
           sourceId: squareToken,
           idempotencyKey: crypto.randomUUID(),
           amountMoney: {
