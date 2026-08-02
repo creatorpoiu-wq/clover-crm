@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
 
       const [{ data: row }, { data: appConfig }] = await Promise.all([
         supabase.from('Booking_Settings').select('*').eq('user_id', targetUserId).single(),
-        supabase.from('AppConfig').select('Paypal_Client_Id').eq('user_id', targetUserId).single(),
+        supabase.from('AppConfig').select('Paypal_Client_Id, Square_App_Id, Square_Location_Id, Enable_Paypal, Enable_Square').eq('user_id', targetUserId).single(),
       ]);
 
       const DEFAULTS = {
@@ -213,7 +213,7 @@ export async function GET(req: NextRequest) {
 
       const [{ data: row }, { data: appConfig }] = await Promise.all([
         supabase.from('Portrait_Settings').select('*').eq('user_id', targetUserId).single(),
-        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User, Website, Paypal_Client_Id').eq('user_id', targetUserId).single(),
+        supabase.from('AppConfig').select('Company_Name, Brand_Color, Business_Logo, Email_User, Website, Paypal_Client_Id, Square_App_Id, Square_Location_Id, Enable_Paypal, Enable_Square').eq('user_id', targetUserId).single(),
       ]);
 
       return NextResponse.json({
